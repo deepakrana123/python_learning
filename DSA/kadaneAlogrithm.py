@@ -12,4 +12,16 @@ def cyclicrotation(arr):
 print(cyclicrotation([2,-1,3,-2,4,6,7]))
 
 def kadaneAlgorithim(arr):
+ max=0
+ for i  in range(0,len(arr)):
+    sum=0
+    for j in range(i,len(arr)):
+       sum=sum+arr[j]
+
+       if(sum>max):
+          max=sum
+       
+ return max
+
+print(kadaneAlgorithim([1,2,3,-6,-2,5,1]))
     

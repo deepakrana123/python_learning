@@ -36,3 +36,10 @@ def sort1(arr):
 
 
 print(sort1([0, 2, 1, 1, 0, 2]))
+
+class Solution:
+    def kthGrammar(self, n: int, k: int):
+        str1=""
+        if(n==1): return 0
+
+        
