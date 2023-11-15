@@ -204,10 +204,12 @@ def isCycleDirectDfs(a,u,visited,inrecursion):
     visited[u]=True
     inrecursion[u]=True
     for value in a[u]:
-        if(visited[u]==False and isCycleDirectDfs(a,value,visited,inrecursion)):
-            return True
-        elif(inrecursion[value]==True):
-            return True
+        if(visited[u]==False):
+            if(isCycleDirectDfs(a,value,visited,inrecursion)==True):
+                return True
+            elif(inrecursion[value]==True):
+                return True
+    inrecursion[u]=False
     return False
 
 def isCycleDirectedDfs(vertex,arr):
@@ -222,7 +224,32 @@ def isCycleDirectedDfs(vertex,arr):
             return True
     return False
 
-print(isCycleDirectedDfs(6, [
+def detectCycleDfsDirect(a, u, my_array, inrecursion):
+    my_array[u] = True
+    inrecursion[u] = True
+    for value in a[u]:
+        if my_array[value] == False:
+            if detectCycleDfsDirect(a, value, my_array, inrecursion):
+                return True
+        elif inrecursion[value] == True:
+            return True
+    inrecursion[u] = False
+    return False
+
+def detectCycleDirectedDfs(vertex, adj):
+    a = {i: [] for i in range(vertex)}
+    for u, v in enumerate(adj):
+        for n in v:
+            a[u].append(n)
+    my_array = [False for _ in range(vertex)]
+    inrecursion = [False for _ in range(vertex)]
+    for i in range(vertex):
+        if my_array[i] == False and detectCycleDfsDirect(a, i, my_array, inrecursion):
+            return True
+
+    return False
+
+print(detectCycleDirectedDfs(6, [
     [1],
     [2, 3],
     [4],
@@ -230,37 +257,7 @@ print(isCycleDirectedDfs(6, [
     [],
     []
 ]))
-print(isCycleDirectedDfs(6,[ [1],[2],[0],[4], [3]]
+print(detectCycleDirectedDfs(6,[ [1],[2],[0],[4], [3]]
 ))
-
-def topoplogical(a,u,visited,stack):
-    visited[u]=True
-    for value in a[u]:
-        if(visited[value]==False):
-            topoplogical(a,value,visited,stack)
-    stack.append(u)
-
-
-def dfstopologicalsort(vertex,arr):
-    visited=[False]*(vertex)
-    stack=[False]*(vertex)
-    a={i:[] for i in range(vertex)}
-    for u,v in enumerate(arr):
-            for n in v:
-                a[u].append(n)
-    for i in range(vertex):
-        if(visited[i]==False ):
-            topoplogical(a,i , visited,stack)
-    result=[False]*(vertex)
-    while(stack.length!=0):
-        result.append(stack[stack.length-1])
-        stack.pop(stack.pop())
-    return result
-
-
-
-def topologicalSortThroughBfs(vertex,arr):
-    indegree=[]
-    for u in range(vertex):
-        for value in arr[u]:
-            indegree[value]=indegree[value]+1
+print(detectCycleDirectedDfs(2,[[1,0]]),"joojoo")
+print(detectCycleDirectedDfs(2,[[0,1],[1,0]]),"joo")
