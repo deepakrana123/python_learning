@@ -55,4 +55,4 @@ class Graph:
 # Your Graph object will be instantiated and called as such:
 # obj = Graph(n, edges)
 # obj.addEdge(edge)
-# param_2 = obj.shortestPath(node1,node2)
+# param_2 = obj.shortestPath(node1,node2)s
