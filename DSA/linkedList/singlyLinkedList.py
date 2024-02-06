@@ -64,5 +64,5 @@ class SinglyLinkList:
 
 
 #driver code
-myList=SinglyLinkList(0)
+# myList=SinglyLinkList(0)
         
