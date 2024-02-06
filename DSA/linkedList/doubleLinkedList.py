@@ -36,10 +36,67 @@ class DoubleyLinkedList:
                 return temp
             temp=temp.next
         return None
-    def insert_after(self,temp,data):
+    def insert_after_Poiiint(self,temp,data):
         if temp is not None:
-            n=Node(data,temp.next,)
-            
+            n=Node(data,temp,temp.next)
+            if temp.next is not None:
+                temp.next.prev=n
+            temp.next=n
+    def printAll(self):
+        temp=self.start
+        while temp.next!=None:
+            print(temp.val)
+            temp=temp.next
+    def delete_At_First(self):
+        if self.start !=None:
+            self.start=self.start.next
+            if self.start !=None:
+                self.start.prev=None
+    def delete_At_Last(self):
+        if self.start is None:
+            pass
+        elif self.start.next is None:
+            self.start=None
+        else:
+            temp=self.start
+            while temp!=None and temp.next!=None:
+                temp=temp.next
+            temp.prev.next=None
+        
+    def delete_At_Point(self,data):
+        if self.start is None:
+            pass
+        else:
+            temp=self.start
+            while temp!=None and temp.next!=None:
+                if temp.item==data:
+                    temp.next.prev=temp.prev
+                    if temp.prev is not None:
+                        temp.prev.next=temp.next
+                    else:
+                        self.start=temp.next
+                    break
+                temp=temp.next
+    def __iter__(self):
+        return DLLIerator(self.start)
+
+class DLLIerator:
+    def __init__(self,start):
+        self.current=start
+    def __iter__(self):
+        return self
+    def __next(self):
+        if not self.current:
+            raise StopIteration
+        data=self.current.item
+        self.current=self.current.item
+        return data
+                        
+                    
+                
+                
+        
+        
         
             
         
