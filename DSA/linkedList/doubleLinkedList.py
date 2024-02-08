@@ -89,7 +89,7 @@ class DLLIerator:
         if not self.current:
             raise StopIteration
         data=self.current.item
-        self.current=self.current.item
+        self.current=self.current.next
         return data
                         
                     
