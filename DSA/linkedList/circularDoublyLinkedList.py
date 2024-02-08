@@ -85,5 +85,40 @@ class CDLL:
             else:
                 self.start.prev.prev.next=self.start
                 self.start.prev=self.start.prev.prev
+    def delete_item(self,data):
+        if self.start is not None:
+            temp=self.start
+            if temp.item==data:
+                self.delete_First()
+            else:
+                temp=temp.next
+                while temp is not self.start:
+                    if temp.item==data:
+                        temp.next.prev=temp.prev
+                        temp.prev.next=temp.next
+                    temp=temp.next
+    def __iter__(self):
+        return CDLLIterator(self.start)
+        
+
+
+class CDLLIterator:
+    def __init__(self,start):
+        self.count=0
+        self.current=start
+    def __iter__(self):
+        return self
+    def __next__(self):
+        if self.current is None:
+            raise StopIteration
+        if self.current==self.start and self.count==1:
+            raise StopIteration
+        else:
+            self.count=1
+        data=self.current.item
+        self.current=self.current.next
+        return data
+       
+    
                 
             
