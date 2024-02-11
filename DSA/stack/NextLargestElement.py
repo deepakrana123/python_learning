@@ -71,3 +71,19 @@ def nextSmallestLeftElement(nums):
                 result.append(stack[-1])
         stack.append(nums[i])
     print(result)
+def dailyTemperatures(self, temperatures: List[int]) -> List[int]:
+        stack=[]
+        result=[]
+        for i in range(len(temperatures)-1,-1,-1):
+            while len(stack)>0 and temperatures[i]>=temperatures[stack[-1]]:
+                stack.pop()
+            if len(stack)==0:
+                result.append(0)
+            else:
+                result.append(stack[-1]-i)
+            stack.append(i)
+        return result[::-1]
+
+        
+print(dailyTemperatures([73,74,75,71,69,72,76,73]))
+    
