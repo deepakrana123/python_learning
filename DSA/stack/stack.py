@@ -36,6 +36,7 @@ class Stack(list):
     
     def pop(self):
         if not self.isEmpty():
+            # super helps to stop overiding if parent and child have same function name
             return super().pop()
         else:
             raise IndexError("Stack is Empty")
@@ -45,6 +46,12 @@ class Stack(list):
             return len(self)
         else:
             raise IndexError("Stack is Empty")
+    def insert(self,index,data):
+        raise AttributeError("Bhai na kar yeh")
+    
+s1=Stack()
+s1.insert()
+    
         
            
 
