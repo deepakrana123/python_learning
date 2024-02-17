@@ -49,8 +49,50 @@ class Stack(list):
     def insert(self,index,data):
         raise AttributeError("Bhai na kar yeh")
     
-s1=Stack()
-s1.insert()
+# s1=Stack()
+# s1.insert()
+
+
+class Node:
+    def __init__(self,item=None,next=None):
+        self.item=item
+        self.next=next
+        
+class StackLinkedList:
+    def __init__(self):
+        self.top=None
+        self.itemCount=0
+    def isEmpty(self):
+        return self.top==None
+    def push(self,data):
+        n=Node(data,self.top)
+        self.top=n
+        self.itemCount+=1
+    def pop(self):
+        if self.isEmpty():
+            raise IndexError("Stack is empty could pop")
+        else:
+            data=self.top.item
+            self.top=self.top.next
+            self.itemCount-=1
+            return data
+    def peek(self):
+        if self.isEmpty():
+            raise IndexError("Stack is empty")
+        return self.top.item
+    def size(self):
+        return self.itemCount
+    
+
+s1=StackLinkedList()
+s1.push(10)
+s1.push(11)
+s1.push(13)
+print("Total elements in the stack",s1.size(),s1.peek())
+    
+    
+
+        
     
         
            
