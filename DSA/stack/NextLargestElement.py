@@ -71,7 +71,7 @@ def nextSmallestLeftElement(nums):
                 result.append(stack[-1])
         stack.append(nums[i])
     print(result)
-def dailyTemperatures(self, temperatures: List[int]) -> List[int]:
+def dailyTemperatures(temperatures):
         stack=[]
         result=[]
         for i in range(len(temperatures)-1,-1,-1):
@@ -86,4 +86,20 @@ def dailyTemperatures(self, temperatures: List[int]) -> List[int]:
 
         
 print(dailyTemperatures([73,74,75,71,69,72,76,73]))
+def removeDuplicates(s):
+    stack=[]
+    for i in range(len(s)):
+        if len(stack)>0 and stack[-1]==s[i]:
+            stack.pop()
+        elif len(stack)==0 or stack[-1]!=s[i]:
+            stack.append(s[i])
+    ss=""
+    for i in range(len(stack)):
+            ss+=stack[i]
+    return ss
+
+print(removeDuplicates("abbaca"))
+
+# def basicCalculator(s):
+    
     
