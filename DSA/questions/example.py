@@ -182,8 +182,29 @@ def reverseWords(s):
             a.append(s[spaceIndex:i])
             spaceIndex=i+1
     a.append(s[spaceIndex:len(s)])
-    return a[::-1]
-print(reverseWords("the sky is blue"))
+    str1=""
+    for i in range(len(a)-1,-1,-1):
+        if a[i]=='':
+            continue
+        else:
+            str1+=a[i] +' '
+    return str1
+# print(reverseWords("  hello world  "))
+def reverseWords1(s):
+    p1=0
+    p2=0
+    d=[]
+    while(p1<len(s) and p2<len(s)):
+        if s[p1]==' ' and s[p1]!='':
+            if p1>p2:
+                d.append(s[p2:p1])
+            p2=p1+1
+        p1+=1
+    if p2<p1:
+        d.append(s[p2:p1])
+    d.reverse()
+    return " ".join(d)
+print(reverseWords1("a good   example"))     
 def frequencySort(s):
         dict1={}
         for i in range(len(s)):
@@ -195,8 +216,18 @@ def frequencySort(s):
         strs=""
         for keys in a:
             strs+=keys
-        print(strs.strip())
-print(frequencySort("tree"))
+        return strs.strip()
+# print(frequencySort("tree"))
+def longestCommonPrefix(strs):
+    ans=""
+    for n in zip(*strs):
+        if len(set(n))==1:
+            ans+=n[0]
+    return ans
+            
+    
+print(longestCommonPrefix(["flower","flow","flight"]))
+
     
     
         
