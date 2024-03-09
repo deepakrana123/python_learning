@@ -111,7 +111,7 @@ def setZeros(a):
             if a[i][j]==-1:
                 a[i][j]=0
     return a
-print(setZeros([[1, 1, 1], [1, 0, 1], [1, 1, 1]]))
+# print(setZeros([[1, 1, 1], [1, 0, 1], [1, 1, 1]]))
 
 def rotateMatrix(a):
     m=len(a)
@@ -121,7 +121,7 @@ def rotateMatrix(a):
         for j in range(n):
             dp[i][j]=a[n-j-1][m-i-1]
     dp.reverse()
-    print(dp)
+    # print(dp)
 rotateMatrix([[1,2,3],[4,5,6],[7,8,9]])
 def rearrange(a):
     even=[]
@@ -140,7 +140,7 @@ def rearrange1(a):
     neg=1
     ans=[0]*(len(a))
     for i in range(len(a)):
-        print(i,"i")
+        # print(i,"i")
         if a[i]<0:
             ans[neg]=a[i]
             neg+=2
@@ -148,6 +148,59 @@ def rearrange1(a):
             ans[pos]=a[i]
             pos+=2
     return ans
-print(rearrange1([1,2,-4,-5]))
+# print(rearrange1([1,2,-4,-5]))
 
+
+def lonestSubarray(a,k):
+    n=len(a)
+    max1=float("-inf")
+    for i in range(len(a)):
+        sum1=a[i]
+        for j in range(i+1,len(a)):
+            sum1+=a[j]
+            if(sum1==k):
+                max1=max(max1,j-i+1)
+    return max1
+# print(lonestSubarray([2, 3, 5, 1, 9],10))
+def isIsomorphic(s,t):
+    dict1={}
+    if len(s)!=len(t):
+        return False
+    for i in range(len(s)):
+        if(dict1.get(s[i])):
+            if dict1[s[i]]!=t[i]:
+                return False
+        else:
+            dict1[s[i]]=t[i]
+    return True
+# print(isIsomorphic("egg","ade"))
+def reverseWords(s):
+    spaceIndex=0
+    a=[]
+    for i in range(len(s)):
+        if s[i]==' ':
+            a.append(s[spaceIndex:i])
+            spaceIndex=i+1
+    a.append(s[spaceIndex:len(s)])
+    return a[::-1]
+print(reverseWords("the sky is blue"))
+def frequencySort(s):
+        dict1={}
+        for i in range(len(s)):
+            if dict1.get(s[i]):
+                dict1[s[i]]+=1
+            else:
+                dict1[s[i]]=1
+        a=dict(sorted(dict1.items(), key=lambda item: item[1], reverse=True))
+        strs=""
+        for keys in a:
+            strs+=keys
+        print(strs.strip())
+print(frequencySort("tree"))
+    
+    
+        
+
+            
+            
                 
