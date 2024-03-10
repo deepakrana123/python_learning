@@ -55,8 +55,6 @@ def twiceElementInArr(arr):
     for i in range(len(arr)):
         elem = elem^arr[i]
     return elem
-# print(union({1,2,3,4,5},{2,3,4,4,5}))
-# print(twiceElementInArr([4, 1, 2, 1, 2/]),"a")
 def findMaxConsecutiveOnes(nums):
     max1=float("-inf")
     val=0
@@ -67,8 +65,6 @@ def findMaxConsecutiveOnes(nums):
             val=0
         max1=max(max1,val)
     return max1
-# print(findMaxConsecutiveOnes([1,0,1,1,0,1]))
-
 def minimumLength(s):
     m=0
     n=len(s)-1
@@ -81,14 +77,7 @@ def minimumLength(s):
        
         
     return n-m+1
-
-# def largestNumber(nums):
-    
-#     print(nums)
-
-# largestNumber([3,30,34,5,9])
-# def printLogestCommonSubsequence(s1,s2):
-#     t=dp=[[0 for j in range(len(s1)+1)] for i in range(len(s2))]
+    t=dp=[[0 for j in range(len(s1)+1)] for i in range(len(s2))]
 def markCol(matrix,m,n,j):
     for i in range(n):
         if matrix[i][j]!=0:
@@ -111,7 +100,6 @@ def setZeros(a):
             if a[i][j]==-1:
                 a[i][j]=0
     return a
-# print(setZeros([[1, 1, 1], [1, 0, 1], [1, 1, 1]]))
 
 def rotateMatrix(a):
     m=len(a)
@@ -122,7 +110,6 @@ def rotateMatrix(a):
             dp[i][j]=a[n-j-1][m-i-1]
     dp.reverse()
     # print(dp)
-rotateMatrix([[1,2,3],[4,5,6],[7,8,9]])
 def rearrange(a):
     even=[]
     odd=[]
@@ -148,8 +135,6 @@ def rearrange1(a):
             ans[pos]=a[i]
             pos+=2
     return ans
-# print(rearrange1([1,2,-4,-5]))
-
 
 def lonestSubarray(a,k):
     n=len(a)
@@ -161,7 +146,6 @@ def lonestSubarray(a,k):
             if(sum1==k):
                 max1=max(max1,j-i+1)
     return max1
-# print(lonestSubarray([2, 3, 5, 1, 9],10))
 def isIsomorphic(s,t):
     dict1={}
     if len(s)!=len(t):
@@ -173,7 +157,6 @@ def isIsomorphic(s,t):
         else:
             dict1[s[i]]=t[i]
     return True
-# print(isIsomorphic("egg","ade"))
 def reverseWords(s):
     spaceIndex=0
     a=[]
@@ -189,7 +172,6 @@ def reverseWords(s):
         else:
             str1+=a[i] +' '
     return str1
-# print(reverseWords("  hello world  "))
 def reverseWords1(s):
     p1=0
     p2=0
@@ -203,8 +185,7 @@ def reverseWords1(s):
     if p2<p1:
         d.append(s[p2:p1])
     d.reverse()
-    return " ".join(d)
-print(reverseWords1("a good   example"))     
+    return " ".join(d)     
 def frequencySort(s):
         dict1={}
         for i in range(len(s)):
@@ -217,21 +198,137 @@ def frequencySort(s):
         for keys in a:
             strs+=keys
         return strs.strip()
-# print(frequencySort("tree"))
 def longestCommonPrefix(strs):
     ans=""
     for n in zip(*strs):
         if len(set(n))==1:
             ans+=n[0]
     return ans
-            
-    
-print(longestCommonPrefix(["flower","flow","flight"]))
-
-    
-    
+def intersection(nums1, nums2):
+        a=set()
+        i=0
+        j=0
+        c=sorted(nums1)
+        d=sorted(nums2)
+        print(c,d)
+        while(i<len(c) and j<len(d)):
+            if(c[i]>d[j]):
+                j+=1
+            elif(c[i]<d[j]):
+                i+=1
+            else:
+                a.add(c[i])
+                i+=1
+                j+=1
         
+        return list(a)
+def longestSubarray(arr,k):
+    max1=float("-inf")
+    for i in range(len(arr)):
+        sum=0
+        for j in range(i,len(arr)):
+            sum+=arr[j]
+            if sum==k:
+                max1=max(max1,j-i+1)
+    print(max1)
+def twoSum(arr,target):
+    for i in range(len(arr)):
+        for j in range(i+1,len(arr)):
+            if arr[i]+arr[j]==target:
+                return [i,j]
 
-            
-            
-                
+def twoSum1(arr,target):
+    dict1={}
+    for i in range(len(arr)):
+        a=target-arr[i]
+        if arr[i] in dict1:
+            return [i,dict1[arr[i]]]
+        else:
+            dict1[a]=i
+def majorityElement(arr):
+    count=0
+    element=1
+    for i in range(len(arr)):
+        if count==0:
+            count+=1
+            element=arr[i]
+        elif element==arr[i]:
+            count+=1
+        else:
+            count-=1
+    if count>=len(arr)//2:
+        return element
+
+def maximumSubarraySum(arr):
+    max_so_far=float("-inf")
+    max_ending=0
+    for i in range(len(arr)):
+        max_ending=max_ending+arr[i]
+        if max_so_far<max_ending:
+            max_so_far=max_ending
+        if max_ending<0:
+            max_ending=0
+    return max_so_far
+def spiralOrder(matrix):
+        m=len(matrix)
+        n=len(matrix[0])
+        top=0
+        down=m-1
+        left=0
+        right=n-1
+        dirs=0
+        result=[]
+        while(top<=down and left<=right):
+            if dirs==0:
+                for i in range(left,right+1):
+                    result.append(matrix[top][i])
+                top+=1
+            elif dirs==1:
+                for i in range(top,down+1):
+                    result.append(matrix[i][right])
+                right-=1
+            elif dirs==2:
+                for i in range(right,left-1,-1):
+                    result.append(matrix[down][i])
+                down-=1
+            elif dirs==3:
+                for i in range(down,top-1,-1):
+                    result.append(matrix[i][left])
+                left+=1
+            dirs=(dirs+1)%4
+        return result
+def spiralOrder1(u):
+    matrix = [[0] * u for _ in range(u)]
+    top=0
+    left=0
+    down=u-1
+    right=u-1
+    n=1
+    dirs=0
+    while( top<=down and left<=right):
+        if dirs==0:
+            for i in range(left,right+1):
+                matrix[top][i]=n
+                n+=1
+            top+=1
+        
+        elif dirs==1:
+            for i in range(top,down+1):
+                matrix[i][right]=n
+                n+=1
+            right-=1
+        elif dirs==2:
+            for i in range(right,left-1,-1):
+                matrix[down][i]=n
+                n+=1
+            down-=1
+        elif dirs==3:
+            for i in range(down,top-1,-1):
+                matrix[i][left]=n
+                n+=1
+            left+=1
+        dirs=(dirs+1)%4
+        if n>u*u:
+            return matrix
+    return matrix
+print(spiralOrder1(3))
