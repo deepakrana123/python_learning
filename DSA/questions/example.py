@@ -331,4 +331,45 @@ def spiralOrder1(u):
         if n>u*u:
             return matrix
     return matrix
-print(spiralOrder1(3))
+def customSortString(order,s):
+    dict1={}
+    for value in s:
+        if dict1.get(value):
+            dict1[value]+=1
+        else:
+            dict1[value]=1
+    str=""
+    for value in order:
+        if dict1.get(value):
+            for i in range(dict1[value]):
+                str+=value
+                dict1[value]-=1
+    for key in dict1:
+        if dict1[key]!=0:
+            for i in range(dict1[key]):
+                str+=key
+                dict1[key]-=1
+    return str
+def longestConsecutive(nums1,nums2):
+    return nums1==nums2
+from collections import deque 
+def rotateString(s, goal):
+    l1=deque([])
+    l2=deque([])
+    for num in s:
+        l1.append(num)
+    for i in range(len(goal)):
+        l2.append(goal[i])
+    i=len(l2)
+    while(i>=0):
+        if l1==l2:
+            return True
+        a=l2.pop()
+        l2.appendleft(a)
+        i-=1
+    return l1==l2
+    
+        
+        
+print(rotateString( "abcde", "cdeba"))
+    
