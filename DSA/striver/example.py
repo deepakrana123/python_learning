@@ -4,51 +4,51 @@ def linearSearch(arr,num):
             return i
     raise IndexError("No index found")
 
-# def union(arr1,arr2):
-#     d={}
-#     e=[]
-#     f= set()
-#     for num in arr1:
-#         if d.get(num) is not None:
-#             d[num]+=1
-#         else:
-#             d[num]=1
-#     for num in arr2:
-#         if d.get(num) is not None:
-#             d[num]+=1
-#         else:
-#             d[num]=1
-#     for n in d:
-#         e.append(n)
-#     for num in arr1:
-#         f.add(num)
-#     for num in arr2:
-#         f.add(num)
-#     ws=[]
-#     n=len(arr1)
-#     m=len(arr2)
-#     i=0
-#     j=0
-#     while i<n and j<m:
-#         if arr1[i]<=arr2[j]:
-#             if len(ws)==0 or ws[-1]!=arr1[i]:
-#                 ws.append(arr1[i])
-#             i+=1
-#         else:
-#             if len(ws)==0 or ws[-1]!=arr2[j]:
-#                 ws.append(arr1[j])
-#             j+=1
-#     while i < m: 
-#         if ws[-1] != arr1[i]:
-#             ws.append(arr1[i])
-#         i+=1
-#     while j < n: 
-#         if ws[-1] != arr1[i]:
-#             ws.append(arr1[i])
-#         j+=1
-#     return ws
+def union(arr1,arr2):
+    d={}
+    e=[]
+    f= set()
+    for num in arr1:
+        if d.get(num) is not None:
+            d[num]+=1
+        else:
+            d[num]=1
+    for num in arr2:
+        if d.get(num) is not None:
+            d[num]+=1
+        else:
+            d[num]=1
+    for n in d:
+        e.append(n)
+    for num in arr1:
+        f.add(num)
+    for num in arr2:
+        f.add(num)
+    ws=[]
+    n=len(arr1)
+    m=len(arr2)
+    i=0
+    j=0
+    while i<n and j<m:
+        if arr1[i]<=arr2[j]:
+            if len(ws)==0 or ws[-1]!=arr1[i]:
+                ws.append(arr1[i])
+            i+=1
+        else:
+            if len(ws)==0 or ws[-1]!=arr2[j]:
+                ws.append(arr1[j])
+            j+=1
+    while i < m: 
+        if ws[-1] != arr1[i]:
+            ws.append(arr1[i])
+        i+=1
+    while j < n: 
+        if ws[-1] != arr1[i]:
+            ws.append(arr1[i])
+        j+=1
+    return ws
 
-#     # return f
+    # return f
 
 def twiceElementInArr(arr):
     elem=0
@@ -368,7 +368,7 @@ def rotateString(s, goal):
         l2.appendleft(a)
         i-=1
     return l1==l2
-    
+
         
         
 print(rotateString( "abcde", "cdeba"))
