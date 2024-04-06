@@ -4,51 +4,51 @@ def linearSearch(arr,num):
             return i
     raise IndexError("No index found")
 
-# def union(arr1,arr2):
-#     d={}
-#     e=[]
-#     f= set()
-#     for num in arr1:
-#         if d.get(num) is not None:
-#             d[num]+=1
-#         else:
-#             d[num]=1
-#     for num in arr2:
-#         if d.get(num) is not None:
-#             d[num]+=1
-#         else:
-#             d[num]=1
-#     for n in d:
-#         e.append(n)
-#     for num in arr1:
-#         f.add(num)
-#     for num in arr2:
-#         f.add(num)
-#     ws=[]
-#     n=len(arr1)
-#     m=len(arr2)
-#     i=0
-#     j=0
-#     while i<n and j<m:
-#         if arr1[i]<=arr2[j]:
-#             if len(ws)==0 or ws[-1]!=arr1[i]:
-#                 ws.append(arr1[i])
-#             i+=1
-#         else:
-#             if len(ws)==0 or ws[-1]!=arr2[j]:
-#                 ws.append(arr1[j])
-#             j+=1
-#     while i < m: 
-#         if ws[-1] != arr1[i]:
-#             ws.append(arr1[i])
-#         i+=1
-#     while j < n: 
-#         if ws[-1] != arr1[i]:
-#             ws.append(arr1[i])
-#         j+=1
-#     return ws
+def union(arr1,arr2):
+    d={}
+    e=[]
+    f= set()
+    for num in arr1:
+        if d.get(num) is not None:
+            d[num]+=1
+        else:
+            d[num]=1
+    for num in arr2:
+        if d.get(num) is not None:
+            d[num]+=1
+        else:
+            d[num]=1
+    for n in d:
+        e.append(n)
+    for num in arr1:
+        f.add(num)
+    for num in arr2:
+        f.add(num)
+    ws=[]
+    n=len(arr1)
+    m=len(arr2)
+    i=0
+    j=0
+    while i<n and j<m:
+        if arr1[i]<=arr2[j]:
+            if len(ws)==0 or ws[-1]!=arr1[i]:
+                ws.append(arr1[i])
+            i+=1
+        else:
+            if len(ws)==0 or ws[-1]!=arr2[j]:
+                ws.append(arr1[j])
+            j+=1
+    while i < m: 
+        if ws[-1] != arr1[i]:
+            ws.append(arr1[i])
+        i+=1
+    while j < n: 
+        if ws[-1] != arr1[i]:
+            ws.append(arr1[i])
+        j+=1
+    return ws
 
-#     # return f
+    # return f
 
 def twiceElementInArr(arr):
     elem=0
@@ -331,4 +331,45 @@ def spiralOrder1(u):
         if n>u*u:
             return matrix
     return matrix
-print(spiralOrder1(3))
+def customSortString(order,s):
+    dict1={}
+    for value in s:
+        if dict1.get(value):
+            dict1[value]+=1
+        else:
+            dict1[value]=1
+    str=""
+    for value in order:
+        if dict1.get(value):
+            for i in range(dict1[value]):
+                str+=value
+                dict1[value]-=1
+    for key in dict1:
+        if dict1[key]!=0:
+            for i in range(dict1[key]):
+                str+=key
+                dict1[key]-=1
+    return str
+def longestConsecutive(nums1,nums2):
+    return nums1==nums2
+from collections import deque 
+def rotateString(s, goal):
+    l1=deque([])
+    l2=deque([])
+    for num in s:
+        l1.append(num)
+    for i in range(len(goal)):
+        l2.append(goal[i])
+    i=len(l2)
+    while(i>=0):
+        if l1==l2:
+            return True
+        a=l2.pop()
+        l2.appendleft(a)
+        i-=1
+    return l1==l2
+
+        
+        
+print(rotateString( "abcde", "cdeba"))
+    
