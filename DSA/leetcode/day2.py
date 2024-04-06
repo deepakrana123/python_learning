@@ -41,6 +41,21 @@ def makeGood(s):
 print(makeGood("Pp"))
 print(makeGood( "leEeetcode"))
 
+def dfs(adj,u,parent,visited):
+    if visited[u]==True:
+        return True
+    visited[u]=True
+    for v in adj[u]:
+        if v==parent:continue
+        if visited[v]==True:
+            return True
+        if dfs(adj,v,u,visited):
+            return True
+    return False
+def dfsCycle(adj):
+    visited=[]
+    return dfs(adj,0,-1,visited)
+
         
     
     
