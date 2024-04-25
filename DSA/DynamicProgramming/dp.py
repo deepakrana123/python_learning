@@ -18,3 +18,4 @@ class Solution:
             
 a=Solution()
 print(a.lengthOfLIS(nums))
+
