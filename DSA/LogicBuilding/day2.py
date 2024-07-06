@@ -65,7 +65,7 @@ def sumOddLengthSubarrays(arr):
     return sums
 
 
-print(sumOddLengthSubarrays([1, 4, 2, 5, 3]))
+# print(sumOddLengthSubarrays([1, 4, 2, 5, 3]))
 
 
 def longestAlternatingSubarray(nums, threshold):
@@ -109,4 +109,29 @@ def buildTree(left, right, tree, index, root):
 #     return segementTree
 # print(rangeSumBST([10,5,15,3,7,None,18]))
 
-def nodesBetweenCriticalPoints(head):
+# def nodesBetweenCriticalPoints(head):
+#     prev=head
+#     next=head.next
+    
+# def passThePillow( n: int, time: int) -> int:
+#         diffTime = abs(time-n-1)
+#         print(diffTime,n,time)
+#         if diffTime == 0:
+#             return n
+#         else:
+#             return n - diffTime
+# print(passThePillow(18,38))
+def chalkReplacer(chalk, k):
+    i=0
+    n=len(chalk)
+    while k!=0:
+        print(i)
+        if i<n:
+            k=k-chalk[i]
+            i+=1
+        elif i==n:
+            i=0
+    return i
+
+print(chalkReplacer([5,1,5],22))
+        
