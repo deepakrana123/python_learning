@@ -125,7 +125,6 @@ def chalkReplacer(chalk, k):
     i=0
     n=len(chalk)
     while k!=0:
-        print(i)
         if i<n:
             k=k-chalk[i]
             i+=1
@@ -134,4 +133,40 @@ def chalkReplacer(chalk, k):
     return i
 
 print(chalkReplacer([5,1,5],22))
+
+# def f1():
+#     x=5
+#     print("x",x)
+# f1()
+# print("x",x)
+# print(x)
+def replaceDigits(s: str):
+    sts=""
+    for i in range(0,len(s)):
+        if i%2!=0:
+            temp=chr((int(ord(s[i-1]))+int(s[i])))
+            sts=sts+s[i-1]+temp
+    return sts
+# print(replaceDigits("a1c1e1"))
+def shiftingLetters(s, shifts):
+    suffixSums=[0]*len(shifts)
+    suffixSums[len(shifts)-1]=shifts[len(shifts)-1]
+    for i in range(len(shifts)-2,-1,-1):
+        suffixSums[i]+=suffixSums[i+1]+shifts[i]
+    print(suffixSums)
+    sts=""
+    for i in range(len(s)):
+        m= ord(s[i]) + suffixSums[i]%26 - ord('z') 
+        print(m)
+        if m>0:
+            temp=chr(int(ord('a')+m-1))
+        else:
+            temp=chr((int(ord(s[i]))+suffixSums[i]%26))
+        sts+=temp
+    return sts
+
+print(shiftingLetters("aaa",[1,2,3]))
+
+# print(27%26)
+
         
