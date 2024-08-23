@@ -1,5 +1,5 @@
 
-   def solve(satisfaction, index, time, dp):
+def solve(satisfaction, index, time, dp):
         if index >= len(satisfaction):
             return 0
         if dp[index][time] != -1:
@@ -10,7 +10,7 @@
         dp[index][time] = max(taken, skip)
         return dp[index][time]
 
-    def maxSatisfaction(satisfaction):
+def maxSatisfaction(satisfaction):
         # satisfaction.sort()
         # # return self.solve(satisfaction,0,1,dp)
         satisfaction.sort()
