@@ -3,7 +3,6 @@ class TrieNode:
         self.is_end_of_word=False
         self.children={}
 class Trie:
-
     def __init__(self):
         self.root=TrieNode()
     def insert(self, word: str) -> None:
@@ -13,8 +12,6 @@ class Trie:
                 crawl.children[char]=TrieNode()
             crawl=crawl.children[char]
         crawl.is_end_of_word = True
-        
-
     def search(self, word: str) -> bool:
         crwal = self.root
         for char in word:
@@ -22,8 +19,6 @@ class Trie:
                 return False
             crwal = crwal.children[char]
         return crwal.is_end_of_word
-        
-
     def startsWith(self, prefix: str) -> bool:
         current_node = self.root
         for char in prefix:
