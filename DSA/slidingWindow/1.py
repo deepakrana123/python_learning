@@ -57,23 +57,39 @@
 # print(a.maximumUniqueSubarray([4,2,4,5,6]))
  
 class Solution:
-    def characterReplacement(self, s: str, k: int) -> int:
-        i=0
-        j=0
-        dicts={}
-        maxLength=float("-inf")
-        n=len(s)
-        while j<n:
-            dicts[s[j]]=dicts.get(s[j],0)+1
-            if len(dicts)<=k:
-                maxLength=max(maxLength,j-i+1)
-            if len(dicts)>k:
-                while len(dicts)>k:
-                    dicts[s[i]]-=1
-                    if dicts[s[i]]==0:
-                        del dicts[s[i]]
-                    i+=1
-            j+=1
+    def check_vowel_order(self,char1, char2):
+        vowels = "aeiou"
+        index1 = vowels.find(char1)
+        index2 = vowels.find(char2)
+        if index1 != -1 and index2 == index1 + 1:
+            return True
+        else:
+            return False
+    def longestBeautifulSubstring(self,word: str) -> int:
+        if len(word)<5:
+            return 0
+        l=0
+        r=0
+        for i in range(len(word)):
+            if word[i]=='a':
+                l=i
+                r=i
+                break
+        prev=r
+        r=r+1
+        maxLength=0
+        while r<len(word):
+            if self.check_vowel_order(word[prev],word[r]):
+                maxLength=max(maxLength,r-l+1)
+            while self.check_vowel_order(word[prev],word[r])==False:
+                prev=l
+                l+=1
+            prev=r
+            r+=1
+                
         return maxLength
-a=Solution()
-print(a.characterReplacement("AABABBA", 1))
+        
+        print(l,r)
+
+a=Solution
+print(a.longestBeautifulSubstring("aeiaaioaaaaeiiiiouuuooaauuaeiu"))
