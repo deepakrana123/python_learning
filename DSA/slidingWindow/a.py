@@ -13,7 +13,6 @@
 #             s%=26
 #             result+=a[s]
 #         return result
-            
 
 
 # a = Solution()
@@ -34,25 +33,39 @@
 #         return count
 # a=Solution()
 # print(a.minIncrementForUnique([1,2,2]))
+# class Solution:
+#     def missingRolls(self, rolls, mean: int, n: int):
+#         sums=sum(rolls)
+#         s=n+len(rolls)
+#         target_sum=s*mean-sums
+#         x=target_sum//n
+#         y=target_sum%n
+#         a=[]
+#         if x<=0 or x>6:return a
+#         if x==6 and y>0:return a
+#         for i in range(n):
+#             a.append(x)
+#         for i in range(y):
+#             a[i]=a[i]+1
+
+
+#         return a
+# a=Solution()
+# print(a.missingRolls([1,2,3,4], mean = 6, n = 4))
+# Definition for singly-linked list.
 class Solution:
-    def missingRolls(self, rolls, mean: int, n: int):
-        sums=sum(rolls)
-        s=n+len(rolls)
-        target_sum=s*mean-sums
-        x=target_sum//n
-        y=target_sum%n
-        a=[]
-        if x<=0 or x>6:return a
-        if x==6 and y>0:return a
-        for i in range(n):
-            a.append(x)
-        for i in range(y):
-            a[i]=a[i]+1
-            
-        
-        print(x,y,a)
+    def minimumCost(self, cost):
+        cost.sort()
+        costs=0
+        if len(cost)%3!=0:
+            return costs
+        for i in range(len(cost)-1,-1,-1):
+            if i%3==0 or i==0:
+                continue
+            costs+=cost[i]
+        return costs
 a=Solution()
-print(a.missingRolls([1,2,3,4], mean = 6, n = 4))
+print(a.minimumCost([1,2,3]))
         
         
         
