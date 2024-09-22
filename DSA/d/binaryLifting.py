@@ -183,9 +183,7 @@ class TreeAncestor:
         for i in range(len(parent)):
             if parent[i]!=-1:
                 self.tree[parent[i]].append(i)
-        print(self.tree)
         self.dfs(0,-1)
-        print(self.dp)
     def dfs(self,currNode,parent):
         self.dp[currNode][0]=parent
         if parent!=-1:
