@@ -46,6 +46,41 @@ class Solution:
             t+=value*(count[value]//2)
         return t
 a=Solution()
-print(a.largestPalindromic("5555444947137"))
-        
+
+class Solution:
+    def solve(self, currnum,originalnum,result):
+        if currnum>originalnum:
+            return
+        # result.append(currnum)
+        result[0]+=1
+        for i in range(10):
+            number_set = set(str(currnum))
+            if str(i) in number_set:
+                continue
+            a=currnum*10+i
+            if a > originalnum:
+                return
+            self.solve(a,originalnum,result)
+        return result
+    def countSpecialNumbers(self, n: int,) -> int:
+        result=[0]  
+        for i in range(1,10):
+            self.solve(i,n,result)
+        return result[0]
+a=Solution()
+# print(a.countSpecialNumbers(5))
+import math
+class Solutions:
+    def trailingZeroes(self,n):
+        count=0
+        c=math.factorial(n)
+        while c>0:
+            if c%10==0:
+                count+=1
+                c=c//10
+            else:
+                return count
+        return count
+b=Solutions()
+print(b.trailingZeroes(120))
         
