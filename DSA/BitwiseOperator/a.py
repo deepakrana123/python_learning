@@ -41,19 +41,34 @@ def longestNiceSubarray(nums):
         ans=max(ans,right-left+1)
         right+=1
     return ans
-print(longestNiceSubarray([1,3,8,48,10]))
-def subarrayBitwiseORs(arr):
-    a=[]
-    for i in range(len(arr)):
-        for j in range(i,len(arr)):
-            a.append(arr[i:j+1])
-    dicts=[]
-    for i in range(len(a)):
-        c=0
-        for j in range(len(a[i])):
-            c|=a[i][j]
-        dicts.append(c)
-    d=set(dicts)
-    return len(d)
+# print(longestNiceSubarray([1,3,8,48,10]))
+# def subarrayBitwiseORs(arr):
+#     a=[]
+#     for i in range(len(arr)):
+#         for j in range(i,len(arr)):
+#             a.append(arr[i:j+1])
+#     dicts=[]
+#     for i in range(len(a)):
+#         c=0
+#         for j in range(len(a[i])):
+#             c|=a[i][j]
+#         dicts.append(c)
+#     d=set(dicts)
+#     return len(d)
 
-print(subarrayBitwiseORs([1]))
+# print(subarrayBitwiseORs([1]))
+def maximumTotalSum(maximumHeight):
+    maximumHeight.sort(reverse=True)
+    currHeight=maximumHeight[0]
+    curr_Sum=0
+    for height in maximumHeight:
+        if currHeight>height:
+            currHeight=height
+        if currHeight<=0:
+            return -1
+        
+        curr_Sum+=currHeight
+        currHeight-=1
+    print(maximumHeight,curr_Sum)
+    
+print(maximumTotalSum([2,2,1]))
