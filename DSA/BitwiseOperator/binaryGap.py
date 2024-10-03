@@ -72,3 +72,14 @@ def maximumTotalSum(maximumHeight):
     print(maximumHeight,curr_Sum)
     
 print(maximumTotalSum([2,2,1]))
+def binaryGap(n):
+        a=bin(n)[2:]
+        ans=0
+        prev=0
+        print(a)
+        for i in range(len(a)):
+            if a[i]=='1':
+                ans=max(ans,i-prev)
+                prev=i
+        return ans
+print(binaryGap(22))
