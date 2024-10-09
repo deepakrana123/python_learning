@@ -54,28 +54,28 @@
         
 # a=Solution()
 # print(a.beautifulSubstrings("bcdf",1))    
-class Solution:
-    def solve(self,stringlength,str1):
-        if len(str1)==stringlength:
-            self.result.append(str1)
-            if len(self.result)>self.k:
-                return  self.result[self.k-1]
-            return
-        for i in range(len(self.a)):
-            if str1 and str1[-1]==self.a[i]:
-                continue
-            newStr=str1+self.a[i]
-            self.solve(stringlength,newStr)
-    def getHappyString(self, n, k):
-        self.a=['a','b','c']
-        self.result=[]
-        self.k=k
-        # for i in range(len(self.a)):
-        return self.solve(n,'')
-        print(self.result)
+# class Solution:
+#     def solve(self,stringlength,str1):
+#         if len(str1)==stringlength:
+#             self.result.append(str1)
+#             if len(self.result)>self.k:
+#                 return  self.result[self.k-1]
+#             return
+#         for i in range(len(self.a)):
+#             if str1 and str1[-1]==self.a[i]:
+#                 continue
+#             newStr=str1+self.a[i]
+#             self.solve(stringlength,newStr)
+#     def getHappyString(self, n, k):
+#         self.a=['a','b','c']
+#         self.result=[]
+#         self.k=k
+#         # for i in range(len(self.a)):
+#         return self.solve(n,'')
+#         print(self.result)
         
-a=Solution()
-print(a.getHappyString(3,9))
+# a=Solution()
+# print(a.getHappyString(3,9))
 # class Solution:
 #     def getHappyString(self, n, k):
 #         self.a = ['a', 'b', 'c']
@@ -96,7 +96,20 @@ print(a.getHappyString(3,9))
 # a = Solution()
 # print(a.getHappyString(n=1, k=4))  
 
-
+class Solution:
+    def buddyStrings(self, s: str, goal: str) -> bool:
+        s1=list(s)
+        goal1=list(goal)
+        if len(s1)!=len(goal1):
+            return False
+        for i in range(len(s1)):
+            if s1[i]!=goal1[i]:
+                s1[i] = goal1[i]
+        print(s1,goal1)
+        
+        return ''.join(s1)!=s
+a=Solution()
+print(a.buddyStrings("ab","ab"))
 
         
         
