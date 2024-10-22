@@ -221,6 +221,8 @@ class Solution:
 a=Solution()
 print(a.maxFrequency([3,9,6], k = 2))
 
+        
+
 
         
         
