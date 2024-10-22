@@ -146,29 +146,77 @@
 #         self.val = val
 #         self.left = left
 #         self.right = right
+# class Solution:
+#     def kthLargestLevelSum(self, root, k):
+#         # if not root:
+#         #     return []
+#         # queue=[root]
+#         # result=[]
+#         # while queue:
+#         #     current_queue_size=len(queue)
+#         #     current_level=[]
+#         #     for i in range(current_queue_size):
+#         #         cuurent_node=queue.pop(0)
+#         #         current_level.append(cuurent_node.val)
+#         #         if cuurent_node.left:
+#         #             queue.append(cuurent_node.left)
+#         #         if cuurent_node.right:
+#         #             queue.append(cuurent_node.right)
+#         #     result.append(sum(current_level))
+#         # result.sort(reverse=True)
+#         # if len(result)>=k:
+#         #     return result[k-1]
+#         # return -1
+#         if not root:
+#             return None or []
+#         queue=[]
+#         result=[]    #which can any think depends upon the situation
+#         while queue:
+#             curr_queue_size=len(queue)
+#             curr_level=[]
+#             for i in range(len(curr_queue_size)):
+#                 curr_node=queue.pop()
+#                 curr_level.append(curr_node.val)
+#                 if curr_node.left:
+#                     queue.append(curr_node.left)
+#                 if curr_node.right:
+#                     queue.append(curr_node.right)
+#                 result.append(sum(curr_level))
+#         result.sort(reverse=True)
+#         if len(result)>k:
+#             return result[k-1]
+#         return -1
+        
+        
+# class Solution:
+#     def maximumSwap(self, num: int) -> int:
+#         aa=str(num)
+#         a=[]
+#         am={}
+#         for nums in aa:
+#             a.append(nums)
+#         for num in
+#         a.sort(reverse=True)
+#         print(a)
+# a=Solution()
+# print(a.maximumSwap(2736))
 class Solution:
-    def kthLargestLevelSum(self, root, k):
-        if not root:
-            return []
-        queue=[root]
-        result=[]
-        while queue:
-            current_queue_size=len(queue)
-            current_level=[]
-            for i in range(current_queue_size):
-                cuurent_node=queue.pop(0)
-                current_level.append(cuurent_node.val)
-                if cuurent_node.left:
-                    queue.append(cuurent_node.left)
-                if cuurent_node.right:
-                    queue.append(cuurent_node.right)
-            result.append(sum(current_level))
-        result.sort(reverse=True)
-        if len(result)>=k:
-            return result[k-1]
-        return -1
-        
-        
-        
-
-        
+    def solve(self,index,currCount,s,myset):
+        if index>=len(s):
+            self.maxCount=max(self.maxCount,currCount)
+            return
+        for j in range(index,len(s)):
+            subString=s[index:j+1]
+            if subString not in myset:
+                myset.add(subString)
+                self.solve(j+1,currCount+1,s,myset)
+                myset.remove(subString)
+    def maxUniqueSplit(self, s):
+        myset=set()
+        self.maxCount=0
+        currCount=0
+        i=0
+        self.solve(i,currCount,s,myset)
+        return self.maxCount
+a=Solution()
+print(a.maxUniqueSplit("aba"))
