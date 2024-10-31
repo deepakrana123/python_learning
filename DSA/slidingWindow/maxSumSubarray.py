@@ -157,7 +157,6 @@ def numberOfSubarrays(nums, k):
         if nums[j] % 2 != 0:
             count += 1
         de.append(nums[j])
-        
         if count < k:
             j += 1
         elif count == k:

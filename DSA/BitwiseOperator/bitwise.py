@@ -17,16 +17,16 @@
 
 
 
-print(bin(10))
+# print(bin(10))
 
 # convert an interger to its binary
-n=19
-r=""
-while(n>0):
-    r=n%2
-    s=s+r
-    n=n//10
-print(r,"r")
+# n=19
+# r=""
+# while(n>0):
+#     r=n%2
+#     s=s+r
+#     n=n//10
+# print(r,"r")
 
 # xor property is if two number are same it will give you zero
 # set bit means number of position having 1
@@ -42,25 +42,26 @@ print(r,"r")
 # how to set the ith bit of a number
 # n||1<<k
 # check the number of set bits
-m=123
-count=0
-while(m>0):
-    r=m%2
-    if r==1:
-        count+=1
-    n=n//10
-b=1101
-count=0
-while(b>0):
-    a=b and 1
-    if a==1:
-        count+=1
-    a=a>>1
+# m=123
+# count=0
+# while(m>0):
+#     r=m%2
+#     if r==1:
+#         count+=1
+#     n=n//10
+# b=1101
+# count=0
+# while(b>0):
+#     a=b and 1
+#     if a==1:
+#         count+=1
+#     a=a>>1
 
 
 # xor quriers of an array
 # total sum of xor problems an xor sum problem
 
- 
+
+print("hi")
 
 
