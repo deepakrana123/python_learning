@@ -132,22 +132,46 @@
 # a=Solution()
 # print(a.longestSquareStreak([4,3,6,16,8,2]))
 # print(a.longestSquareStreak([2,3,5,6,7]))
+# class Solution:
+#     def removeSubfolders(self, folder):
+#         dicts=[]
+#         for num in folder:
+#             isSubFolder=False
+#             currFolder = num
+#             while dicts and currFolder:
+#                 res = len(currFolder) - 1 - currFolder[::-1].index('/')
+#                 currFolder = currFolder[0:res]
+#                 if currFolder in dicts:
+#                     isSubFolder=True
+#                     break
+#             if isSubFolder ==False:
+#                 dicts.append(num)    
+#         return dicts
+# a=Solution()
+# print(a.removeSubfolders( ["/ad","/ad/af","/aa"]))
+
 class Solution:
-    def removeSubfolders(self, folder):
-        dicts=[]
-        for num in folder:
-            isSubFolder=False
-            currFolder = num
-            while dicts and currFolder:
-                res = len(currFolder) - 1 - currFolder[::-1].index('/')
-                currFolder = currFolder[0:res]
-                print(currFolder,dicts,"curFolder")
-                if currFolder in dicts:
-                    isSubFolder=True
-                    break
-            if isSubFolder ==False:
-                dicts.append(num)    
-        return dicts
-a=Solution()
-print(a.removeSubfolders( ["/ad","/ad/af","/aa"]))
+    def dfs(self,grid,row,col,memo):
+        dirs=[-1,0,1]
+        count=0
+        if memo[row][col] !=-1:
+            return memo[row][col]
+        for dir in dirs:
+            newRow=dir+row
+            newCol=col+1
+            if 0 <= newRow < self.rowSize and 0 <= newCol < self.colSize and grid[newRow][newCol] > grid[row][col]:
+                count = max(count, 1 + self.dfs(grid, newRow, newCol, memo))
+        memo[row][col]=count  
+        return memo
+    def maxMoves(self, grid):
+        self.rowSize=len(grid)
+        self.colSize=len(grid[0])
+        memo=[[-1] * self.colSize for _ in range(self.rowSize)]
+        result=0
+        for i in range(self.rowSize):
+            result=max(result,self.dfs(grid,i,0,memo))
+        return result
+            
+            
+        
         
