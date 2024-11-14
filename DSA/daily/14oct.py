@@ -200,23 +200,63 @@
 #         print(a)
 # a=Solution()
 # print(a.maximumSwap(2736))
+# class Solution:
+#     def solve(self,index,currCount,s,myset):
+#         if index>=len(s):
+#             self.maxCount=max(self.maxCount,currCount)
+#             return
+#         for j in range(index,len(s)):
+#             subString=s[index:j+1]
+#             if subString not in myset:
+#                 myset.add(subString)
+#                 self.solve(j+1,currCount+1,s,myset)
+#                 myset.remove(subString)
+#     def maxUniqueSplit(self, s):
+#         myset=set()
+#         self.maxCount=0
+#         currCount=0
+#         i=0
+#         self.solve(i,currCount,s,myset)
+#         return self.maxCount
+# a=Solution()
+# print(a.maxUniqueSplit("aba"))
+
+# class Solution:
+#     def compressedString(self, word: str) -> str:
+#         comp=""
+#         currChar=word[0]
+#         currCount=1
+#         for i in range(1,len(word)):
+#             if currChar==word[i] and currCount:
+#                 currCount+=1
+#                 continue
+#             if currChar!=word[i]:
+#                 currCount=1
+#                 currChar=word[i]
+#                 continue
+        
+# a=Solution()
+# print(a.compressedString("abcde"))
 class Solution:
-    def solve(self,index,currCount,s,myset):
-        if index>=len(s):
-            self.maxCount=max(self.maxCount,currCount)
-            return
-        for j in range(index,len(s)):
-            subString=s[index:j+1]
-            if subString not in myset:
-                myset.add(subString)
-                self.solve(j+1,currCount+1,s,myset)
-                myset.remove(subString)
-    def maxUniqueSplit(self, s):
-        myset=set()
-        self.maxCount=0
-        currCount=0
-        i=0
-        self.solve(i,currCount,s,myset)
-        return self.maxCount
+    def countSetBits(self, n): 
+        if (n == 0): 
+            return 0
+        else: 
+            return (n & 1) + self.countSetBits(n >> 1) 
+    def canSortArray(self, arr):
+        for n in range(len(arr) - 1, 0, -1):
+            for i in range(n):
+                if arr[i] <= arr[i + 1]:
+                    continue
+                else:
+                    if  self.countSetBits(arr[i])==self.countSetBits(arr[i+1]):
+                        arr[i], arr[i + 1] = arr[i + 1], arr[i]
+                    else:
+                        return False
+        return True
 a=Solution()
-print(a.maxUniqueSplit("aba"))
+print(a.canSortArray([3,16,8,4,2]))
+
+
+        
+        
