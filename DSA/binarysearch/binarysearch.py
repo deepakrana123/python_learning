@@ -146,8 +146,82 @@ class SOlution:
                 p=arr[i]
                 count=1
         return ans if ans!=-1 else p if count==1 else -1
-a=SOlution()
-print(a.singleElementInSortedArray( [1, 1, 2, 2, 3,3,5, 4, 4, 7, 7,8,8]))
+# a=SOlution()
+# print(a.singleElementInSortedArray( [1, 1, 2, 2, 3,3,5, 4, 4, 7, 7,8,8]))
+# class Solution:
+
+#     def __init__(self, w):
+#         self.arr=[0]*len(w)
+#         self.maxSum=w[0]
+#         self.arr=w[0]
+#         for i in range(1,len(w)):
+#             self.arr[i]=self.arr[i]+self.maxSum
+#             self.maxSum+=self.arr[i]
+#     def pickIndex(self) -> int:
+        
+#         return 0 if len(self.arr)==1 else self.dicts[self.arr[len(self.arr)-1]]        
+
+
+# a=Solution([1])
+# print(a.pickIndex())  
+# print(a.pickIndex())
+# print(a.pickIndex())
+# print(a.pickIndex())
+# print(a.pickIndex())  
+# import math   
+# class Solution:
+#     def canDistribute(self,num,quantities,n):
+#         for i in range(len(quantities)):
+#             n=n-math.ceil(quantities[i]/num)
+#             if n<0:
+#                 return False
+#         return True
+#     def minimizedMaximum(self, n: int, quantities):
+#         start=1
+#         end=max(quantities)
+#         ans=0
+#         while start<=end:
+#             mid=(end-start)//2 + start
+#             if self.canDistribute(mid,quantities,n):
+#                 ans=mid
+#                 end=mid-1
+#             else:
+#                 start=mid+1
+#         return ans
+# a=Solution()
+# print(a.minimizedMaximum( n = 7, quantities = [15,10,10]))
+class Solution:
+    def checkSortedAsc(self,newNum):
+        currCos = newNum[0]
+        for i in range(1,len(newNum)):
+            if currCos+1 != newNum[i]:
+                return False
+            currCos=newNum[i]
+        return True
+
+    def resultsArray(self, nums, k):
+        i=0
+        j=0
+        result=[0]*(len(nums)-k+1)
+        newNum=[]
+        while j<len(nums):
+            if len(newNum)<=k:
+                newNum.append(nums[j])
+            while len(newNum)>=k:
+                if(self.checkSortedAsc(newNum)):
+                    result[i]=max(newNum)
+                else:
+                    result[i]=-1
+                newNum=newNum[1:]
+                i+=1
+            j+=1
+            
+        return result
+a=Solution()
+print(a.resultsArray([3,2,3,2,3,2], k = 2))
+
+        
+
         
 
 
