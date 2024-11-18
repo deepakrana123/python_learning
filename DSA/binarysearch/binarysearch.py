@@ -190,35 +190,43 @@ class SOlution:
 #         return ans
 # a=Solution()
 # print(a.minimizedMaximum( n = 7, quantities = [15,10,10]))
-class Solution:
-    def checkSortedAsc(self,newNum):
-        currCos = newNum[0]
-        for i in range(1,len(newNum)):
-            if currCos+1 != newNum[i]:
-                return False
-            currCos=newNum[i]
-        return True
+# class Solution:
+#     def checkSortedAsc(self,newNum):
+#         currCos = newNum[0]
+#         for i in range(1,len(newNum)):
+#             if currCos+1 != newNum[i]:
+#                 return False
+#             currCos=newNum[i]
+#         return True
 
-    def resultsArray(self, nums, k):
-        i=0
-        j=0
-        result=[0]*(len(nums)-k+1)
-        newNum=[]
-        while j<len(nums):
-            if len(newNum)<=k:
-                newNum.append(nums[j])
-            while len(newNum)>=k:
-                if(self.checkSortedAsc(newNum)):
-                    result[i]=max(newNum)
-                else:
-                    result[i]=-1
-                newNum=newNum[1:]
-                i+=1
-            j+=1
+#     def resultsArray(self, nums, k):
+#         i=0
+#         j=0
+#         result=[0]*(len(nums)-k+1)
+#         newNum=[]
+#         while j<len(nums):
+#             if len(newNum)<=k:
+#                 newNum.append(nums[j])
+#             while len(newNum)>=k:
+#                 if(self.checkSortedAsc(newNum)):
+#                     result[i]=max(newNum)
+#                 else:
+#                     result[i]=-1
+#                 newNum=newNum[1:]
+#                 i+=1
+#             j+=1
             
-        return result
-a=Solution()
-print(a.resultsArray([3,2,3,2,3,2], k = 2))
+#         return result
+# a=Solution()
+# print(a.resultsArray([3,2,3,2,3,2], k = 2))
+# class Solution:
+#     def shortestSubarray(self, nums, k):
+#         start=0
+#         j=0
+#         n=len(nums)
+#         minLength=n
+        
+        
 
         
 
