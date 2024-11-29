@@ -252,26 +252,54 @@ class DailyRevision:
         result=[0]
         self.dfs1(adj,0,-1,result)
         return result[0]
-    def smallestEquivalentString(self, s1, s2, baseStr):
-        adj={i:[] for i in range(len(s1))}
-        for i in range(len(s1)):
-            adj[s1[i]].append(s2[i])
-            adj[s2[i]].append(s1[i])
-        result=""
-        self.dfs3(adj,)
+    # def smallestEquivalentString(self, s1, s2, baseStr):
+    #     adj={i:[] for i in range(len(s1))}
+    #     for i in range(len(s1)):
+    #         adj[s1[i]].append(s2[i])
+    #         adj[s2[i]].append(s1[i])
+    #     result=""
+    #     self.dfs3(adj,)
+    def minimumObstacles(self, grid):
+        m=len(grid)
+        n=len(grid[0])
+        queue=[(0,(0,0))]
+        dirs=[(-1,0),(1,0),(0,-1),(0,1)]
+        result=[[float("inf") for _ in range(n)] for _ in range(m)]
+        result[0][0]=0
+        while queue:
+            a= heapq.heappop(queue)
+            weight,edges=a
+            u,v=edges
+            for d in dirs:
+                newX=u + d[0]
+                newY=v + d[1]
+                if(newX < 0 or newX >=m or newY<0 or newY >=n ):
+                    continue 
+                currWiehgt = 1 if grid[newX][newY]==1 else 0
+                if weight + currWiehgt< result[newX][newY]:
+                    result[newX][newY]=weight+ currWiehgt
+                    heapq.heappush(queue,(weight+ currWiehgt,(newX,newY)))
+        return result[m-1][n-1] if result[m-1][n-1]!=float("inf") else -1
+
+
+
+        
+
+        
         
 a=DailyRevision()
 # print(a.maxMatrixSum([[1,-1],[-1,1]]))
 # print(a.minMutation("AACCGGTT", endGene ="AACCGCTA", bank = ["AACCGGTA","AACCGCTA","AAACGGTA"]))
 # print(a.ladderLength("hit", endWord = "cog", wordList = ["hot","dot","dog","lot","log"]))
 # print(a.nearestExit([["+","+","+"],[".",".","."],["+","+","+"]], entrance = [1,0]))
-# print(a.possibleBipartition( 3, dislikes = [[1,2],[1,3],[2,3]]))
+# print(
+# a.possibleBipartition( 3, dislikes = [[1,2],[1,3],[2,3]]))
 # print(a.findChampion(4, edges = [[0,2],[1,3],[1,2]]))
 # print(a.sumOfDistancesInTree(6, edges = [[0,1],[0,2],[2,3],[2,4],[2,5]]))
 # print(a.shortestDistanceAfterQueries(4, queries = [[0,3],[0,2]]))
 # print(a.longestPath(parent = [-1,0,0,1,1,2], s = "abacbe"))
-print(a.smallestEquivalentString(s1 = "parker", s2 = "morris", baseStr = "parser"))
-        
+# print(a.smallestEquivalentString(s1 = "parker", s2 = "morris", baseStr = "parser"))
+print(a.minimumObstacles([[0,1,0,0,0],[0,1,0,1,0],[0,0,0,1,0]]))
         
 a=DailyRevision()
 
