@@ -150,7 +150,7 @@ class DailyRevision:
         queue=deque()
         queue.append(index)
         while queue:
-            print(queue,adj)
+
             curr=queue.popleft()
             for v in adj[curr]:
                 if color[v]==color[curr]:
@@ -280,30 +280,177 @@ class DailyRevision:
                     result[newX][newY]=weight+ currWiehgt
                     heapq.heappush(queue,(weight+ currWiehgt,(newX,newY)))
         return result[m-1][n-1] if result[m-1][n-1]!=float("inf") else -1
-
-
-
+    def checkIfExist(self, arr):
+        d=set()
+        for value in arr:
+            if value*2 in d or value/2 in d:
+                return True
+            d.add(value)
+        return False
+    def isPrefixOfWord(self, sentence, searchWord):
+        a=sentence.split(' ')
+        for i in range(len(a)):
+            word=a[i][0:len(searchWord)]
+         
+            if word==searchWord:
+                return i+1        
+        return -1
+    def dfsTree(self,root,targetSum,result,temp,sums):
+        if root==None:
+            return -1
+        sums+=root.val
+        path_count= 1 if sums==targetSum else 0
+        path_count+=self.dfsTree(root.left,targetSum,result,temp,sums)
+        path_count+=self.dfsTree(root.right,targetSum,result,temp,sums)
+        return path_count
+    def pathSum(self, root, targetSum):
+        if root==None:
+            return -1
+        findoot=self.dfsTree(root,targetSum,[],[],0)
+        findPathLeft=self.pathSum(root.left,targetSum)
+        findPathRight=self.pathSum(root.right,targetSum)
+        return findoot+findPathLeft+findPathRight
+    def dfsFindSame(self,root,parent):
+        if root==None:
+            return 0
+        path_count=1 if parent==root.val else 0
+        path_count+=self.dfsFindSame(root.left,root.val)
+        path_count+=self.dfsFindSame(root.right,root.val)
+        return path_count
+    # def longestUnivaluePath(self, root):
+    #     if root==None:
+    #         return 0
+    #     a=self.dfsFindSame(root,-1)
+    #     b=self.longestUnivaluePath(root.left)
+    #     c=self.longestUnivaluePath(root.right)
+    #     return a+b+c
         
 
-        
-        
+class Solution:
+    def find(self,x):
+        if x!=self.parent[x]:
+            self.parent[x]=self.find(self.parent[x])
+        return self.parent[x]
+    def Union(self,x,y):
+        parent_x=self.find(x)
+        parent_y=self.find(y)
+        if parent_x!=parent_y:
+            if self.rank[parent_x]>self.rank[parent_y]:
+                self.parent[parent_y]=parent_x
+            elif self.rank[parent_x]<self.rank[parent_y]:
+                self.parent[parent_x]=parent_y
+            else:
+                self.parent[parent_x]=parent_y
+                self.rank[parent_y]+=1
+    def numberOfGoodPaths(self, vals, edges):
+        n=len(vals)
+        self.rank=[1]*n
+        self.parent=[i for i in range(n)]
+        adj={i:[] for i in range(n)}
+        for u,v in edges:
+            adj[u].append(v)
+            adj[v].append(u)
+        valueVsNode={}
+        for i,value in enumerate(vals):
+            if value not in valueVsNode:
+                valueVsNode[value]=[]
+            valueVsNode[value].append(i)
+        result=n
+        isActive=[False]*n
+        for v in sorted(valueVsNode.keys()):
+            nodes=valueVsNode[v]
+            for currNodes in nodes:
+                for adjNodes in adj[currNodes]:
+                    if isActive[adjNodes]:
+                        self.Union(adjNodes,currNodes)
+                isActive[currNodes]=True
+            parent_count = {}
+            for node in nodes:
+                root = self.find(node)
+                if root not in parent_count:
+                    parent_count[root] = 0
+                parent_count[root] += 1
+            for count in parent_count.values():
+                result += count * (count - 1) // 2
+        return result
+
 a=DailyRevision()
-# print(a.maxMatrixSum([[1,-1],[-1,1]]))
-# print(a.minMutation("AACCGGTT", endGene ="AACCGCTA", bank = ["AACCGGTA","AACCGCTA","AAACGGTA"]))
-# print(a.ladderLength("hit", endWord = "cog", wordList = ["hot","dot","dog","lot","log"]))
-# print(a.nearestExit([["+","+","+"],[".",".","."],["+","+","+"]], entrance = [1,0]))
-# print(
-# a.possibleBipartition( 3, dislikes = [[1,2],[1,3],[2,3]]))
-# print(a.findChampion(4, edges = [[0,2],[1,3],[1,2]]))
-# print(a.sumOfDistancesInTree(6, edges = [[0,1],[0,2],[2,3],[2,4],[2,5]]))
-# print(a.shortestDistanceAfterQueries(4, queries = [[0,3],[0,2]]))
-# print(a.longestPath(parent = [-1,0,0,1,1,2], s = "abacbe"))
-# print(a.smallestEquivalentString(s1 = "parker", s2 = "morris", baseStr = "parser"))
-print(a.minimumObstacles([[0,1,0,0,0],[0,1,0,1,0],[0,0,0,1,0]]))
-        
-a=DailyRevision()
 
-# print(a.rotateTheBox([["#",".","#"]]))
+b=Solution()
+
+class Solution1:
+    def canMakeSubsequence(self, str1: str, str2: str) -> bool:
+        j=0
+        i=0
+        while i<len(str1) and j<len(str2):
+          
+            a=chr(ord(str1[i])-25) if str1[i]=='z' else chr(ord(str1[i])+1)
+            if  (str1[i]==str2[j] or a==str2[j]):
+                j+=1
+            i+=1
+        return j==len(str2)
+    def find_parent(self,  i):
+        if self.parent[i] == i:
+            return i
+        self.parent[i] = self.find_parent(self.parent[i])
+        return self.parent[i]
+
+    def union(self, x, y):
+        xroot = self.find_parent( x)
+        yroot = self.find_parent( y)
+
+        if self.rank[xroot] < self.rank[yroot]:
+            self.parent[xroot] = yroot
+        elif self.rank[xroot] > self.rank[yroot]:
+            self.parent[yroot] = xroot
+        else:
+            self.parent[yroot] = xroot
+            self.rank[xroot] += 1
+    def krushkal(self,a,skip,add):
+        self.parent=list(range(self.n))
+        self.rank=[0]*self.n
+        sum_weight=0
+        if(add!=-1):
+            u,v,w,index=add
+            self.union(u,v)
+            sum_weight+=w
+        for edge in range(len(a)):
+            u,v,w,index=a[edge]
+            if skip!=-1 and  edge ==skip[3]:
+                continue
+            parent_u=self.find_parent(u)
+            parent_v=self.find_parent(v)
+            if parent_u!=parent_v:
+                self.union(u,v)
+                sum_weight+=w
+        root = self.find_parent(0)
+        for i in range(1, self.n):
+            if self.find_parent(i) != root:
+                return float('inf')
+        return sum_weight
+    def findCriticalAndPseudoCriticalEdges(self, n, edges):
+        edges = [edge + [i] for i, edge in enumerate(edges)]
+        edges.sort(key=lambda x: x[2])
+        self.n=n
+        mst_weight=self.krushkal(edges,-1,-1)
+        pseudo=[]
+        critical=[]
+        for edge in edges:
+            if self.krushkal(edges,edge,-1)>mst_weight:
+                critical.append(edge[3])
+            elif self.krushkal(edges,-1,edge)==mst_weight:
+                pseudo.append(edge[3])
+        
+        return [critical,pseudo]
+
+
+        
+daily=Solution1()
+
+print(daily.findCriticalAndPseudoCriticalEdges(n = 5, edges = [[0,1,1],[1,2,1],[2,3,2],[0,3,2],[0,4,3],[3,4,3],[1,4,6]]))
+        
+        
+        
 
 
 

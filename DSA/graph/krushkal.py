@@ -38,7 +38,6 @@ class Kruskal:
             i += 1
             x = self.find_parent(parent, u)
             y = self.find_parent(parent, v)
-
             if x != y:
                 e += 1
                 result.append([u, v, w])
