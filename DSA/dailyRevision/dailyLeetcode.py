@@ -159,7 +159,7 @@ a=Solution(3,[4,5,8,2,3,5,10])
 # print(a.maximumLength("aaaa"))
 # print(a.maximumLength("aaaa"))
 # print(a.maximumBeauty([4,6,1,2],2))
-import heapq
+import math
 class MedianFinder:
     # def maxAverageRatio(self, classes, extraStudents):
     #     heap=[]
@@ -175,25 +175,122 @@ class MedianFinder:
     #         a,b,c=heappop(heap)
     #         result+=a
     #     return result/len(classes)
-     def findScore(self, nums):
-        mp=set()
+    #  def findScore(self, nums):
+    #     mp=set()
+    #     heap=[]
+    #     result=0
+    #     for i in range(len(nums)):
+    #         heap.append([nums[i],i])
+    #     heapq.heapify(heap)
+    #     while heap:
+    #         a,b=heappop(heap)
+    #         if b not in mp:
+    #             result+=a
+    #             mp.add(b)
+    #             if b-1>=0:
+    #                 mp.add(b-1)
+    #             if b+1<len(nums):
+    #                 mp.add(b+1)
+    #     return result
+    
+    def findMaximizedCapital(self, k, w, profits, capital):
+        weight=w
         heap=[]
-        result=0
-        for i in range(len(nums)):
-            heap.append([nums[i],i])
-        heapq.heapify(heap)
+        for i in range(len(capital)):
+            capital[i]=[capital[i],profits[i]]
+        capital.sort(key=lambda item:item[0])
+        i=0
+        while k>0:
+            while i<len(capital) and capital[i][0]<=weight:
+                heappush(heap,-capital[i][1])
+                i+=1
+            if len(heap)==0:
+                break
+            a=heappop(heap)
+            weight+=-a
+            k-=1
+        return weight
+    # def repeatLimitedString(self,s, repeatLimit):
+        # a=[0]*26
+        # for num in s:
+        #     a[ord(num)-ord('a')]+=1
+        # result=""
+        # i=len(a)-1
+        # j=0
+        # while i>=0:
+        #     if a[i]==0:
+        #         i-=1
+        #         continue
+        #     ch = chr(ord('a')+i)
+        #     freq=min(a[i],repeatLimit)
+        #     result+=ch*freq
+        #     a[i]-=freq
+        #     if a[i]>0:
+        #         j=i-1
+        #         while j>=0 and a[j]==0:
+        #             j-=1
+        #         if j<0:
+        #             break
+        #         ch = chr(ord('a')+j)
+        #         result+=ch
+        #         a[j]-=1
+        # return result
+    # def maxChunksToSorted(self, arr):
+        # a=[0]*(len(arr))
+        # a[0]=0
+        # for i in range(1,len(arr)):
+        #     a[i]=a[i-1]+i
+        # result=0
+        # sum=0
+        # for i in range(len(arr)):
+        #     sum+=arr[i]
+        #     if sum==a[i]:
+        #         result+=1
+        # return result
+    # def minStoneSum(self, piles, k):
+    #     heap=[]
+    #     for num in piles:
+    #         heap.append(-num)
+    #     heapify(heap)
+    #     while k>0:
+    #         a=-1*heappop(heap)
+    #         heappush(heap,-math.ceil(a/2))
+    #         k-=1
+    #     s=0
+    #     while heap:
+    #         a=-1*heappop(heap)
+    #         s+=a
+    #     return s        
+    # def halveArray(self, nums):
+    #     max_heap = []
+    #     total_sum = sum(nums)
+    #     target = total_sum / 2
+    #     current_sum = 0
+    #     operations = 0
+    #     for num in nums:
+    #         heappush(max_heap, -num)
+    #     while current_sum < target:
+    #         largest = -heappop(max_heap)
+    #         current_sum += largest / 2
+    #         heappush(max_heap, -largest / 2)
+    #         operations += 1
+    #     return operations
+    def minOperations(self, nums, k):
+        if len(nums)==2:
+            return -1
+        heap=[]
+        for num in nums:
+            heap.append(num)
+        operations=0
         while heap:
-            a,b=heappop(heap)
-            if b not in mp:
-                result+=a
-                mp.add(b)
-                if b-1>=0:
-                    mp.add(b-1)
-                if b+1<len(nums):
-                    mp.add(b+1)
-        return result
+            a=heappop(heap)
+            b=heappop(heap) if heap else 0
+            if a>=k or b>=k:
+                return operations
+            c=min(a,b)*+max(a,b)
+            heappush(heap,c)
+            operations+=1
+        return operations
 
-        
 abc=MedianFinder()
-print(abc.findScore([2,1,3,4,5,2]))
-# print(abc.maxAverageRatio( [[2,4],[3,9],[4,5],[2,10]], extraStudents = 4))
+print(abc.minOperations([1,1,2,4,9], k = 20))
