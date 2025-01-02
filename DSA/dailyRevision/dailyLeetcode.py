@@ -291,6 +291,110 @@ class MedianFinder:
             heappush(heap,c)
             operations+=1
         return operations
-
+    # def minimumOperations(self, root):
+    #     if root is None:
+    #         return []
+    #     queue = deque([root])
+    #     result=0
+    #     while queue:
+    #         size=len(queue)
+    #         levelNodes=[]
+    #         while size:
+    #             a=queue.pop()
+    #             levelNodes.append(a)
+    #             if a.left:
+    #                 queue.append(a.left)
+    #             if a.right:
+    #                 queue.append(a.right)
+    #             size-=1
+    #         for i in range(len(levelNodes)):
+    #             if sorted(levelNodes)[i]!=levelNodes[i]:
+    #                 result+=1
+    #     return result
+    def maxRectangleArea(self, points):
+        n=len(points)
+        pointSet=set()
+        for num in points:
+            pointSet.add((num[0],num[1]))
+        area=-1
+        for i in range(n):
+            for j in range(i+1,n):
+                x1=points[i][0]
+                y1=points[i][1]
+                x2=points[j][0]
+                y2=points[j][1]
+                if x1!=x2 and y1!=y2:
+                    if (x1,y2) in pointSet and (x2,y1) in pointSet:
+                        calarea=abs(x2-x1)*abs(y2-y1)
+                        validRectangle=True
+                        for k in range(n):
+                            x=points[k][0]
+                            y=points[k][1]
+                            if ((x==x1 or x==x) and (y==y1 or y==y2)):
+                                continue
+                            if (x>min(x1,x2) and x < max(x1,x2) and y > min(y1,y2) and y<max(y1,y2)):
+                                validRectangle=False
+                                break
+                            if ((x==x1 or x==x2) and (y>=min(y1,y2) and y <= min(y1,y2))):
+                                validRectangle=False
+                                break
+                            if ((y==y1 or y==y2) and (x>=min(x1,x2) and x <= min(x1,x2))):
+                                validRectangle=False
+                                break
+                        if(validRectangle):
+                            area=max(area,calarea)
+                        # area=min(calarea,area)
+        return area
+    def findTargetSumWays(self, nums, target):
+        dp={}
+        def solve(nums,target,sums,index,dp):
+            if index==len(nums):
+                if sums==target:
+                    return 1
+                return 0
+            if (sums,index) in dp:
+                return dp[(sums,index)]
+            plus=solve(nums,target,sums+nums[index],index+1,dp)
+            minus=solve(nums,target,sums-nums[index],index+1,dp)
+            dp[(sums,index)]=plus+minus
+            return dp[(sums,index)]
+        return solve(nums,target,0,0,dp)
+    def maxScoreSightseeingPair(self, values):
+        result=0
+        # max1=[0]*len(values)
+        # for i in range(len(values)):
+        #     max1[i]=values[i]+i
+        maxi=values[0]+0
+        for j in range(1,len(values)):
+            result=max(result,maxi+values[j]-j)
+            if values[j]+j>maxi:
+                maxi=values[j]+j
+        return result
+    def vowelStrings(self, words, queries):
+        currSum=[0]*len(words)
+        count=0
+        ans=[]
+        for i in range(len(words)):
+            if (words[i][0]=='a' or words[i][0]=='e' or words[i][0]=='i' or words[i][0]=='o' or words[i][0]=='u') and (words[i][-1]=='a' or words[i][-1]=='e' or words[i][-1]=='i' or words[i][-1]=='o' or words[i][-1]=='u'):
+                count+=1
+            currSum[i]=count
+        print(currSum)
+        for q in queries:
+            l,r=q
+            if l>=0:
+                if l==0:
+                    ans.append(currSum[r])
+                else:
+                    ans.append(currSum[r]-currSum[l-1])
+        return ans
+   
+        
 abc=MedianFinder()
-print(abc.minOperations([1,1,2,4,9], k = 20))
+# print(abc.minOperations([1,1,2,4,9], k = 20))
+# print(abc.maxRectangleArea([[1,1],[1,3],[3,1],[3,3]]))
+# print(abc.maxRectangleArea(  [[1,1],[1,3],[3,1],[3,3],[1,2],[3,2]]))
+# print(abc.findTargetSumWays([1,1,1,1,1],3))
+# print(abc.maxScoreSightseeingPair([8,1,5,2,6]))
+# print(abc.maxScoreSightseeingPair([1,2]))
+# print(abc.triangleNumber([4,2,3,4]))
+print(abc.vowelStrings(["a","e","i"], queries = [[0,2],[0,1],[2,2]]))
