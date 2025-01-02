@@ -378,7 +378,6 @@ class MedianFinder:
             if (words[i][0]=='a' or words[i][0]=='e' or words[i][0]=='i' or words[i][0]=='o' or words[i][0]=='u') and (words[i][-1]=='a' or words[i][-1]=='e' or words[i][-1]=='i' or words[i][-1]=='o' or words[i][-1]=='u'):
                 count+=1
             currSum[i]=count
-        print(currSum)
         for q in queries:
             l,r=q
             if l>=0:
@@ -387,7 +386,17 @@ class MedianFinder:
                 else:
                     ans.append(currSum[r]-currSum[l-1])
         return ans
-   
+    def licenseKeyFormatting(self, s, k):
+        a=s.split('-')
+        s1=a[0]
+        c=''
+        for i in range(0,len(a)):
+            for j in range(len(a[i])):
+                c+=a[i][j]
+                if len(c)==k:
+                    s1+='-'+c.upper()
+        return s1
+        
         
 abc=MedianFinder()
 # print(abc.minOperations([1,1,2,4,9], k = 20))
@@ -397,4 +406,5 @@ abc=MedianFinder()
 # print(abc.maxScoreSightseeingPair([8,1,5,2,6]))
 # print(abc.maxScoreSightseeingPair([1,2]))
 # print(abc.triangleNumber([4,2,3,4]))
-print(abc.vowelStrings(["a","e","i"], queries = [[0,2],[0,1],[2,2]]))
+# print(abc.vowelStrings(["a","e","i"], queries = [[0,2],[0,1],[2,2]]))
+print(abc.licenseKeyFormatting( "2-5g-3-J", k = 2))
