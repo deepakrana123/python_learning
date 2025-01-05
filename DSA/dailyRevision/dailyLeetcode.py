@@ -396,6 +396,22 @@ class MedianFinder:
                 if len(c)==k:
                     s1+='-'+c.upper()
         return s1
+    def shiftingLetters(self, s, shifts):
+        an=[0]*len(s)
+        for i in range(len(shifts)):
+            start,end,incre=shifts[i]
+            for j in range(start,end+1):
+                an[j]+=1 if incre==1 else -1
+        ans=[]
+        for i in range(len(s)):
+            ans.append(s[i])
+        for i in range(len(s)):
+            if ord(ans[i])+an[i]-ord('a')<=25:
+                ans[i]=chr(ord(ans[i])+an[i])
+            else:
+                ans[i] = chr(ord('a') +(ord(ans[i])+an[i]-ord('a'))%26)
+        return ''.join(ans)
+                
         
         
 abc=MedianFinder()
@@ -407,4 +423,5 @@ abc=MedianFinder()
 # print(abc.maxScoreSightseeingPair([1,2]))
 # print(abc.triangleNumber([4,2,3,4]))
 # print(abc.vowelStrings(["a","e","i"], queries = [[0,2],[0,1],[2,2]]))
-print(abc.licenseKeyFormatting( "2-5g-3-J", k = 2))
+# print(abc.licenseKeyFormatting( "2-5g-3-J", k = 2))
+print(abc.shiftingLetters("dztz", shifts = [[0,0,0],[1,1,1]]))
