@@ -396,21 +396,24 @@ class MedianFinder:
                 if len(c)==k:
                     s1+='-'+c.upper()
         return s1
-    def shiftingLetters(self, s, shifts):
-        an=[0]*len(s)
-        for i in range(len(shifts)):
-            start,end,incre=shifts[i]
-            for j in range(start,end+1):
-                an[j]+=1 if incre==1 else -1
-        s1=''
+    def apply_shifts(s, shifts):
+        an = [0] * len(s)
+        for start, end, incre in shifts:
+            a = 1 if incre == 1 else -1
+            an[start] += a
+            if end + 1 < len(s):
+                an[end + 1] -= a
+        st = []
+        cumulative_shift = 0
         for i in range(len(s)):
-            new_ord=ord(s[i])+an[i]
-            if new_ord<ord('a'):
-                new_ord=ord('z')+1+(new_ord-ord('a'))
-            elif new_ord>ord('z'):
-                new_ord=ord('a')+ (new_ord - ord('a')) % 26
-            s1+=chr(new_ord)
-        return s1
+            cumulative_shift += an[i]
+            normalized_shift = cumulative_shift % 26
+            if normalized_shift < 0:
+                normalized_shift += 26
+            new_value = (ord(s[i]) - ord('a') + normalized_shift) % 26
+            st.append(chr(ord('a') + new_value))
+        return ''.join(st)
+
                 
         
         
