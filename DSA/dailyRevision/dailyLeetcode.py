@@ -402,15 +402,15 @@ class MedianFinder:
             start,end,incre=shifts[i]
             for j in range(start,end+1):
                 an[j]+=1 if incre==1 else -1
-        ans=[]
+        s1=''
         for i in range(len(s)):
-            ans.append(s[i])
-        for i in range(len(s)):
-            if ord(ans[i])+an[i]-ord('a')<=25:
-                ans[i]=chr(ord(ans[i])+an[i])
-            else:
-                ans[i] = chr(ord('a') +(ord(ans[i])+an[i]-ord('a'))%26)
-        return ''.join(ans)
+            new_ord=ord(s[i])+an[i]
+            if new_ord<ord('a'):
+                new_ord=ord('z')+1+(new_ord-ord('a'))
+            elif new_ord>ord('z'):
+                new_ord=ord('a')+ (new_ord - ord('a')) % 26
+            s1+=chr(new_ord)
+        return s1
                 
         
         
@@ -424,4 +424,4 @@ abc=MedianFinder()
 # print(abc.triangleNumber([4,2,3,4]))
 # print(abc.vowelStrings(["a","e","i"], queries = [[0,2],[0,1],[2,2]]))
 # print(abc.licenseKeyFormatting( "2-5g-3-J", k = 2))
-print(abc.shiftingLetters("dztz", shifts = [[0,0,0],[1,1,1]]))
+print(abc.shiftingLetters("xuwdbdqik", shifts = [[4,8,0],[4,4,0],[2,4,0],[2,4,0],[6,7,1],[2,2,1],[0,2,1],[8,8,0],[1,3,1]]))
