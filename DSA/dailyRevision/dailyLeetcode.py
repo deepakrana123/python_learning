@@ -413,6 +413,30 @@ class MedianFinder:
             new_value = (ord(s[i]) - ord('a') + normalized_shift) % 26
             st.append(chr(ord('a') + new_value))
         return ''.join(st)
+    def minOperations(self, boxes):
+        n=len(boxes)
+        ans=[0]*n
+        # for i in range(len(boxes)):
+        #     for j in range(len(boxes)):
+        #         if boxes[j]=='1':
+        #             ans[i]+=abs(j-i)
+        # return ans
+        currValue=0
+        currValueSum=0
+        for i in range(n):
+            ans[i]=currValueSum
+            currValue+=1 if boxes[i]=='1' else 0
+            currValueSum+=currValue
+        currValue=0
+        currValueSum=0
+        for i in range(n-1,-1,-1):
+            ans[i]+=currValueSum
+            currValue+=1 if boxes[i]=='1' else 0
+            currValueSum+=currValue
+        return ans
+        
+            
+        
 
                 
         
@@ -427,4 +451,5 @@ abc=MedianFinder()
 # print(abc.triangleNumber([4,2,3,4]))
 # print(abc.vowelStrings(["a","e","i"], queries = [[0,2],[0,1],[2,2]]))
 # print(abc.licenseKeyFormatting( "2-5g-3-J", k = 2))
-print(abc.shiftingLetters("xuwdbdqik", shifts = [[4,8,0],[4,4,0],[2,4,0],[2,4,0],[6,7,1],[2,2,1],[0,2,1],[8,8,0],[1,3,1]]))
+# print(abc.shiftingLetters("xuwdbdqik", shifts = [[4,8,0],[4,4,0],[2,4,0],[2,4,0],[6,7,1],[2,2,1],[0,2,1],[8,8,0],[1,3,1]]))
+print(abc.minOperations("001011"))
