@@ -73,8 +73,11 @@ def calculateScore(s):
                 asd[s[i]]=[]
             asd[s[i]].append(i)
     return sums
-print(calculateScore("aczzx"))
-print(calculateScore('abcdef'))
+# print(calculateScore("aczzx"))
+# print(calculateScore('abcdef'))
+def longestSubsequence(nums):
+
+        
         
 
         
