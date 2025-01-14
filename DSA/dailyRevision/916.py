@@ -31,6 +31,41 @@ def canConstruct(s, k):
         if dicts[ch]%2!=0:
             countOddChar+=1
     return countOddChar<=k
+def findThePrefixCommonArray(A, B):
+    abc=[0]*len(A)
+    count=0
+    
+    dicts={}
+    for i in range(len(A)):
+        dicts[B[i]]=dicts.get(B[i],0)+1
+        dicts[A[i]]=dicts.get(A[i],0)+1
+        if A[i]==B[i] and dicts[A[i]]==2:
+            count+=1
+        else:
+            if dicts[A[i]]==2:
+                count+=1
+            if dicts[B[i]]==2:
+                count+=1
+        abc[i]=count
+    return abc
+def minimumLength(s):
+    n=len(s)
+    dicts={}
+    for i in range(len(s)):
+        dicts[s[i]]=dicts.get(s[i],0)+1
+        if dicts[s[i]]==3:
+            dicts[s[i]]-=2
+    count=0
+    for key in dicts:
+        count+=dicts[key]
+    return count
+        
+
+
+        
 # print(canConstruct("true", k = 4))
-print(wordSubsets(["amazon","apple","facebook","google","leetcode"], words2 = ["e","o"]))
-print(wordSubsets(["amazon","apple","facebook","google","leetcode"], words2 = ["lc","eo"]))
+# print(wordSubsets(["amazon","apple","facebook","google","leetcode"], words2 = ["e","o"]))
+# print(wordSubsets(["amazon","apple","facebook","google","leetcode"], words2 = ["lc","eo"]))
+# print(findThePrefixCommonArray([2,3,1], B = [3,1,2]))
+# print(findThePrefixCommonArray([1,3,2,4], B = [3,1,2,4]))
+print(minimumLength("abaacbcbb"))
