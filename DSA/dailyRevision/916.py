@@ -277,7 +277,6 @@ def trapRainWater(heightMap):
 def firstCompleteIndex(arr, mat):
     dicts={arr[i]: i for i in range(len(arr))}
     minIndex=float("inf")
-    print(dicts)
     for i in range(len(mat)):
         c=0
         for j in range(len(mat[0])):
@@ -289,9 +288,35 @@ def firstCompleteIndex(arr, mat):
             c=max(dicts[mat[i][j]],c)
         minIndex=min(minIndex,c)
     return minIndex
+def highestPeak(isWater):
+    queue=[]
+    m=len(isWater)
+    n=len(isWater[0])
+    result=[[-1 for _ in range(len(isWater[0]))] for _ in range(len(isWater))]
+    for i in range(len(isWater)):
+        for j in range(len(isWater[0])):
+            if isWater[i][j]==1:
+                result[i][j]=0
+                queue.append((i,j))
+    dirs=[[-1,0],[0,1],[1,0],[0,-1]]
+    while queue:
+        k=len(queue)
+        for _ in range(k):
+            x,y=queue.pop(0)
+            for d in dirs:
+                curr_x = x+d[0]
+                curr_y = y + d[1]
+                if curr_x>=0 and curr_y>=0 and curr_x<m and curr_y<n and result[curr_x][curr_y] == -1:
+                    result[curr_x][curr_y]=result[x][y]+1
+                    queue.append((curr_x,curr_y))
+            
+    return result
+
+            
         
 
 
+        
         
 
        
@@ -299,5 +324,6 @@ def firstCompleteIndex(arr, mat):
 # print(minimumAddedInteger( [4,20,16,12,8],[14,18,10]))
 # print(trapRainWater([[1,4,3,1,3,2],[3,2,1,3,2,4],[2,3,3,2,3,1]]))
 # print(trapRainWater([[3,3,3,3,3],[3,2,2,2,3],[3,2,1,2,3],[3,2,2,2,3]]))
-print(firstCompleteIndex([1,3,4,2], mat = [[1,4],[2,3]]))
-print(firstCompleteIndex([2,8,7,4,1,3,5,6,9], mat = [[3,2,5],[1,4,6],[8,7,9]]))
+# print(firstCompleteIndex([1,3,4,2], mat = [[1,4],[2,3]]))
+# print(firstCompleteIndex([2,8,7,4,1,3,5,6,9], mat = [[3,2,5],[1,4,6],[8,7,9]]))
+print(highestPeak([[0,0,1],[1,0,0],[0,0,0]]))
