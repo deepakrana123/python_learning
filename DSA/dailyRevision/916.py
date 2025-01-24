@@ -311,19 +311,97 @@ def highestPeak(isWater):
                     queue.append((curr_x,curr_y))
             
     return result
+def orangesRotting(grid):
+    queue=[]
+    m=len(grid)
+    n=len(grid[0])
+    result=0
+    freshCount=0
+    for i in range(len(grid)):
+        for j in range(len(grid[0])):
+            if grid[i][j]==2:
+                queue.append((i,j))
+            elif grid[i][j]==1:
+                freshCount+=1
+    if freshCount==0:
+        return 0
+    dirs=[[-1,0],[0,1],[1,0],[0,-1]]
+    while queue:
+        k=len(queue)
+        for _ in range(k):
+            x,y=queue.pop(0)
+            for d in dirs:
+                curr_x = x+d[0]
+                curr_y = y + d[1]
+                if curr_x>=0 and curr_y>=0 and curr_x<m and curr_y<n  and grid[curr_x][curr_y]!=2 and grid[curr_x][curr_y]!=0:
+                    queue.append((curr_x,curr_y))
+                    grid[curr_x][curr_y]=2
+                    freshCount-=1
+        result+=1
+    return result-1 if freshCount==0 else -1
 
+        
+def countBattleships(board):
+    ships=0
+    for i in range(len(board)):
+        for j in range(len(board[0])):
+            if board[i][j]=='X':
+                ships+=1
+            if j+1<len(board[0]) and i+1<len(board) and board[i][j+1]=='X' and board[i+1][j]=='X':
+                ships-=1
+    return ships
+# def numIslands(grid):
+def countServers(grid):
+    results=0
+    row=[0]*len(grid)
+    col=[0]*len(grid[0])
+    for i in range(len(grid)):
+        for j in range(len(grid[0])):
+            if grid[i][j]==1:
+                col[j]+=1
+                row[i]+=1
+    for i in range(len(grid)):
+        for j in range(len(grid[0])):
+            if grid[i][j]==1 and (row[i]>1 or col[j]>1):
+                results+=1
+    return results    
+# def checkPowersOfThree(n):
+#     while n>0:
+#         if n%3==2:
+#             return False
+#         n//=3
+#     return True
+
+
+
+# print(checkPowersOfThree(21))
+def numIslands(grid):
+    def dfs(grid,i,j):
+        if i<0 or i>=len(grid) or j<0 or j>=len(grid[0]) or grid[i][j]=='0':
+            return
+        if grid[i][j]==-1:
+            return
+        grid[i][j]=-1
+        dfs(grid,i+1,j)
+        dfs(grid,i,j+1)
+        dfs(grid,i-1,j)
+        dfs(grid,i,j-1)
+    result=0
+    for i in range(len(grid)):
+        for j in range(len(grid[0])):
+            if grid[i][j] == '1':
+                dfs(grid,i,j)
+                result+=1
+    return result
+
+                
+    
+        
+        
             
-        
-
-
-        
-        
-
-       
-
-# print(minimumAddedInteger( [4,20,16,12,8],[14,18,10]))
-# print(trapRainWater([[1,4,3,1,3,2],[3,2,1,3,2,4],[2,3,3,2,3,1]]))
-# print(trapRainWater([[3,3,3,3,3],[3,2,2,2,3],[3,2,1,2,3],[3,2,2,2,3]]))
-# print(firstCompleteIndex([1,3,4,2], mat = [[1,4],[2,3]]))
-# print(firstCompleteIndex([2,8,7,4,1,3,5,6,9], mat = [[3,2,5],[1,4,6],[8,7,9]]))
-print(highestPeak([[0,0,1],[1,0,0],[0,0,0]]))
+print(numIslands([
+  ["1","1","0","0","0"],
+  ["1","1","0","0","0"],
+  ["0","0","1","0","0"],
+  ["0","0","0","1","1"]
+]))
