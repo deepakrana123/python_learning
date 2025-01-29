@@ -394,14 +394,60 @@ def numIslands(grid):
                 result+=1
     return result
 
-                
+def dfs(adj,start,end,visited):
+    visited[start]=True
+    if start==end:
+        return True
+    v=False
+    for i in adj[start]:
+        if visited[i]==False:
+           v = v or  dfs(adj,i,end,visited)
+    return v
+def checkIfPrerequisite(numCourses, prerequisites, queries):
+    if len(prerequisites)==0:
+        return [False]*len(queries)
+    adj={i:[] for i in range(numCourses)}
+    for u,v in prerequisites:
+        adj[u].append(v)
+    result=[False]*len(queries)
+    for i in range(len(queries)):
+        start,end=queries[i]
+        visited=[False]*numCourses
+        if dfs(adj,start,end,visited):
+            result[i]=True
+    return result
+
+from collections import defaultdict
+def findRedundantConnection(edges):
+    n=len(edges)
+    parent = [i for i in range(n+1)]
+    rank = [0] * (n+1)  
+    def find(x):
+        if parent[x] != x:
+            parent[x] = find(parent[x])
+        return parent[x]
+    def union(x, y):
+        root_x = find(x)
+        root_y = find(y)
+        if root_x != root_y:
+            if rank[root_x] < rank[root_y]:
+                parent[root_x] = root_y
+            elif rank[root_x] > rank[root_y]:
+                parent[root_y] = root_x
+            else:
+                parent[root_y] = root_x
+                rank[root_x] += 1
+    for u,v in edges:
+        if find(u)==find(v):
+            return [u,v]
+        union(u,v)
+    return []
+
+    
+print(findRedundantConnection([[1,2],[1,3],[2,3]]))
+        
+                            
     
         
         
             
-print(numIslands([
-  ["1","1","0","0","0"],
-  ["1","1","0","0","0"],
-  ["0","0","1","0","0"],
-  ["0","0","0","1","1"]
-]))
