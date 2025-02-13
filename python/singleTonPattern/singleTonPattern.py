@@ -1,0 +1,3 @@
+value='hiii'
+
+print(value)
