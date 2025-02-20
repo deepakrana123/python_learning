@@ -15,6 +15,6 @@ def numTilePossibilities(tiles):
     result=set()
     curr=[]
     solve(tiles,used,result,curr)
-    print(result)
     return len(result)-1
+print(numTilePossibilities("AAABBC"))
         
