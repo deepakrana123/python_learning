@@ -16,26 +16,28 @@ class Ticket:
 
 
 class Floor:
-    def __init__(self, floor_id, address, total_spots, avaiable_spots):
+    def __init__(self, floor_id, address, total_spots, avaiable_spots, parking_spots):
         self.floor_id = floor_id
         self.address = address
         self.total_spots = total_spots
         self.avaiable_spots = avaiable_spots
+        self.entrance = []
+        self.exit = []
+        self.parking_spots = []
 
-    def add_spot():
-        pass
+    def add_spot(self):
+        self.total_spots += 1
+        self.avaiable_spots += 1
 
-    def get_available_spots():
-        pass
+    def get_available_spots(self):
+        return self.avaiable_spots
 
 
 class ParkingLot:
     def __init__(self, name, address, total_spots, avaiable_spots):
         self.name = name
         self.address = address
-        self.total_spots = total_spots
-        self.avaiable_spots = avaiable_spots
-        self.floor = {}
+        self.floors = []
 
     def add_floor():
         pass
@@ -55,11 +57,11 @@ class SpotType(Enum):
 
 
 class ParkingSpot:
-    def __init__(self, spot_id, spot_type, is_occupied, vehicle_id):
+    def __init__(self, spot_id, spot_type, is_occupied, vehicle):
         self.spot_id = spot_id
         self.spot_type = spot_type
         self.is_occupied = is_occupied
-        self.vehicle_id = vehicle_id
+        self.vehicle = vehicle
 
     def assgin_vechile():
         pass
@@ -75,6 +77,14 @@ class Entrance:
 
     def process_entry():
         pass
+
+
+class User:
+    def __init__(self, user_id, name, contact_number, vehicle):
+        self.user_id = user_id
+        self.name = name
+        self.contact_number = contact_number
+        self.vehicle = vehicle
 
 
 class Exit:
