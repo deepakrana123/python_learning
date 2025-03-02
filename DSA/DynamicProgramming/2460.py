@@ -11,16 +11,21 @@ def applyOperations(nums):
                 nums[j] = temp
             j += 1
     return nums
-    # j = 0
-    # for i in range(len(nums)):
-    #     if nums[i] != 0:
-    #         nums[j] = nums[i]
-    #         j += 1
-    # while j < len(nums):
-    #     nums[j] = 0
-    #     j += 1
-    # return nums
 
 
-print(applyOperations([847, 847, 0, 0, 0, 399, 416, 416, 879, 879, 206, 206, 206, 272]))
-print(applyOperations([0, 1]))
+def mergeArrays(nums1, nums2):
+    dicts = {}
+    for u, v in nums1 + nums2:
+
+        if u in dicts:
+            dicts[u] = dicts.get(u) + v
+        else:
+            dicts[u] = v
+    sorted_dicts = dict(sorted(dicts.items()))
+    a = []
+    for key in sorted_dicts:
+        a.append([key, sorted_dicts[key]])
+    return a
+
+
+print(mergeArrays([[1, 2], [2, 3], [4, 5]], nums2=[[1, 4], [3, 2], [4, 1]]))
