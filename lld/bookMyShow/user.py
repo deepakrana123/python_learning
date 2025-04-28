@@ -1,5 +1,8 @@
 from datetime import datetime
 from datetime import timedelta
+from enum import Enum
+import threading
+import time
 
 
 class User:
@@ -25,9 +28,9 @@ class Theater:
 
 
 class Screen:
-    def __init__(self, screenLayout, seats):
-        self.screenLayout = screenLayout
-        self.seats = seats
+    def __init__(self, screen_layout):
+        self.screen_layout = screen_layout
+        self.seats = []
 
     def addMoreSeats(self, seat):
         self.seats.append(seat)
@@ -35,7 +38,7 @@ class Screen:
 
 class Show:
     def __init__(
-        self, show_id, screen, movie, threater, start_time, end_time, totalSeats
+        self, show_id, screen, movie, threater, start_time, end_time, total_seats
     ):
         self.movie = movie
         self.screen = screen
@@ -43,24 +46,39 @@ class Show:
         self.start_time = start_time
         self.end_time = end_time
         self.show_id = show_id
-        self.seats = [
-            Seat(seat.id, seat.seatType, Status.AVAILABLE) for seat in screen.seats
-        ] * totalSeats
-        self.totalSeats = totalSeats
+        self.total_seats = total_seats
+        self.seats = []
+        for seat in screen.seats:
+            self.seats.append(
+                Seat(
+                    seat.id,
+                    seat.seat_type,
+                    Status.AVAILABLE,
+                    seat.screen_id,
+                    show_id,
+                    0,
+                )
+            )
+
+    def get_total_seats(self):
+        return self.totalSeats
+
+    def occupany(self):
+        booked_count = len(
+            [seat for seat in self.seats if seat.status == Status.BOOKED]
+        )
+        return (booked_count / self.total_seats) * 100 if self.total_seats else 0
 
 
 class Movie:
-    def __init__(self, movieName, movieLang, movieDuration):
-        self.movieName = movieName
-        self.movieLang = movieLang
-        self.movieDuration = movieDuration
+    def __init__(self, name, language, duration):
+        self.name = name
+        self.language = language
+        self.duration = duration
         self.totalShow = []
 
-    def getMovieName(self):
-        return self.movieName
-
-
-from enum import Enum
+    def get_movie_name(self):
+        return self.name
 
 
 class SeatType(Enum):
@@ -71,26 +89,13 @@ class Status(Enum):
     AVAIABLE, RESERVED, BOOKED, HOLD = 1, 2, 3, 4
 
 
-class Price:
-    def __init__(self, seat):
-        self.seat = seat
-        self.totalPrice = 0
-
-    def makePrice(self, peak=None, seatType=None):
-        if peak:
-            self.totalPrice += peak * self.seat.price
-        if seatType == "VIP":
-            self.totalPrice += 20 * self.seat.price
-        return self.totalPrice
-
-
 class Seat:
-    def __init__(self, id, seatType, status, screenId, showId, price):
+    def __init__(self, id, seat_type, status, screen_id, show_id, price):
         self.id = id
-        self.seaType = seatType
+        self.seat_type = seat_type
         self.status = status
-        self.screenId = screenId
-        self.showId = showId
+        self.screen_id = screen_id
+        self.show_id = show_id
         self.price = price
 
     def bookSeat(self):
@@ -102,8 +107,40 @@ class Seat:
     def bookHold(self):
         self.status = Status.HOLD
 
-    def getPrice(self):
-        return self.price
+
+class Price:
+    def __init__(self, show, seat):
+        self.show = show
+        self.seat = seat
+        self.averagePrice = 250
+
+    def last_minute_surge(self):
+        date = datetime.now()
+        return 30 if (self.show.end_time - date).seconds < 1800 else 0
+
+    def early_morning_bird(self):
+        date = datetime.now()
+        return -30 if (self.show.end_time - date).seconds < 1800 else 0
+
+    def vip_charge(self):
+        return 20 if self.seat.seat_type == SeatType.VIP else 0
+
+    def occupancySurcharge(self):
+        length = self.show.occupany()
+        if length > 80:
+            return 40
+        elif length < 40:
+            return -40
+        return 0
+
+    def dynamicPriceStargey(self):
+        adjustments = (
+            self.last_minute_surge()
+            + self.early_morning_bird()
+            + self.occupancySurcharge()
+            + self.vip_charge()
+        )
+        return adjustments + self.averagePrice
 
 
 class CityFilter:
@@ -157,24 +194,25 @@ class Booking:
         f1 = Filter.getFilter("movie", filters.movieName, f)
         return f1
 
-    def bookSeats(self, totalSeat):
-        if self.show.seats.totalSeats < totalSeat:
+    def bookSeats(self, seat_ids):
+        if self.show.seats.total_seats < seat_ids:
             raise Exception("Seats are less")
-        for seat in self.show.seats[totalSeat + 1]:
-            seat.bookHold()
-            heapq.heappush(self.seatsBooked, (datetime.now() + timedelta(10), seat.id))
+        for seat in self.show.seats:
+            if seat.id in seat_ids and seat.status == Status.AVAILABLE:
+                seat.hold()
+                seat.price = Price(self.show, seat).calculate_final_price()
+                heapq.heappush(
+                    self.seats_booked, (datetime.now() + timedelta(seconds=30), seat.id)
+                )
+                self.selected_seats.append(seat)
 
     def selfBookCancel(self, id):
-        self.booking.seatsBooked = [
+        self.booking.selected_seats = [
             (expiry, seatId)
-            for (expiry, seatId) in self.booking.seatsBooked
+            for (expiry, seatId) in self.booking.selected_seats
             if seatId != id
         ]
-        heapq.heapify(self.booking.seatsBooked)
-
-
-import threading
-import time
+        heapq.heapify(self.booking.selected_seats)
 
 
 class TTLJobSchedular:
@@ -186,20 +224,16 @@ class TTLJobSchedular:
         def check_expiry():
             while True:
                 now = datetime.now()
-                expired = []
-                while self.booking.seatsBooked:
-                    expriy, seatId = self.booking.seatsBooked[0]
+                while self.booking.selected_seats:
+                    expriy, seatId = self.booking.selected_seats[0]
                     if expriy < now:
                         for seat in self.booking.show.seats:
                             if seat.id == seatId:
                                 seat.bookCancelled()
-                            expired.append(seat_id)
-                            heapq.heappop(self.booking.seatsBooked)
+                                break
+                        heapq.heappop(self.booking.selected_seats)
                     else:
                         break
-
-                for seat_id in expired:
-                    del self.booking.seatsBooked[seat_id]
                 time.sleep(self.interval)
 
         thread = threading.Thread(target=check_expiry)
