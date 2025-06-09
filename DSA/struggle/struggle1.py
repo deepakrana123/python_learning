@@ -25,7 +25,7 @@ def smallestEquivalentString(s1, s2, baseStr):
         graph[s2[i]].append(s1[i])
 
     strs = ""
-    print(graph)
+
     for word in baseStr:
         visited = [0] * 26
         strs += dfs(graph, word, visited)
@@ -75,7 +75,7 @@ def commonChars(words):
     dicts1 = {}
     for w in words[0]:
         dicts1[w] = dicts1.get(w, 0) + 1
-    print(dicts1, "dicts1")
+
     for i in range(1, len(words)):
         dicts2 = {}
         for key in words[i]:
@@ -142,7 +142,7 @@ def lastNonEmptyString(s):
         else:
             result.append(s[i])
             i += 1
-    print(result, "result")
+    return result
 
 
 def checkColumns(arr, col):
@@ -167,9 +167,6 @@ def numSpecial(mat):
                 if checkColumns(mat, j) and checkRows(mat, i):
                     count += 1
     return count
-
-
-print(numSpecial([[1, 0, 0], [0, 0, 1], [1, 0, 0]]))
 
 
 def lastNonEmptyString(s):
@@ -306,7 +303,6 @@ def clearStars(s):
     stack = []
     heap = []
     deleted = set()
-
     for i, ch in enumerate(s):
         if ch != "*":
             stack.append((s[i], i))
@@ -321,4 +317,90 @@ def clearStars(s):
     return "".join(result)
 
 
-print(clearStars("abc"))
+from collections import deque
+
+
+def longestSubarray(nums, limit):
+    # result = 0
+    # for i in range(len(nums)):
+    #     count = 0
+    #     for j in range(i, len(nums)):
+    #         if abs(nums[i] - nums[j]) <= limit:
+    #             count += 1
+    #         else:
+    #             break
+    #     result = max(count, result)
+    # return result
+    max_d = deque()
+    min_d = deque()
+    left = 0
+    res = 0
+    for right in range(len(nums)):
+        while max_d and nums[right] > max_d[-1]:
+            max_d.pop()
+        while min_d and nums[right] < min_d[-1]:
+            min_d.pop()
+        max_d.append(nums[right])
+        min_d.append(nums[right])
+
+        while max_d[0] - min_d[0] > limit:
+            if nums[left] == max_d[0]:
+                max_d.popleft()
+            if nums[left] == min_d[0]:
+                min_d.popleft()
+            left += 1
+        res = max(right - left + 1, res)
+    return res
+
+
+def zeroFilledSubarray(nums):
+    i = 0
+    j = 0
+    result = 0
+    while j < len(nums):
+        if nums[j] != 0:
+            i = j + 1
+        result += j - i + 1
+        j += 1
+    return result
+
+
+def addSpaces(s, spaces):
+    i = 0
+    j = 0
+    strs = ""
+    while j < len(s):
+        if i < len(spaces) and spaces[i] < len(s) and j == spaces[i]:
+            strs += " "
+            i += 1
+        strs += s[j]
+        j += 1
+    return strs
+
+
+def maximizeGreatness(nums):
+    mins = min(nums)
+    count = 0
+    for i in range(len(nums)):
+        if nums[i] == mins:
+            count += 1
+    return len(nums) - count
+
+
+def buildArray(target, n):
+    i = 0
+    j = 0
+    arr = [i for i in range(1, n + 1)]
+    map = []
+    while j < len(arr):
+        map.append("Push")
+        if target[i] == arr[j]:
+            i += 1
+        else:
+            map.append("Pop")
+        j += 1
+    return map
+
+
+print(buildArray([1, 3], n=3))
+print(buildArray([1, 2, 3], n=3))
