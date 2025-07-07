@@ -1374,3 +1374,410 @@ def possibleStringCount(word):
 
 
 print(possibleStringCount("abbcccc"))
+
+
+class Solution:
+    def solve(self, freq, index, k, result):
+        if len(freq) <= index:
+            if result < k:
+                return 1
+            return 0
+        count = 0
+        for take in range(len(freq[index])):
+            if count + take < k:
+                result = (
+                    result + self.solve(freq, k, index + 1, k, count + take)
+                ) % self.mod
+            else:
+                break
+        return result
+
+    def possibleStringCount(self, word, k):
+        freq = []
+        count = 1
+        self.mod = pow(10, 9) + 7
+        if len(word) < k:
+            return 0
+        for i in range(1, len(word)):
+            if word[i] == word[i - 1]:
+                count += 1
+            else:
+                freq.append(count)
+                count = 1
+        dp = [[-1 for _ in range(len(freq))] for _ in range(len(freq))]
+        freq.append(count)
+        p = 1
+        for f in freq:
+            p = (p * f) % self.mod
+        if len(freq) >= k:
+            return p
+        invalidCount = self.solve(freq, 0, k, 0)
+        return p - invalidCount
+
+
+def reverseAndAdd(s):
+    result = ""
+    for char in s:
+        result += chr(ord(char) + 1)
+    return result
+
+
+def kthCharacter(self, k):
+    if k < 0:
+        return ""
+    w = "a"
+    if k == 1:
+        return w
+    while k > 1:
+        w = w + reverseAndAdd(w)
+        if len(w) > k:
+            return w[k]
+        k - 1
+    return ""
+
+
+def helper(n, memo):
+    if n == 0:
+        return 0
+    if n in memo:
+        return memo[n]
+    minCount = float("inf")
+    i = 1
+    while i * i <= n:
+        result = 1 + helper(n - i * i)
+        minCount = min(result, minCount)
+        i += 1
+    memo[n] = minCount
+    return minCount
+
+
+def numSquares(n):
+    # return helper(n, {})
+    if n <= 0:
+        return 0
+    square = [i * i for i in range(1, int(n**0.5) + 1)]
+    queue = deque([(0, 0)])
+
+    visited = set()
+    while queue:
+        total, steps = queue.popleft()
+        for sq in square:
+            next_total = total + sq
+            if next_total == n:
+                return steps + 1
+            if next_total < n and next_total not in visited:
+                visited.add(next_total)
+                queue.append((next_total, steps + 1))
+    return -1
+
+
+def dfs(grid, i, j):
+    if i >= len(grid) or j >= len(grid[0]) or i < 0 or j < 0:
+        return False
+    if grid[i][j] == 1:
+        return True
+    grid[i][j] = 2
+    return (
+        dfs(grid, i - 1, j)
+        and dfs(grid, i + 1, j)
+        and dfs(grid, i, j - 1)
+        and dfs(grid, i, j + 1)
+    )
+
+
+def closedIsland(grid):
+    m, n = len(grid), len(grid[0])
+    count = 0
+    for i in range(m):
+        for j in range(n):
+            if grid[i][j] == 0:
+                if dfs(grid, i, j):
+                    count += 1
+    return count
+
+
+from collections import deque
+
+
+def maximumSafenessFactor(grid):
+    n = len(grid)
+    dirs = [(1, 0), (-1, 0), (0, 1), (0, -1)]
+
+    # Step 1: Multi-source BFS to compute distance from each cell to nearest thief
+    distanceNearestThief = [[-1] * n for _ in range(n)]
+    visited = [[False] * n for _ in range(n)]
+    queue = deque()
+
+    for i in range(n):
+        for j in range(n):
+            if grid[i][j] == 1:
+                queue.append((i, j))
+                visited[i][j] = True
+                distanceNearestThief[i][j] = 0
+
+    level = 0
+    while queue:
+        for _ in range(len(queue)):
+            x, y = queue.popleft()
+            for dx, dy in dirs:
+                nx, ny = x + dx, y + dy
+                if 0 <= nx < n and 0 <= ny < n and not visited[nx][ny]:
+                    visited[nx][ny] = True
+                    distanceNearestThief[nx][ny] = level + 1
+                    queue.append((nx, ny))
+        level += 1
+
+    # Step 2: Binary search over safeness factor
+    def check(mid_sf):
+        que = deque([(0, 0)])
+        visited = set()
+        visited.add((0, 0))
+        if distanceNearestThief[0][0] < mid_sf:
+            return False
+
+        while que:
+            x, y = que.popleft()
+            if x == n - 1 and y == n - 1:
+                return True
+            for dx, dy in dirs:
+                nx, ny = x + dx, y + dy
+                if (
+                    0 <= nx < n
+                    and 0 <= ny < n
+                    and (nx, ny) not in visited
+                    and distanceNearestThief[nx][ny] >= mid_sf
+                ):
+                    visited.add((nx, ny))
+                    que.append((nx, ny))
+        return False
+
+    l = 0
+    r = max(max(row) for row in distanceNearestThief)
+    result = 0
+    while l <= r:
+        mid = (l + r) // 2
+        if check(mid):
+            result = mid
+            l = mid + 1
+        else:
+            r = mid - 1
+    return result
+
+
+from collections import deque
+
+
+def snakesAndLadders(board):
+    n = len(board)
+    visited = [[False for _ in range(n)] for _ in range(n)]
+    queue = deque()
+    queue.append(1)  # Start from square 1
+    steps = 0
+
+    def getCord(val):
+        rowFromBottom = (val - 1) // n
+        row = n - 1 - rowFromBottom
+        col = (val - 1) % n
+        if rowFromBottom % 2 == 1:
+            col = n - 1 - col
+        return row, col
+
+    while queue:
+        for _ in range(len(queue)):
+            x = queue.popleft()
+            if x == n * n:
+                return steps
+            for move in range(1, 7):
+                next_val = x + move
+                if next_val > n * n:
+                    continue
+                r, c = getCord(next_val)
+                if visited[r][c]:
+                    continue
+                visited[r][c] = True
+                if board[r][c] == -1:
+                    queue.append(next_val)
+                else:
+                    queue.append(board[r][c])
+        steps += 1
+
+    return -1
+
+
+def dfs(ancestor, adj, currNode, result):
+    pass
+    # for ngbr in adj[currNode]:
+    #     if result[ngbr]
+
+
+def getAncestors(n, edges):
+    adj = defaultdict(list)
+    indegree = [0] * n
+    for u, v in edges:
+        adj[u].append(v)
+        indegree[v] += 1
+    ancestors = [set() for _ in range(n)]
+
+    queue = deque(i for i in range(n) if indegree[i] == 0)
+    while queue:
+        node = queue.popleft()
+        for neighbor in adj[node]:
+            ancestors[neighbor].add(node)
+            ancestors[neighbor].update(ancestors[node])
+
+            indegree[neighbor] -= 1
+            if indegree[neighbor] == 0:
+                queue.append(neighbor)
+    return [sorted(list(s)) for s in ancestors]
+
+
+from collections import defaultdict
+
+
+def countPairsOfConnectableServers(edges, signalSpeed):
+    adj = defaultdict(list)
+
+    # Build the adjacency list
+    nodes = set()
+    for u, v, w in edges:
+        adj[u].append((v, w))
+        adj[v].append((u, w))
+        nodes.update([u, v])
+
+    n = max(nodes) + 1
+    result = [0] * n  # One result per node
+
+    def dfs(node, parent, dist):
+        nonlocal ct
+        if dist % signalSpeed == 0:
+            ct += 1
+        for neighbor, weight in adj[node]:
+            if neighbor != parent:
+                dfs(neighbor, node, dist + weight)
+
+    # For each node, find all valid pairs through it
+    for root in range(n):
+        temp = []
+        for neighbor, weight in adj[root]:
+            ct = 0
+            dfs(neighbor, root, weight)
+            temp.append(ct)
+
+        # Count pairs from different branches
+        total = 0
+        prefix_sum = 0
+        for ct in temp:
+            total += prefix_sum * ct
+            prefix_sum += ct
+        result[root] = total
+
+    return result
+
+
+def minimumTime(n, edges, disappear):
+    adj = defaultdict(list)
+    for u, v, w in edges:
+        adj[u].append((v, w))
+        adj[v].append((u, w))
+
+    minTime = [float("-inf")] * n
+    visited = [False] * n
+
+    heap = [(0, 0)]
+    while heap:
+        currTime, node = heapq.heappop(heap)
+        if currTime >= disappear[node]:
+            continue
+        minTime[node] = currTime
+        for neighbor, weight in adj[node]:
+            nextTime = currTime + weight
+            if nextTime < minTime[neighbor] and nextTime < disappear[neighbor]:
+                minTime[neighbor] = nextTime
+                heapq.heappush(heap, (nextTime, neighbor))
+    return [t if t != float("inf") else -1 for t in minTime]
+
+
+def findFarmland(land):
+    m = len(land)
+    n = len(land[0])
+    result = [0]
+    dirs = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+
+    def bfs(land,currI,currJ,row2,col2):
+        queue=deque()
+        queue.append((currI,currJ))
+        while queue:
+            i,j=queue.appendleft()
+            row2=max(row2,currI)
+            col2=max(col2,currJ)
+            for d in dirs:
+                _i=i+d[0]
+                _j=j+d[1]
+                if _i<len(land) and _i>=0 and _j<len(land[0]) and _j>=0 and land[currI+][currJ+i]==1:
+                    queue.append((_i,_j))
+                    land[_i][_j]=0
+
+
+    def dfs(land, currI, currJ, row2, col2):
+        land[currI][currJ] = 0
+        row2 = max(currI, row2)
+        col2 = max(currJ, col2)
+        for d in dirs:
+            i,j=d
+            if currI+i<len(land) and currI+i>=0 and currJ+j<len(land[0]) and currJ+j>=0 and land[currI+][currJ+i]==1:
+                land[currI+i][currJ+j]=0
+                dfs(land,currI+i,currJ+j,row2,col2)
+
+    for i in range(m):
+        for j in range(n):
+            if land[i][j] == 0:
+                r1 = i
+                c1 = j
+                r2 = -1
+                c2 = -1
+                dfs(land, i, j, r2, c2)
+                result.append({r1, c1, r2, c2})
+    return result
+
+def minReorder(n, connections):
+    adj = defaultdict(list)
+    for u, v, w in connections:
+        adj[u].append((v, 1))
+        adj[v].append((u, 0))
+    result=0
+    def dfs(adj,parent,curr):
+        for node,checked in adj[curr]:
+            if node !=parent:
+                if checked==1:
+                    result+=1
+                dfs(adj,curr,node) 
+    dfs(adj,-1,0)
+    return result
+
+def countPaths(n, roads):
+    result = [float("inf")]*n
+    count=[0]*n
+    adj = defaultdict(list)
+    m=pow(10,9)+7
+    for u, v, w in roads:
+        adj[u].append((v, w))
+        adj[v].append((u, w))
+    count[0]=1
+    result[0]=0
+    heap=[(0,0)]
+    while heap:
+        currTime,node=heapq.heappop(heap)
+        for neig ,time in adj[node]:
+            if currTime+time<result[neig]:
+                result[neig]=currTime+time
+                heapq.heappush(heap,(result[neig],neig))
+                count[neig]=count[node]
+            elif currTime+time==result[neig]:
+                count[neig]=(count[node]+count[neig])%m
+    return count
+
+
+
+
+
+        
