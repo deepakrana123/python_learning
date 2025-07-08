@@ -35,6 +35,7 @@ class Customer(User):
 
 
 class RestaurantUser(User):
+
     def get_role(self):
         return "Restaurant"
 
@@ -42,26 +43,6 @@ class RestaurantUser(User):
         pass
 
     def order_transncation(self):
-        pass
-
-
-class Order:
-    def __init__(
-        self, id, timestamps, orders, customer_details: Customer, status: OrderStatus
-    ):
-        self.id = id
-        self.timestamps = timestamps
-        self.customer_details = customer_details
-        self.order_status = status
-        self.order = orders
-
-    def change_order_status(self, status):
-        self.order_status = status
-
-    def modify_order(self, kind):
-        pass
-
-    def track_change(self):
         pass
 
 
@@ -123,13 +104,80 @@ class AssignByRating(DeliveryStrategy):
         pass
 
 
-class DeliveryAssginment:
-    @staticmethod
-    def assginDelivery(self, method: str) -> DeliveryStrategy:
-        method = method.upper()
-        if method == "OrderPriority":
-            return "Assigned"
-        elif method == "by_rating":
-            return "by_rating"
-        else:
-            raise ValueError(f"Unsupported payment method: {method}")
+# class DeliveryAssginment:
+#     @staticmethod
+#     def assginDelivery(self, method: str) -> DeliveryStrategy:
+#         method = method.upper()
+#         if method == "OrderPriority":
+#             return "Assigned"
+#         elif method == "by_rating":
+#             return "by_rating"
+#         else:
+#             raise ValueError(f"Unsupported payment method: {method}")
+
+
+class Observer(ABC):
+    @abstractmethod
+    def update(self, data):
+        pass
+
+
+class Subject(Observer):
+    def __init__(self):
+        self._observers = []
+
+    def add_observer(self, observer: Observer):
+        self._observers.append(observer)
+
+    def remove_observer(self, observer: Observer):
+        self._observers.remove(observer)
+
+    def notify_observers(self, data):
+        for observer in self._observers:
+            observer.update(data)
+
+
+class Order(Subject):
+    def __init__(
+        self,
+        order_id,
+        timestamps,
+        orders,
+        customer_details: Customer,
+        status: OrderStatus,
+    ):
+        super().__init__()
+        self.order_id = order_id
+        self.timestamps = timestamps
+        self.customer_details = customer_details
+        self.order_status = status
+        self.order = orders
+
+    def change_order_status(self, status):
+        self.status = status
+        self.notify_observers({"order_id": self.order_id, "new_status": status})
+
+    def modify_order(self, kind):
+        pass
+
+    def track_change(self):
+        pass
+
+
+class CustomerApp(Observer):
+    def update(self, data):
+        print(
+            f"[CustomerApp] Order {data['order_id']} updated to {data['new_status'].name}"
+        )
+
+
+class RestaurantDashboard(Observer):
+    def update(self, data):
+        print(
+            f"[RestaurantDashboard] Order {data['order_id']} is now {data['new_status'].name}"
+        )
+
+
+class FeedBackAndRating:
+    def __init__(self, order_id, revies):
+        pass
