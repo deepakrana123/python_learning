@@ -1,5 +1,26 @@
 from abc import ABC, abstractmethod
 from enum import Enum
+import time
+from functools import wraps
+
+
+def rate_limit(seconds: int):
+    def decorator(func):
+        last_called = {}
+
+        @wraps(func)
+        def wrapper(cls, *args, **kwrags):
+            now = time.time()
+            user_key = cls.__name__
+            last_time = last_called.get(user_key, 0)
+            if now - last_time < seconds:
+                return
+            last_called[user_key] = now
+            return func(cls, *args, **kwrags)
+
+        return wrapper
+
+    return decorator
 
 
 class OrderStatus(Enum):
