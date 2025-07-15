@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package chat;
+
+message ChatMessage {
+  string sender = 1;
+  string message = 2;
+  int64 timestamp = 3;
+  bool is_edited = 5;
+  bool is_deleted = 6;
+}
+
+message ChatEvent {
+  oneof event_type {
+    ChatMessage message = 1;
+    EditRequest edit = 2;
+    DeleteRequest delete = 3;
+  }
+}
+
+message EditRequest {
+  string message_id = 1;
+  string new_message = 2;
+}
+
+message DeleteRequest {
+  string message_id = 1;
+}
+
+service ChatService {
+  rpc ChatStream(stream ChatEvent) returns (stream ChatEvent);
+}
