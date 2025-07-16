@@ -1,32 +1,77 @@
 syntax = "proto3";
 
-package chat;
 
+
+
+message LoginRequest{
+  string username = 1;
+  string password = 2;
+}
+message LoginResponse{
+  string token = 1;
+  bool success = 2;
+  string error = 3;
+}
 message ChatMessage {
-  string sender = 1;
-  string message = 2;
-  int64 timestamp = 3;
+  string message_id = 1;
+  string sender = 2;
+  string message = 3;
+  int64 timestamp = 4;
   bool is_edited = 5;
   bool is_deleted = 6;
+  string chat_id = 7
 }
+
+message EditRequest {
+  string message_id = 1;
+  string new_message = 2;
+  string sender=3
+}
+
+message DeleteRequest {
+  string message_id = 1;
+  string sender=3
+}
+
+message ReadReceipt {
+  string message_id = 1;
+  string reader = 2;
+  int64 read_timestamp = 3;
+}
+
+message Reaction {
+  string message_id = 1;
+  string reactor = 2;
+  string emoji = 3;
+  int64 reacted_at = 4;
+}
+
+message TypingStatus {
+  string user = 1;
+  bool is_typing = 2;
+  string chat_id = 3; // so you can track per chat room
+}
+
+message PresenceStatus {
+  string user = 1;
+  bool is_online = 2;
+  int64 last_seen = 3;
+}
+
 
 message ChatEvent {
   oneof event_type {
     ChatMessage message = 1;
     EditRequest edit = 2;
     DeleteRequest delete = 3;
+    ReadReceipt receipt = 4;
+    Reaction reaction = 5;
+    TypingStatus typing = 6;
+    PresenceStatus presence = 7;
   }
 }
 
-message EditRequest {
-  string message_id = 1;
-  string new_message = 2;
-}
-
-message DeleteRequest {
-  string message_id = 1;
-}
-
 service ChatService {
+  rpc Login(LoginRequest) returns (LoginResponse);
   rpc ChatStream(stream ChatEvent) returns (stream ChatEvent);
 }

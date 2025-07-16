@@ -463,3 +463,124 @@ def partition(s):
 
     solve(0)
     return result
+
+
+def maxOperations(nums):
+    def solve(first, last, score):
+        if last - first < 1:
+            return 0
+        first_two = 0
+        first_last = 0
+        last_Two = 0
+        if score == 0 or score == nums[first] + nums[first + 1]:
+            first_two = 1 + solve(first + 2, last, nums[first] + nums[first + 1])
+        if score == 0 or score == nums[first] + nums[last]:
+            first_last = 1 + solve(first + 1, last - 1, nums[first] + nums[last])
+        if score == 0 or score == nums[last] + nums[last - 1]:
+            last_Two = 1 + solve(first, last - 2, nums[last] + nums[last - 1])
+        return max(first_two, first_last, last_Two)
+
+    return solve(0, len(nums) - 1, 0)
+
+
+def lengthOfLIS(nums):
+    dp = {}
+
+    def solve(index, prev):
+        if index == len(nums):
+            return 0
+        if (index, prev) in dp:
+            return dp[(index, prev)]
+        skip = float("-inf")
+        taken = float("-inf")
+        skip = solve(index + 1, prev)
+        if prev == -1 or nums[index] > prev:
+            taken = 1 + solve(index + 1, nums[index])
+        dp[(index, prev)] = max(taken, skip)
+        return dp[(index, prev)]
+
+    return solve(0, -1)
+
+
+def minPathSum(grid):
+    def solve(i, j):
+        if i < 0 or i >= len(grid) or j < 0 or j >= len(grid[0]):
+            return float("inf")
+        if i == len(grid) - 1 and j == len(grid[0]) - 1:
+            return grid[i][j]
+        down = (
+            solve(
+                i + 1,
+            )
+            + grid[i][j]
+        )
+        right = solve(i, j + 1)
+        return grid[i][j] + min(down, right)
+
+    return solve(0, 0)
+
+
+def findPaths(m, n, maxMove, startRow, startColumn):
+    mod = pow(10, 9) + 7
+
+    def solve(i, j):
+        if i < 0 or i >= m or j < 0 or j >= n:
+            return 1
+        if maxMove == 0:
+            return 0
+        down = solve(i + 1, maxMove - 1)
+        right = solve(i, j + 1, maxMove - 1)
+        left = solve(i - 1, j, maxMove - 1)
+        top = solve(i, j - 1, maxMove - 1)
+        return (down + right + left + top) % mod
+
+    return solve(startRow, startRow, maxMove)
+
+
+def maxTotalReward(rewardValues):
+    def solve(index, score):
+        if index >= len(rewardValues):
+            return 0
+        skip = solve(index + 1, score)
+        taken = 0
+        if score == float("-inf") or rewardValues[index] > score:
+            taken = solve(index + 1, score + rewardValues[index])
+        return max(taken, skip)
+
+    return solve(0, float("-inf"))
+
+
+def uniquePaths(m, n):
+    dp = [[0 for _ in range(n + 1)] for _ in range(m + 1)]
+    for i in range(1, m):
+        dp[i][0] = 1
+    for i in range(1, n):
+        dp[0][i] = 1
+
+    for i in range(m):
+        for j in range(n):
+            dp[i][j] = dp[i - 1][j] + dp[i][j - 1]
+    return dp[m - 1][n - 1]
+
+
+def uniquePathsWithObstacles(obstacleGrid):
+    dp = [
+        [0 for _ in range(len(obstacleGrid[0]) + 1)]
+        for _ in range(len(obstacleGrid) + 1)
+    ]
+    dp[0][0] = 1
+    for i in range(1, len(obstacleGrid)):
+        if obstacleGrid[i][0] == 0:
+            dp[i][0] = 1
+        else:
+            return
+    for i in range(1, len(obstacleGrid[0])):
+        if obstacleGrid[0][i] == 0:
+            dp[i][0] = 1
+        else:
+            return
+    for i in range(1, len(obstacleGrid)):
+        for j in range(1, len(obstacleGrid[0])):
+            if obstacleGrid[i][j] == 0:
+                dp[i][j] = dp[i - 1][j] + dp[i][j - 1]
+    return dp[len(obstacleGrid) - 1][len(obstacleGrid[0]) - 1]
