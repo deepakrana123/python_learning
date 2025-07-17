@@ -24,8 +24,8 @@ def generate_event():
                     message_id=str(uuid.uuid4()),
                     sender=USERNAME,
                     message=text,
-                    timestamp=int(time.time()),
                     chat_id=chat_id,
+                    timestamp=int(time.time()),
                 )
             )
 
@@ -68,6 +68,14 @@ def generate_event():
                     message_id=msg_id, reader=USERNAME, read_timestamp=int(time.time())
                 )
             )
+        elif action == "b":
+            msg = input("Broadcast message: ")
+            event = chat_pb2.ChatEvent(
+                broadcast=chat_pb2.BroadcastEvent(
+                    message=msg,
+                    timestamp=int(time.time()),
+                )
+            )
 
 
 async def login(stub):
@@ -104,6 +112,8 @@ async def listen(stub):
                 print(
                     f"👁️ Message {event.receipt.message_id} read by {event.receipt.reader}"
                 )
+            elif event.HasField("broadcast"):
+                print(f"\n📢 Broadcast: {event.broadcast.message}")
 
 
 async def run():

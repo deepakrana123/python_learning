@@ -25,6 +25,10 @@ class ChatService(chat_pb2_grpc.ChatServiceServicer):
         user_id = None
         chat_id = None
 
+        async def broadcast_all(self, event):
+            for uid, queue in user_streams.items():
+                await queue.put(event)
+
         async def handle_incoming():
             nonlocal user_id, chat_id
             async for event in request_iterator:
@@ -37,12 +41,10 @@ class ChatService(chat_pb2_grpc.ChatServiceServicer):
                         )
                     user_id = tokens[token]
                     user_streams[user_id] = queue
-
                 # On first message, join chat
                 if event.HasField("message"):
                     chat_id = event.message.chat_id or "default_chat"
                     chat_members[chat_id].add(user_id)
-
                 await self.handle_event(event, user_id)
 
         async def handle_outgoing():
@@ -75,6 +77,10 @@ class ChatService(chat_pb2_grpc.ChatServiceServicer):
 
         if event.HasField("message"):
             chat_id = event.message.chat_id
+            if chat_id == "broadcast":
+                await self.broadcast_all(event)
+            else:
+                await self.broadcast(chat_id, event)
         elif event.HasField("edit"):
             chat_id = "default_chat"
         elif event.HasField("delete"):
@@ -83,6 +89,8 @@ class ChatService(chat_pb2_grpc.ChatServiceServicer):
             chat_id = event.typing.chat_id
         elif event.HasField("receipt"):
             chat_id = "default_chat"
+        elif event.HasField("boardcast"):
+            await self.braodcast_all(event)
 
         if chat_id and chat_id in chat_members:
             for uid in chat_members[chat_id]:

@@ -584,3 +584,104 @@ def uniquePathsWithObstacles(obstacleGrid):
             if obstacleGrid[i][j] == 0:
                 dp[i][j] = dp[i - 1][j] + dp[i][j - 1]
     return dp[len(obstacleGrid) - 1][len(obstacleGrid[0]) - 1]
+
+
+# def maximumLength(nums):
+#     def solve(currIndex, previous, current_density, count):
+#         if currIndex >= len(nums):
+#             return 0
+#         even = 0
+#         odd=0
+#         oddeven=0
+
+
+#         return max(taken, skip)
+
+
+#     return solve(0, oddEven)
+
+
+# propagation sometimes form bottom right to top left
+def solve(i, j, dungeon, dp):
+    if i >= len(dungeon) or j >= len(dungeon[0]):
+        return float("inf")
+    if dp[i][j] != -1:
+        return dp[i][j]
+
+    if i == len(dungeon) - 1 and j == len(dungeon[0]) - 1:
+        if dungeon[i][i] <= 0:
+            return abs(dungeon[i][j]) + 1
+        else:
+            return 1
+    right = solve(i, j + 1, dungeon)
+    down = solve(i + 1, j, dungeon)
+    result = min(right, down) - dungeon[i][j]
+    dp[i][j] = 1 if result < 0 else result
+    return dp[i][j]
+
+
+def calculateMinimumHP(self, dungeon):
+    # left = 1
+    # right = 10**7 * 4
+    # miniMumHealth = 10**7 * 4
+    # m = len(dungeon)
+    # n = len(dungeon[0])
+
+    # def findCalculateMinimumHP(i, j, mid):
+    #     if i >= m or j >= n:
+    #         return False
+    #     mid += dungeon[i][j]
+    #     if mid <= 0:
+    #         return False
+    #     if i == m - 1 and j == n - 1:
+    #         return True
+    #     return findCalculateMinimumHP(i + 1, j, mid) or findCalculateMinimumHP(
+    #         i, j + 1, mid
+    #     )
+
+    # while left <= right:
+    #     mid = left + (right - left) // 2
+    #     if findCalculateMinimumHP(0, 0, mid) >= 0:
+    #         miniMumHealth = min(miniMumHealth, mid)
+    #         right = mid - 1
+    #     else:
+    #         left = mid + 1
+    # return miniMumHealth
+
+    # dp = [[-1 for _ in range(201)] for _ in range(201)]
+
+    # def solve(i, j, dungeon, dp):
+    #     if i >= len(dungeon) or j >= len(dungeon[0]):
+    #         return float("inf")
+    #     if dp[i][j] != -1:
+    #         return dp[i][j]
+
+    #     if i == len(dungeon) - 1 and j == len(dungeon[0]) - 1:
+    #         if dungeon[i][i] <= 0:
+    #             return abs(dungeon[i][j]) + 1
+    #         else:
+    #             return 1
+    #     right = solve(i, j + 1, dungeon)
+    #     down = solve(i + 1, j, dungeon)
+    #     result = min(right, down) - dungeon[i][j]
+    #     dp[i][j] = 1 if result < 0 else result
+    #     return dp[i][j]
+
+    # return solve(0, 0, dungeon, dp)
+    m = len(dungeon)
+    n = len(dungeon[0])
+    dp = [[0 for _ in range(201)] for _ in range(201)]
+    dp[m][n - 1] = dp[m - 1][n] = float("inf")
+
+    for i in range(m - 1, -1, -1):
+        for j in range(n - 1, -1, -1):
+            if i == m - 1 and j == n - 1:
+                if dungeon[i][j] <= 0:
+                    dp[m - 1][n - 1] = abs(dungeon[m - 1][n - 1]) + 1
+                else:
+                    dp[m - 1][n - 1] = 1
+            right = dp[i + 1][j]
+            down = dp[i][j + 1]
+            result = min(right, down) - dungeon[i][j]
+            dp[i][j] = 1 if result < 0 else result
+    return dp[0][0]
