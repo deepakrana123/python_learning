@@ -685,3 +685,27 @@ def calculateMinimumHP(self, dungeon):
             result = min(right, down) - dungeon[i][j]
             dp[i][j] = 1 if result < 0 else result
     return dp[0][0]
+
+
+def maximumLength(nums):
+    def solve(currIndex, previous, current_score):
+        if currIndex >= len(nums):
+            return 0
+        taken = 0
+        if previous == -1 or (nums[currIndex] + previous) % 2 == current_score:
+            if currIndex >= len(nums) - 2:
+                if (nums[currIndex] + nums[currIndex]) % 2 == current_score:
+                    return 2
+                else:
+                    return 0
+            else:
+                taken = 1 + solve(
+                    currIndex + 1, nums[currIndex + 1], (nums[currIndex] + previous) % 2
+                )
+        skip = solve(currIndex + 1, previous, current_score)
+        return max(taken, skip)
+
+    return solve(0, -1, 0)
+
+
+print(maximumLength([1, 2, 1, 1, 2, 1, 2]))
