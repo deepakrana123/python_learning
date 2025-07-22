@@ -55,7 +55,6 @@ class SegmentTree:
 
 
 class NumArray:
-
     def __init__(self, nums):
         self.n = len(nums)
         self.segTree = [0] * (4 * self.n)
@@ -251,3 +250,291 @@ def leftmostBuildingQueries1(heights, queries):
                 idx = next_greater[idx]
             result[i] = idx if idx != -1 else -1
     return result
+
+
+class TrieNode:
+    def __init__(self):
+        self.children = {}
+        self.is_end = False
+        self.count = 0
+
+
+class Trie:
+    def __init__(self):
+        self.root = TrieNode()
+
+    def insert(self, word, i):
+        node = self.root
+        for ch in word:
+            if ch not in node.children:
+                node.children[ch] = TrieNode()
+            node = node.children[ch]
+            node.count += 1
+        node.is_end = True
+
+    def search(self, word):
+        node = self.root
+        for ch in word:
+            if ch not in node.children:
+                return False
+            node = node.children[ch]
+        return node.is_end
+
+    def startsWith(self, prefix):
+        node = self.root
+        for ch in prefix:
+            if ch not in node.children:
+                return 0
+            node = node.children[ch]
+        return node.count
+
+
+def prefixCount(self, words, pref):
+    prefixTire = Trie()
+    for word in words:
+        prefixTire.insert(word)
+
+    return prefixTire.startsWith(pref)
+
+
+def countPrefixSuffixPairs(words):
+    count = 0
+    # for i in range(len(words)):
+    #     for j in range(i + 1, len(words)):
+    #         if (
+    #             words[i] == words[j][0 : len(words[i])]
+    #             and words[i] == words[j][-len(words[i]) :]
+    #         ):
+    #             count += 1
+    # return count
+    for i in range(len(words)):
+        prefixTrie = Trie()
+        suffixTrie = Trie()
+        prefixTrie.insert(words[i])
+        suffixTrie.insert(words[i][::-1])
+        for j in range(0, i):
+            if len(words[j]) > len(words[i]):
+                continue
+            if prefixTrie.search(words[j]) and suffixTrie.search(words[j][::-1]):
+                count += 1
+    return count
+
+
+class TrieNode:
+    def __init__(self):
+        self.is_end_of_word = False
+        self.children = {}
+
+
+class WordDictionary:
+    def __init__(self):
+        self.root = TrieNode()
+
+    def addWord(self, word: str) -> None:
+        crawl = self.root
+        for char in word:
+            if char not in crawl.children:
+                crawl.children[char] = TrieNode()
+            crawl = crawl.children[char]
+        crawl.is_end_of_word = True
+
+    def search_utils(self, node, word):
+        for i in range(len(word)):
+            char = word[i]
+            if char == ".":
+                for child in node.children:
+                    if self.search_utils(node.children[child], word[i + 1 :]):
+                        return True
+                return False
+            else:
+                if char not in node.children:
+                    return False
+                node = node.children[char]
+        return node.is_end_of_word
+
+    def search(self, word: str) -> bool:
+        return self.search_utils(self.root, word)
+
+
+class TrieNodes:
+    def __init__(self):
+        self.children = {}
+        self.is_end = False
+
+
+class Tries:
+    def __init__(self):
+        self.root = TrieNodes()
+
+    def insert(self, word):
+        node = self.root
+        for ch in word:
+            if ch not in node.children:
+                node.children[ch] = TrieNodes()
+            node = node.children[ch]
+        node.is_end = True
+
+    def search(self, word):
+        node = self.root
+        for i in range(len(word)):
+            ch = word[i]
+            if ch not in node.children:
+                return word
+            node = node.children[ch]
+            if node.is_end:
+                return word[0 : i + 1]
+        return word
+
+
+def replaceWords(dictionary, sentence):
+    words = Tries()
+    for w in dictionary:
+        words.insert(w)
+    l = sentence.split(" ")
+    sen = ""
+    for word in l:
+        sen += words.search(word) + " "
+    return sen.strip(" ")
+
+
+class WordBreakTrie:
+    def __init__(self):
+        self.root = TrieNodes()
+
+    def insert(self, word):
+        node = self.root
+        for ch in word:
+            if ch not in node.children:
+                node.children[ch] = TrieNodes()
+            node = node.children[ch]
+        node.is_end = True
+
+    def search(self, word, start, memo):
+        if start in memo:
+            return memo[start]
+        crawl = self.root
+        for i in range(start, len(word)):
+            if word[i] not in crawl.children:
+                memo[i] = False
+                return False
+            crawl = crawl.children[word[i]]
+            if crawl.is_end:
+                if i == len(word) - 1 or self.search(word, i + 1, memo):
+                    memo[start] = True
+                    return True
+        memo[i] = True
+        return False
+
+
+def wordBreak(s, wordDict):
+    memo = {}
+    wordBreaks = WordBreakTrie()
+    for words in wordDict:
+        wordBreaks.insert(words)
+
+    # return wordBreaks.search(s, 0, memo)
+    # only recusrion
+    def solve(idx, s):
+        if idx == len(s):
+            return True
+        if s in wordDict:
+            return True
+        for i in range(len(s) + 1):
+            temp = s[idx:i]
+            if temp in wordDict and solve(i + idx, s):
+                return True
+        return False
+
+    return solve(0, s)
+
+
+class FindWordsTrieStr:
+    def __init__(self):
+        self.children = {}
+        self.is_end = False
+        self.words = ""
+
+
+class FindWordsTrie:
+    def __init__(self):
+        self.root = FindWordsTrieStr()
+
+    def insert(self, word):
+        node = self.root
+        for ch in word:
+            if ch not in node.children:
+                node.children[ch] = FindWordsTrieStr()
+            node = node.children[ch]
+        node.is_end = True
+        node.words = word
+
+    def search(self, word):
+        node = self.root
+        for ch in word:
+            if ch not in node.children:
+                return {False, ""}
+            node = node.children[ch]
+        return {node.is_end, node.words}
+
+
+def findWords(board, words):
+    n = len(board[0])
+    m = len(board)
+    result = []
+    root = FindWordsTrie()
+
+    def findWords(board, i, j, root):
+        if i < 0 or i >= m or j < 0 or j <= n:
+            return
+        if board[i][j] == "$" or root.children[board[i][j]] == False:
+            return
+
+    for i in range(m):
+        for j in range(n):
+            ch = words[i][j]
+            if root.children[ch]:
+                findWords(board, i, j, root)
+    return result
+
+
+class StringIndicesTrie:
+    def __init__(self):
+        self.children = {}
+        self.is_end = False
+        self.count = 0
+
+
+class StringTrie:
+    def __init__(self):
+        self.root = {}
+
+    def insert(self, word):
+        node = self.root
+        for w in word:
+            if w not in node.children:
+                node.children[w] = StringIndicesTrie()
+            node = node.children
+        node.is_end = True
+        node.count = len(word)
+
+    def search(self, word):
+        node = self.root
+        for ch in word:
+            if ch not in node.children:
+                return False
+            node = node.children[ch]
+        return node.is_end
+
+    def startsWith(self, prefix):
+        node = self.root
+        for ch in prefix:
+            if ch not in node.children:
+                return 0
+            node = node.children[ch]
+        return node.count
+
+
+def stringIndices(wordsContainer, wordsQuery):
+    stringsIndices = StringTrie()
+    for word in wordsContainer:
+        stringIndices.insert(word[::-1])
