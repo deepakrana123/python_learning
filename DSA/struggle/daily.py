@@ -708,4 +708,18 @@ def maximumLength(nums):
     return solve(0, -1, 0)
 
 
-print(maximumLength([1, 2, 1, 1, 2, 1, 2]))
+def maxSum(nums):
+    st = set()
+    sums = 0
+    maxNeg = float("-inf")
+
+    for num in nums:
+        if num <= 0:
+            maxNeg = max(maxNeg, num)
+        elif num not in st:
+            sums += num
+            st.add(num)
+    return maxNeg if sums == 0 else sums
+
+
+print(maxSum([1, 2, 3, 4, 5]))

@@ -538,3 +538,45 @@ def stringIndices(wordsContainer, wordsQuery):
     stringsIndices = StringTrie()
     for word in wordsContainer:
         stringIndices.insert(word[::-1])
+
+
+class TrieNode:
+    def __init__(self):
+        self.children = {}
+        self.is_end = False
+        self.index = -1
+
+
+class Trie:
+    def __init__(self):
+        self.root = TrieNode()
+
+    def insert(self, word, i, wordsContainer):
+        node = self.root
+        for w in word[::-1]:
+            if w not in node.children:
+                node.children[w] = TrieNode()
+            node = node.children[w]
+            if node.index == -1 or len(wordsContainer[node.index]) > len(word):
+                node.index = i
+        node.is_end = True
+
+    def search(self, words):
+        node = self.root
+        result_idx = node.index
+        for i in range(len(words), -1, -1):
+            if words[i] not in node.children:
+                return result_idx
+            result_idx = node.index
+        return result_idx
+
+
+def stringIndices(wordsContainer, wordsQuery):
+    abc = Trie()
+    result = []
+    for i in range(len(wordsContainer)):
+        abc.insert(wordsContainer[i], i, wordsContainer)
+
+    for i in range(len(wordsQuery)):
+        result.append(abc.search(wordsQuery[i]))
+    return result
