@@ -153,3 +153,81 @@ class Solution:
             for j in range(1, totalSums - k + 1):
                 dp[i][j] = dp[i - 1][j] or dp[i - 1][j - arr[i]]
         return dp[len(arr) - 1][totalSums - k]
+
+    def minimumDifference(nums):
+        totalSums = sum(nums)
+        dp = [[False for _ in range(totalSums)] for _ in range(len(nums))]
+        for i in range(len(nums)):
+            dp[i][0] = True
+        if nums[0] <= totalSums:
+            dp[0][nums[0]] = True
+
+        for i in range(1, len(nums)):
+            for j in range(1, totalSums + 1):
+                notTake = dp[i - 1][j]
+                take = False
+                if nums[i] <= j:
+                    take = dp[i - 1][j - nums[i]]
+                dp[i][j] = notTake or take
+
+        minValue = float("inf")
+        for i in range(totalSums // 2 + 1):
+            if dp[len(nums) - 1][i] == True:
+                minValue = min(minValue, abs(totalSums - i) - i)
+        return minValue
+
+
+from typing import List
+import bisect
+
+
+class Solution:
+    def minimumDifference(self, nums: List[int]) -> int:
+        n = len(nums) // 2
+        totalSum = sum(nums)
+
+        def getSubsetSums(arr):
+            res = [[] for _ in range(len(arr) + 1)]
+
+            def backtrack(index, curr_sum, count):
+                if index == len(arr):
+                    res[count].append(curr_sum)
+                    return
+                # Take current
+                backtrack(index + 1, curr_sum + arr[index], count + 1)
+                # Don't take
+                backtrack(index + 1, curr_sum, count)
+
+            backtrack(0, 0, 0)
+            return res
+
+        left = nums[:n]
+        right = nums[n:]
+
+        leftSums = getSubsetSums(left)  # All subset sums of left half, grouped by size
+        rightSums = getSubsetSums(
+            right
+        )  # All subset sums of right half, grouped by size
+
+        minDiff = float("inf")
+
+        for l in range(n + 1):
+            leftGroup = leftSums[l]
+            rightGroup = rightSums[n - l]
+            rightGroup.sort()
+
+            for leftSum in leftGroup:
+                target = totalSum // 2 - leftSum
+                idx = bisect.bisect_left(rightGroup, target)
+
+                # check rightGroup[idx]
+                if idx < len(rightGroup):
+                    currSum = leftSum + rightGroup[idx]
+                    minDiff = min(minDiff, abs((totalSum - currSum) - currSum))
+
+                # check rightGroup[idx - 1]
+                if idx > 0:
+                    currSum = leftSum + rightGroup[idx - 1]
+                    minDiff = min(minDiff, abs((totalSum - currSum) - currSum))
+
+        return minDiff
