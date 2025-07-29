@@ -1,6 +1,7 @@
 # operation to find two set
 # two members are disjoint or being to same set or not
 
+
 class DisjointSetUnion:
     def __init__(self, n):
         self.parent = [i for i in range(n)]
@@ -24,6 +25,7 @@ class DisjointSetUnion:
             else:
                 self.parent[root_y] = root_x
                 self.rank[root_x] += 1
+
 
 # Creating a Disjoint Set Union instance with 5 elements
 dsu = DisjointSetUnion(5)
@@ -38,6 +40,7 @@ print(dsu.find(0))  # Output: 2 (representative/root of set containing element 0
 print(dsu.find(1))  # Output: 4 (representative/root of set containing element 1)
 print(dsu.find(3))  # Output: 2 (representative/root of set containing element 3)
 
+
 class DisjointSetUnion:
     def __init__(self, n):
         self.parent = [i for i in range(n)]
@@ -51,7 +54,6 @@ class DisjointSetUnion:
     def union(self, x, y):
         root_x = self.find(x)
         root_y = self.find(y)
-
         if root_x != root_y:
             # Union by rank
             if self.rank[root_x] < self.rank[root_y]:
@@ -65,12 +67,14 @@ class DisjointSetUnion:
             return True  # Cycle detected when both vertices have the same root
         return False
 
+
 def has_cycle(graph_edges, num_vertices):
     dsu = DisjointSetUnion(num_vertices)
     for edge in graph_edges:
         if dsu.union(edge[0], edge[1]):
             return True  # Cycle detected
     return False  # No cycle detected
+
 
 # Example usage
 edges = [(0, 1), (1, 2), (2, 3), (3, 0)]  # Define the edges of the graph

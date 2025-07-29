@@ -103,7 +103,6 @@
 # #                 result.append(value)
 
 
-
 # # def breathfirstSearch(vertex,adj):
 # #     a={i:[] for i in range(vertex)}
 # #     for u,v in enumerate(adj):
@@ -130,7 +129,7 @@
 # #     for i in range(vertex):
 # #         if(my_array[i]==False and dfsUnDirectCycle(a,0,my_array,-1)):
 # #             return True
-    
+
 # #     return False
 
 # # def bfsUnDirectCycle(adj,u,vis):
@@ -160,7 +159,7 @@
 # #     for i in range(vertex):
 # #         if(my_array[i]==False and bfsUnDirectCycle(a,0,my_array)):
 # #             return True
-    
+
 # #     return False
 # # def detectCycleDfsDirect(a,u,my_array,inrecusrion):
 # #     my_array[u]=True
@@ -174,7 +173,6 @@
 # #     return False
 
 
-
 # # def detectCycleDirectedDfs(vertex,adj):
 # #     a={i:[] for i in range(vertex)}
 # #     for u,v in enumerate(adj):
@@ -185,7 +183,7 @@
 # #     for i in range(vertex):
 # #         if(my_array[i]==False and dfsUnDirectCycle(a,0,my_array,inrecusrion)):
 # #             return True
-    
+
 # #     return False
 
 
@@ -197,7 +195,6 @@
 # #         if(my_array[value]==False):
 # #             toposortDfs(a,value,my_array,stack)
 # #     stack.append(u)
-
 
 
 # # def toposortDfs(vertex,adj):
@@ -214,7 +211,7 @@
 # #     while(len(stack)!=0):
 # #         result.append(stack[len(stack)-1])
 # #         stack.pop()
-# #     return result  
+# #     return result
 
 # # from collections import deque
 
@@ -266,7 +263,7 @@
 #                     queue.append(u)
 #         print(count)
 #         return count == numCourses:
-#             
+#
 #     def canFinish(self, numCourses: int, prerequisites: List[List[int]]) -> bool:
 #         a={i:[] for i in range(numCourses)}
 #         indegree=[0]*numCourses
@@ -274,15 +271,14 @@
 #             a[u].append(v)
 #             indegree[b]+=1
 #         return self.toposort(a,numCourses,indegree)
-            
+
 
 # p=Solution()
-# print(p.canFinish(2,[[1,0]]))        
-        
+# print(p.canFinish(2,[[1,0]]))
 
-prerequisites=[[1,0],[0,1]]
+
+prerequisites = [[1, 0], [0, 1]]
 for course, prereq in prerequisites:
-    print(course , prereq)
+    print(course, prereq)
 
-            # adj[prereq].append(course)
-    
+    # adj[prereq].append(course)
