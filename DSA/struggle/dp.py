@@ -65,7 +65,6 @@ class Solution:
         for L in range(1, len(s) + 1):
             for i in range(len(s) - L + 1):
                 j = i + L - 1
-
                 if i == j:
                     dp_partiton[i][j] = 1
                 if s[i] == s[j]:
