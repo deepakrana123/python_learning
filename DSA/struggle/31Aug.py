@@ -302,4 +302,134 @@ def minCost(basket1, basket2):
     return result
 
 
-print(minCost([4, 2, 2, 2], [1, 4, 1, 2]))
+def minCost(n, cuts):
+    cuts.append(n)
+    cuts.insert(0, 0)
+    cuts.sort()
+
+    def solve(i, j, cuts):
+        if i > j:
+            return 0
+
+        mini = float("inf")
+        for ind in range(i, j + 1):
+            cost = (
+                cuts[j + 1]
+                - cuts[i - 1]
+                + solve(i, ind - 1, cuts)
+                + solve(ind + 1, j, cuts)
+            )
+            mini = min(cost, mini)
+        return mini
+
+    return solve(1, len(cuts) - 2, cuts)
+
+
+def productQueries(n, queries):
+    binary = format(n, "b")[::-1]
+    arr = [1]
+    mod = pow(10, 9) + 7
+    for i in range(len(binary)):
+        if binary[i] == "1":
+            arr.append(arr[-1] * (2**i) % mod)
+    result = []
+    for i in range(len(queries)):
+        l, r = arr[queries[i][0]], arr[queries[i][1] + 1]
+        ans = r * pow(l, mod - 2, mod) % mod
+        result.append(ans)
+
+    return result
+
+
+def reorderedPowerOf2(n):
+    a = set()
+    for i in range(31):
+        abc = "".join(sorted(str(2**i), reverse=True))
+        a.add(abc)
+    return "".join(sorted(n)) in a
+
+
+def countSquares(matrix):
+    mat = [[0 for _ in range(len(matrix[0]))] for _ in range(len(matrix))]
+    for i in range(len(matrix[0])):
+        mat[0][i] = matrix[0][i]
+    for i in range(len(matrix)):
+        mat[i][0] = matrix[i][0]
+
+    for i in range(1, len(matrix)):
+        for j in range(1, len(matrix[0])):
+            mat[i][j] = matrix[i][j] + min(
+                mat[i - 1][j], mat[i - 1][j - 1], mat[i][j - 1]
+            )
+    results = 0
+    for i in range(len(mat)):
+        for j in range(len(mat[0])):
+            results += mat[i][j]
+    return results
+
+
+def sumOfGoodSubsequences(nums):
+    results = 0
+
+    # def solve(curr, prev_value):
+    #     if curr >= len(nums):
+    #         return 0
+    #     skip = solve(curr + 1, prev_value)
+    #     taken = 0
+    #     # print(curr, prev_value)
+    #     if prev_value == -1 or abs(nums[curr] - prev_value) == 1:
+    #         taken = nums[curr] + solve(curr + 1, nums[curr])
+    #         print(f"Taking {nums[curr]} at index {curr}, total {taken + skip}")
+    #     return taken + skip
+
+    # # for i in range(len(nums)):
+    # results += solve(0, -1)
+    # return results
+    def solve(curr, prev_value):
+        if curr >= len(nums):
+            return 0
+        # skip current index
+        # skip = solve(curr + 1, prev_value)
+        taken = solve(curr + 1, prev_value)
+        # take current index if starting new subsequence or consecutive
+        if prev_value == -1 or abs(nums[curr] - prev_value) == 1:
+            taken = nums[curr] + solve(curr + 1, nums[curr])
+        return taken
+
+    return solve(0, -1)
+
+
+def minimumSum(grid):
+    maxRow1 = -1
+    maxCol1 = -1
+    minRow1 = float("inf")
+    minCol1 = float("inf")
+    for i in range(len(grid)):
+        for j in range(len(grid[0])):
+            if grid[i][j] == 1:
+                maxCol1 = max(maxCol1, j)
+                minCol1 = min(minCol1, j)
+                maxRow1 = max(maxRow1, i)
+                minRow1 = min(minRow1, i)
+
+    return (maxCol1 - minCol1 + 1) * (maxRow1 - minRow1 + 1)
+
+
+from collections import defaultdict
+
+
+def numberOfArithmeticSlices(nums):
+    dicts = defaultdict(dict)
+    mp = [{} for _ in range(len(nums))]
+    result = 0
+    for i in range(len(nums)):
+        for j in range(0, i):
+            diff = nums[j] - nums[i]
+            # if diff not in mp[i]:
+            #     mp[j][diff] += 1
+            # else:
+            #     mp[j][diff] = 1
+            count_at_j = mp[j][diff][1] if mp[j][diff] else 0
+            mp[i][diff] = mp[i].get(diff, 0) + 1
+            result += count_at_j
+    return result
