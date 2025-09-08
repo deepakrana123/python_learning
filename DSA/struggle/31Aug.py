@@ -425,11 +425,258 @@ def numberOfArithmeticSlices(nums):
     for i in range(len(nums)):
         for j in range(0, i):
             diff = nums[j] - nums[i]
-            # if diff not in mp[i]:
-            #     mp[j][diff] += 1
-            # else:
-            #     mp[j][diff] = 1
             count_at_j = mp[j][diff][1] if mp[j][diff] else 0
             mp[i][diff] = mp[i].get(diff, 0) + 1
             result += count_at_j
     return result
+
+
+def sortMatrix(grid):
+    def sortGrid(row, col, grid, ascending):
+        i, j = row, col
+        result = []
+        while i < len(grid) and j < len(grid[0]):
+            result.append(grid[i][j])
+            i += 1
+            j += 1
+        if ascending:
+            result = sorted(result, reverse=True)
+        else:
+            result = sorted(result)
+        i, j = row, col
+        for value in result:
+            grid[i][j] = value
+            i += 1
+            j += 1
+
+    for row in range(len(grid)):
+        sortGrid(row, 0, grid, True)
+    for col in range(1, len(grid[0])):
+        sortGrid(0, col, grid, False)
+
+    return grid
+
+
+def flowerGame(n, m):
+    countEven = 0
+    for i in range(1, n + 1):
+        if i % 2 == 0:
+            countEven += 1
+    countOrder = 0
+    for i in range(1, m + 1):
+        if i % 2 != 0:
+            countOrder += 1
+    if countEven == 0 or countOrder == 0:
+        return 0
+    return countOrder + countEven
+
+
+def isValidSudoku(board):
+
+    def travere(startingRow, endingRow, startingColumn, endingColumn):
+        abc = set()
+        for i in range(startingRow, endingRow):
+            for j in range(startingColumn, endingColumn):
+                if board[i][j] == ".":
+                    continue
+                if board[i][j] in abc:
+                    return False
+                abc.add(board[i][j])
+        return True
+
+    for i in range(len(board)):
+        abc = set()
+        for j in range(len(board[0])):
+            if board[i][j] == ".":
+                continue
+            if board[i][j] in abc:
+                return False
+            abc.add(board[i][j])
+
+    for j in range(len(board[0])):
+        abc = set()
+        for i in range(len(board)):
+            if board[i][j] == ".":
+                continue
+            if board[i][j] in abc:
+                return False
+            abc.add(board[i][j])
+
+    for sr in range(0, len(board), 3):
+        er = sr + 3
+        for sc in range(0, len(board[0]), 3):
+            ec = sc + 3
+            if travere(sr, er, sc, ec) == False:
+                return False
+    return True
+
+
+def solveSudoku(board):
+
+    def isValid(row, col, d):
+        for i in range(10):
+            if board[row][i] == d:
+                return False
+            if board[i][col] == d:
+                return False
+        start_i = row // 3 * 3
+        start_j = col // 3 * 3
+        for k in range(3):
+            for l in range(3):
+                if board[start_i + k][start_j + l] == d:
+                    return False
+        return True
+
+    for i in range(len(board)):
+        for j in range(len(board[0])):
+            if board[i][j] != ".":
+                continue
+            for d in range(1, 10):
+                if isValid(i, j, d):
+                    board[i][j] = d
+                    if solveSudoku(board):
+                        return True
+                    board[i][j] = "."
+    return False
+
+
+from heapq import heappop, heappush, heapify
+
+
+def maxAverageRatio(classes, extraStudents):
+    def gain(p, t):
+        return (p + 1) / (t + 1) - (p / t)
+
+    heaps = [-gain(p, t) for p, t in classes]
+    heapify(heaps)
+
+    while extraStudents > 0:
+        ratio, view = heappop()
+        passed, total = view
+
+        heappush(heaps, (-gain(passed, total), (passed + 1, total + 1)))
+        extraStudents -= 1
+
+    total = 0
+    while heaps:
+        ratio, view = heappop()
+        total += ratio
+    return total / len(classes)
+
+
+def numberOfPairs(points):
+    n = len(points)
+    points.sort(key=lambda p: (p[0], -p[1]))
+    maxY = float("-inf")
+    result = 0
+    for i in range(n):
+        x1, y1 = points[i]
+        for j in range(i + 1, n):
+            x2, y2 = points[j]
+            if y2 > y1:
+                continue
+            if y2 > maxY:
+
+                result += 1
+                maxY = max(maxY, y2)
+    return result
+
+    # for i in range(n):
+    #     x1, y1 = points[i]
+    #     for j in range(n):
+    #         if i == j:
+    #             continue
+    #         x2, y2 = points[j]
+
+    #         if x1 <= x2 and y2 <= y1:
+    #             blocked = False
+    #             for k in range(n):
+    #                 if k == i or k == j:
+    #                     continue
+    #                 x3, y3 = points[k]
+    #                 # obstruction: lies inside between (x1,y1) and (x2,y2)
+    #                 if x1 <= x3 <= x2 and y2 <= y3 <= y1:
+    #                     blocked = True
+    #                     break
+    #             if not blocked:  # ✅ only count if NOT blocked
+    #                 result += 1
+    # return result
+
+
+def rotateTheBox(boxGrid):
+    m = len(boxGrid)
+    n = len(boxGrid[0])
+    box = [["." for _ in range(len(boxGrid))] for _ in range(len(boxGrid[0]))]
+    for i in range(len(boxGrid)):
+        for j in range(len(boxGrid[0])):
+            box[j][len(boxGrid) - 1 - i] = boxGrid[i][j]
+    for j in range(m):
+        stone_row = n - 1
+        for i in range(n - 1, -1, -1):
+            if box[i][j] == "#":
+                box[i][j] = "."
+                box[stone_row][j] = "#"
+                stone_row -= 1
+            elif box[i][j] == "*":
+                stone_row = i - 1
+    return box
+
+
+def rotateSortedArray(arr):
+    write_index = 1
+    i = 1
+    while i < len(arr):
+        if arr[i] == arr[write_index - 1]:
+            i += 1
+        else:
+            arr[write_index] = arr[i]
+            write_index += 1
+            i += 1
+    return arr
+
+
+def removeElement(nums, val):
+    write_pointer = 0
+    i = 0
+    while i < len(nums):
+        if nums[i] != val:
+            nums[write_pointer] = nums[i]
+            write_pointer = i
+    return write_pointer
+
+
+def sumZero(n):
+    a = []
+    if n % 2 != 0:
+        a.append(0)
+        n = n - 1
+    if n == 0:
+        return a
+    i = 1
+    while len(a) < n:
+        a.append(-i)
+        a.append(i)
+        i += 1
+    return a
+
+
+# n.bit_count()
+def makeTheIntegerZero(num1, num2):
+    t = 0
+    while True:
+        val = num1 - t * num2
+        if val < 0:
+            return -1
+        if val.bit_count() <= t <= val:
+            return t
+        t += 1
+
+
+def numSubmatrixSumTarget(matrix, target=0):
+    for i in range(1, len(matrix)):
+        for j in range(1, len(matrix[0])):
+            matrix[i][j] = matrix[i][j] + matrix[i - 1][j - 1]
+    print(matrix)
+
+
+print(numberOfArithmeticSlices([[0, 1, 0], [1, 1, 1], [0, 1, 0]]))
