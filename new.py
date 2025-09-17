@@ -1,11 +1,364 @@
 def numSubmatrixSumTarget(matrix, target=0):
+    result = 0
     for i in range(len(matrix)):
         for j in range(1, len(matrix[0])):
             matrix[i][j] = matrix[i][j] + matrix[i][j - 1]
-    for j in range(len(matrix[0])):
-        hasmap = {0: 1}
-        for i in range(len(matrix)):
+    for start_cols in range(len(matrix[0])):
+        for j in range(start_cols, len(matrix[0])):
+            maps = {0: 1}
+            cumSum = 0
+            for i in range(len(matrix)):
+                cumSum += matrix[i][j] - (
+                    matrix[i][start_cols - 1] if start_cols > 0 else 0
+                )
+                if cumSum - target in maps:
+                    result += maps.get(cumSum - target, 0)
+                maps[cumSum] = maps.get(cumSum, 0) + 1
+    return result
+
+
+def minimumTeachings(n, languages, friendships):
+    sadUsers = set()
+    for u, v in friendships:
+        canTalk = False
+        for lan_v in languages[v - 1]:
+            if lan_v in languages[u - 1]:
+                canTalk = True
+                break
+        if not canTalk:
+            sadUsers.add(u)
+            sadUsers.add(v)
+
+    language = [0] * (n + 1)
+    mostKnowLangauge = 0
+    for user in sadUsers:
+        for lang in languages[user - 1]:
+            language[lang] += 1
+            mostKnowLangauge = max(language[lang], mostKnowLangauge)
+    return len(sadUsers) - mostKnowLangauge
+
+
+def maxFreqSum(s):
+    evenSum = 0
+    consonantSum = 0
+    dicts = {}
+    for value in s:
+        if value in "aeiou":
+            dicts[value] = dicts.get(value, 0) + 1
+            evenSum = max(dicts[value], evenSum)
+        else:
+            dicts[value] = dicts.get(value, 0) + 1
+            consonantSum = max(dicts[value], consonantSum)
+    return consonantSum + evenSum
+
+
+def doesAliceWin(s):
+    dicts = {}
+    for value in s:
+        if value in "aeiou":
+            dicts[value] = dicts.get(value, 0) + 1
+    if len(dicts) == 0:
+        return False
+    return True
+
+
+def majorityElement(nums):
+    candidate = 0
+    count = 0
+    for num in nums:
+        if count == 0:
+            candidate, count = num, 1
+        elif candidate == num:
+            count += 1
+        else:
+            count -= 1
+    print(num, candidate)
+    return candidate
+
+
+from collections import deque
+
+
+def firstUniqChar(s):
+    queue = deque()
+    maps = {}
+    for i in range(len(s)):
+        maps[s[i]] = maps.get(s[i], 0) + 1
+        queue.append([s[i], i])
+
+        while len(queue) > 0 and maps[queue[0][0]] > 1:
+            queue.popleft()
+    return queue[0][1] if queue else -1
+
+
+def minDeletions(s):
+    maps = {}
+    for i in range(len(s)):
+        maps[s[i]] = maps.get(s[i], 0) + 1
+    sorted_items = sorted(maps.values(), reverse=True)
+    sets = set()
+    result = 0
+    for value in sorted_items:
+        while value > 0 and value in sets:
+            result += 1
+            value -= 1
+        if value > 0:
+            sets.add(value)
+    return result
+
+
+def minSteps(s, t):
+    if len(s) != len(t):
+        return 0
+    maps = {}
+    for i in range(len(s)):
+        maps[s[i]] = maps.get(s[i], 0) + 1
+
+    result = 0
+    for value in t:
+        if value in maps:
+            maps[value] = maps.get(value, 0) - 1
+            if maps[value] == 0:
+                del maps[value]
+        else:
+            result += 1
+    return result
+
+
+def minSteps(s, t):
+    maps1 = {}
+    maps2 = {}
+    for i in range(len(s)):
+        maps1[s[i]] = maps1.get(s[i], 0) + 1
+        maps2[t[i]] = maps2.get(t[i], 0) + 1
+
+    result = 0
+    for i in range(len(t)):
+        if t[i] in maps1:
+            maps1[t[i]] = maps1.get(t[i], 0) - 1
+            if maps1[t[i]] == 0:
+                del maps1[t[i]]
+        if s[i] in maps2:
+            maps2[s[i]] = maps2.get(s[i], 0) - 1
+            if maps2[s[i]] == 0:
+                del maps2[s[i]]
+        else:
+            result += 1
+    return result
+
+
+# def wordPattern(pattern, s):
+#     maps1 = {}
+#     maps2 = {}
+#     for i in range(len(s)):
+#         if s[i] not in maps1:
+#             maps1[s[i]]=pattern[i]
+#             maps2[pattern[i]]=map
+
+
+def spellchecker(wordlist, queries):
+    sets = set(wordlist)
+    maps = {}
+    for i in range(len(wordlist)):
+        small = wordlist[i].lower()
+        small1 = [key for key in small]
+        if small in maps:
+            continue
+        maps[small] = wordlist[i]
+        for j in range(len(small1)):
+            if small1[j] in "aeiou":
+                small1[j] = "*"
+        masked = "".join(small1)
+        if masked in maps:
+            continue
+        maps[masked] = wordlist[i]
+    result = []
+    for i in range(len(queries)):
+        small = queries[i].lower()
+        small1 = [key for key in small]
+        for j in range(len(small1)):
+            if small1[j] in "aeiou":
+                small1[j] = "*"
+        masked = "".join(small1)
+        if queries[i] in sets:
+            result.append(queries[i])
+        elif small in maps:
+            result.append(maps[small])
+        elif masked in maps:
+            result.append(maps[masked])
+        else:
+            result.append("")
+    return result
+
+
+from collections import Counter
+
+
+def findCommonResponse(responses):
+    # for i in range(len(responses)):
+    #     maps = {}
+    #     for j in range(len(responses[i])):
+    #         if responses[i][j] in maps:
+    #             responses[i][j] = "_"
+    #         maps[responses[i][j]] = 1
+    # result = {}
+    # candidate = ""
+    # count = 0
+    # for i in range(len(responses)):
+    #     for j in range(len(responses[i])):
+    #         result[responses[i][j]] = result.get(responses[i][j], 0) + 1
+    #         if responses[i][j] == "_":
+    #             continue
+    #         if result[responses[i][j]] > count:
+    #             count = result[responses[i][j]]
+    #             candidate = responses[i][j]
+    #         elif count == result[responses[i][j]]:
+    #             if candidate > responses[i][j]:
+    #                 candidate = responses[i][j]
+
+    # return candidate
+    counter = Counter()
+
+    for row in responses:
+        counter.update(set(row))
+    maxCount = max(counter.values())
+    candidate = [word for word, c in counter.items() if c == maxCount]
+    return min(candidate)
+
+
+def numJewelsInStones(jewels: str, stones: str):
+    count = 0
+    for i in range(len(stones)):
+        if stones[i] in jewels:
+            count += 1
+    return count
+
+
+def uniqueMorseRepresentations(words):
+    abc = set()
+    count = 0
+    morse_code = [
+        ".-",
+        "-...",
+        "-.-.",
+        "-..",
+        ".",
+        "..-.",
+        "--.",
+        "....",
+        "..",
+        ".---",
+        "-.-",
+        ".-..",
+        "--",
+        "-.",
+        "---",
+        ".--.",
+        "--.-",
+        ".-.",
+        "...",
+        "-",
+        "..-",
+        "...-",
+        ".--",
+        "-..-",
+        "-.--",
+        "--..",
+    ]
+
+    for value in words:
+        strs = ""
+        for v in value:
+            strs += morse_code[ord(v) - ord("a")]
+        if strs in abc:
+            count += 1
+        abc.add(strs)
+    return count
+
+
+def findWords(words):
+    abc = ["qwertyuiop", "asdfghjkl", "zxcvbnm"]
+    result = []
+
+    def is_set_subset(word, row):
+        for v in word:
+            if v.lower() not in row:
+                return False
+        return True
+
+    for word in words:
+        for row in abc:
+            if set(word.lower()).issubset(set(row)):
+                result.append(word)
+                break
+
+    return result
+
+
+def minDistance(word1, word2):
+    dp = [[-1 for _ in range(len(word2))] for _ in range(len(word1))]
+
+    def lcs(i, j):
+        if i >= len(word1) or j >= len(word2):
+            return 0
+        if dp[i][j] != -1:
+            return dp[i][j]
+
+        if word1[i] == word2[j]:
+            dp[i][j] = 1 + lcs(i + 1, j + 1)
+            return dp[i][j]
+        dp[i][j] = max(lcs(i + 1, j), lcs(i, j + 1))
+        return dp[i][j]
+
+    lcs_length = lcs(0, 0)
+    return (len(word1) - lcs_length) + (len(word2) - lcs_length)
+
+
+def compress(chars):
+    n = len(chars)
+    # j = 0
+    # count = 1
+    # result = ""
+    # while j < n:
+    #     while j + 1 < n and chars[j] == chars[j + 1]:
+    #         count += 1
+    #         j += 1
+    #     result += chars[j] + (str(count) if count > 1 else "")
+    #     j += 1
+    #     count = 1
+    # return result
+    read = 0
+    write = 0
+    while read < n:
+        char = chars[read]
+        count = 0
+        while read < n and char == chars[read]:
+            read += 1
+            count += 1
+
+        chars[write] = char
+        write += 1
+
+        if count > 1:
+            for v in str(count):
+                chars[write] = v
+                write += 1
+    return chars
+
+
+def removeDuplicateLetters(s):
+    from collections import Counter
+
+    last_occurrence = {c: i for i, c in enumerate(s)}
+    stack = []
+    lastSeen = set()
+    for i in range(1, len(s)):
+        if s[i] in lastSeen:
             continue
 
-
-print(numSubmatrixSumTarget([[0, 1, 0], [1, 1, 1], [0, 1, 0]]))
+        while stack and stack[-1] > s[i] and i < last_occurrence[stack[-1]]:
+            a = stack.pop()
+            lastSeen.remove(a)
+        stack.append(s[i])
+        lastSeen.add(s[i])
+    return "".join(stack)
