@@ -362,3 +362,175 @@ def removeDuplicateLetters(s):
         stack.append(s[i])
         lastSeen.add(s[i])
     return "".join(stack)
+
+
+def replaceNonCoprimes(nums):
+    def gcd(x, y):
+        while y:
+            x, y = y, x % y
+        return x
+
+    def lcm(x, y):
+        return abs(x * y) // gcd(x, y)
+
+    stack = []
+    for i in range(len(nums)):
+        curr = nums[i]
+        while stack:
+            prev = stack[-1]
+            if gcd(prev, curr) == 1:
+                break
+            stack.pop()
+            curr = lcm(prev, curr)
+        stack.append(curr)
+    return stack
+
+
+import heapq
+
+
+def maxProfitAssignment(difficulty, profit, worker):
+    heap = []
+    result = 0
+    for i in range(len(difficulty)):
+        heapq.heappush(heap, (-profit[i], difficulty[i]))
+    worker.sort(reversed=True)
+    for i in range(len(worker)):
+        while heap:
+            profit, difficult = heapq.heappop(heap)
+            if worker[i] >= difficult:
+
+                result += -1 * profit
+                heapq.heappush(heap, (profit, difficult))
+                break
+    return result
+    # jobs = list(zip(difficulty, profit))
+    # jobs.sort()
+    # worker.sort()
+
+
+class TaskManager:
+
+    def __init__(self, tasks):
+        self.tasks_proiroty = {}
+        self.tasks_user = {}
+        self.heap = []
+        for user, tasks, priority in tasks:
+            self.add(user, tasks, priority)
+
+    def add(self, userId: int, taskId: int, priority: int) -> None:
+        self.tasks_user[taskId] = userId
+        self.task_proiroty[taskId] = priority
+        heapq.heappush(self.heap, (-priority, taskId))
+
+    def edit(self, taskId: int, newPriority: int) -> None:
+        self.task_proiroty[taskId] = newPriority
+        heapq.heappush(self.heap, (-newPriority, taskId))
+
+    def rmv(self, taskId: int) -> None:
+        self.task_proiroty[taskId] = -1
+
+    def execTop(self) -> int:
+        while self.heap:
+            priority, task_id = heapq.heappop()
+            newPrioirty = -1 * priority
+            if newPrioirty == self.task_proiroty[task_id]:
+                self.task_proiroty[task_id] = -1
+                return self.tasks_user[task_id]
+        return -1
+
+
+class Spreadsheet:
+
+    def __init__(self, rows: int):
+        self.matrix = [[0 for _ in rows] for _ in 26]
+
+    def setCell(self, cell: str, value: int) -> None:
+        col = cell[0] - "A"
+        row = int(cell[1:]) - 1
+        self.matrix[col][row] = value
+
+    def resetCell(self, cell: str) -> None:
+        col = cell[0] - "A"
+        row = int(cell[1:]) - 1
+        self.matrix[col][row] = 0
+
+    def solve(self, s):
+        if s[0].isdigit():
+            return s[0]
+        col = s[0] - "A"
+        row = int(s[1:]) - 1
+        return self.matrix[col][row]
+
+    def getValue(self, formula: str) -> int:
+        s = formula[1:]
+        plusIndex = s.find("+")
+        leftStr = s[0:plusIndex]
+        rightStr = s[plusIndex + 1 :]
+        return self.solve(leftStr) + self.solve(rightStr)
+
+
+from collections import deque
+
+
+class Router:
+    def __init__(self, memoryLimit):
+        self.queue = deque()
+        self.dicts_map = {}
+        self.memoryLimit = memoryLimit
+        self.source_time = {}
+
+    def addPacket(self, source: int, destination: int, timestamp: int):
+        creadted_str = str(source) + "_" + str(destination) + "_" + str(timestamp)
+        if source not in self.source_time:
+            self.source_time[source] = []
+        self.source_time[source].append(timestamp)
+        if creadted_str in self.dicts_map:
+            return False
+        if len(self.queue) >= self.memoryLimit:
+            self.forwardPacket()
+        self.dicts_map[creadted_str] = {
+            source: source,
+            destination: destination,
+            timestamp: timestamp,
+        }
+        self.queue.append(creadted_str)
+        return True
+
+    def lower_bound(self, arr, target):
+        left, right = 0, len(arr)
+        while left < right:
+            mid = (left + right) // 2
+            if arr[mid] < target:
+                left = mid + 1
+            else:
+                right = mid
+        return left
+
+    def upper_bound(self, arr, target):
+        left, right = 0, len(arr)
+        while left < right:
+            mid = (left + right) // 2
+            if arr[mid] <= target:
+                left = mid + 1
+            else:
+                right = mid
+        return left
+
+    def forwardPacket(self):
+        if not self.dicts_map:
+            return {}
+        queue_str = self.queue.popleft()
+        packDeatils = self.dicts_map[queue_str]
+        self.source_time[packDeatils["source"]].remove(packDeatils["timestamp"])
+        if not self.source_time[packDeatils["source"]]:
+            del self.source_time[packDeatils["source"]]
+        del self.dicts_map[queue_str]
+        return packDeatils
+
+    def getCount(self, destination: int, startTime: int, endTime: int):
+        values = self.source_time.get(destination, [])
+        values.sort()
+        lowerbound = self.lower_bound(values, startTime)
+        upperbound = self.upper_bound(values, endTime)
+        return upperbound - lowerbound + 1
