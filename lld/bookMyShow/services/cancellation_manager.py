@@ -1,1 +1,0 @@
-class Cancellation_Manager:
