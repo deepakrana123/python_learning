@@ -534,3 +534,195 @@ class Router:
         lowerbound = self.lower_bound(values, startTime)
         upperbound = self.upper_bound(values, endTime)
         return upperbound - lowerbound + 1
+
+
+class MovieRentingSystem:
+
+    # def __init__(self, n, entries):
+    #     self.available = {}
+    #     self.rented = []
+    #     self.shop_basis = {}
+    #     for shop, movie, price in entries:
+    #         if movie not in self.available:
+    #             self.available[movie] = []
+    #             self.shop_basis[movie] = {}
+    #         self.shop_basis[movie][shop] = price
+    #         self.available[movie].append([price, shop])
+
+    # def search(self, movie: int):
+    #     if movie not in self.available:
+    #         return []
+    #     movie_list = sorted(self.available[movie], key=lambda x: (x[0], x[1]))
+    #     result = []
+
+    #     for price, shop in movie_list[:5]:
+    #         result.append(shop)
+    #     return result
+
+    # def rent(self, shop, movie):
+    #     price = self.shop_basis[movie][shop]
+    #     self.available[movie] = [x for x in self.available[movie] if x[1] != shop]
+    #     self.rented.append([price, shop, movie])
+
+    # def drop(self, shop, movie):
+    #     price = self.shop_basis[movie][shop]
+    #     self.rented = [x for x in self.rented if not (x[1] == shop and x[2] == movie)]
+    #     self.available[movie].append([price, shop])
+
+    # def report(self):
+    #     rented_list = sorted(self.rented, key=lambda x: (x[0], x[1], x[2]))
+    #     result = []
+    #     for price, shop, movie in rented_list[:5]:
+    #         result.append([shop, movie])
+    #     return result
+    import bisect
+
+
+import bisect
+
+
+class MovieRentingSystem:
+    def __init__(self, n, entries):
+        self.available = {}
+        self.rented = []
+        self.shop_basis = {}
+
+        for shop, movie, price in entries:
+            if movie not in self.available:
+                self.available[movie] = []
+                self.shop_basis[movie] = {}
+            self.available[movie].append([price, shop])
+            self.shop_basis[movie][shop] = price
+
+        for movie in self.available:
+            self.available[movie].sort()
+
+    def search(self, movie: int):
+        if movie not in self.available:
+            return []
+        return [shop for price, shop in self.available[movie][:5]]
+
+    def rent(self, shop, movie):
+        price = self.shop_basis[movie][shop]
+        idx = bisect.bisect_left(self.available[movie], [price, shop])
+        if idx < len(self.available[movie]) and self.available[movie][idx] == [
+            price,
+            shop,
+        ]:
+            self.available[movie].pop(idx)
+        bisect.insort(self.rented, [price, shop, movie])
+
+    def drop(self, shop, movie):
+        price = self.shop_basis[movie][shop]
+        idx = bisect.bisect_left(self.rented, [price, shop, movie])
+        if idx < len(self.rented) and self.rented[idx] == [price, shop, movie]:
+            self.rented.pop(idx)
+        bisect.insort(self.available[movie], [price, shop])
+
+    def report(self):
+        return [[shop, movie] for price, shop, movie in self.rented[:5]]
+
+
+import re
+
+
+def mostCommonWord(paragraph, banned):
+    words = ""
+    maxCount = 0
+    count = {}
+    words1 = re.findall(r"\w+", paragraph.lower())
+    for word in words1:
+        if word in banned:
+            continue
+        count[word] = count.get(word, 0) + 1
+        if maxCount < count[word]:
+            maxCount = count[word]
+            words = word
+    return words
+
+
+def topStudents(positive_feedback, negative_feedback, report, student_id, k):
+    student_score = {}
+    for i in range(len(report)):
+        word = report[i].split(" ")
+        for w in word:
+            if w in positive_feedback:
+                student_score[student_id[i]] = student_score.get(student_id[i], 0) + 3
+            elif w in negative_feedback:
+                student_score[student_id[i]] = student_score.get(student_id[i], 0) - 1
+
+    sorted_keys = sorted(student_score.keys(), key=lambda k: (student_score[k], -k))[:k]
+    return sorted_keys
+
+
+class Solution:
+    def compressInitial(self, s):
+        r = 0
+        for i in range(len(s)):
+            if s[i] != 0:
+                r = i
+                break
+        return s[r:]
+
+    def compareVersion(self, version1: str, version2: str) -> int:
+        a = version1.split(".")
+        b = version2.split(".")
+        if len(a) != len(b):
+            return 0
+        for i in range(len(a)):
+            a[i] = self.compressInitial(a[i])
+            b[i] = self.compressInitial(b[i])
+        print(a, b)
+        result = 0
+        for i in range(len(a)):
+            if int(a[i]) > int(b[i]):
+                print(a[i], b[i])
+                result = 1
+            elif int(a[i]) < int(b[i]):
+                result = -1
+            else:
+                result = 0
+        return result
+
+
+ac = Solution()
+# print(ac.compareVersion("1.0", version2="1.0.0.0"))
+
+
+def largestTriangleArea(points):
+    result = 0
+    for i in range(len(points)):
+        for j in range(i + 1, len(points)):
+            for k in range(j + 1, len(points)):
+                x1, y1 = points[i]
+                x2, y2 = points[j]
+                x3, y3 = points[k]
+                area = abs(0.5 * (x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2)))
+                result = max(result, area)
+    return result
+
+
+def triangleNumber(nums):
+    # result = 0
+    # for i in range(len(nums)):
+    #     for j in range(i + 1, len(nums)):
+    #         for k in range(j + 1, len(nums)):
+    #             x1 = nums[i]
+    #             x2 = nums[j]
+    #             x3 = nums[k]
+    #             if x1 + x2 > x3 and x1 + x3 > x2 and x2 + x3 > x1:
+    #                 result += 1
+    # return result
+    result = 0
+    n = len(nums)
+    count = 0
+
+    for k in range(n - 1, 1, -1):
+        i, j = 0, k - 1
+        while i < j:
+            if nums[i] + nums[j] > nums[k]:
+                count += j - i
+                j -= 1
+            else:
+                i += 1
+    return count
