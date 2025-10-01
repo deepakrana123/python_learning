@@ -726,3 +726,34 @@ def triangleNumber(nums):
             else:
                 i += 1
     return count
+
+
+def largestPerimeter(self, nums):
+    nums.sort()
+    if len(nums) < 3:
+        return 0
+    for i in range(len(nums) - 3, -1, -1):
+        if nums[i] + nums[i + 1] > nums[i + 2]:
+            return nums[i + 1] + nums[i + 2] + nums[i]
+    return 0
+
+
+def triangularSum(nums):
+    l = len(nums)
+    while l > 1:
+        i = 0
+        while i < l - 1:
+            nums[i] = (nums[i] + nums[i + 1]) % 10
+            i += 1
+        nums.pop()
+        l = len(nums)
+    return nums
+
+
+def numWaterBottles(numBottles, numExchange):
+    consumed = 0
+    while numBottles >= numExchange:
+        consumed += numExchange
+        numBottles -= numExchange
+        numBottles += 1
+    return consumed + numBottles
