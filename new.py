@@ -757,3 +757,22 @@ def numWaterBottles(numBottles, numExchange):
         numBottles -= numExchange
         numBottles += 1
     return consumed + numBottles
+
+
+def maxBottlesDrunk(numBottles, numExchange):
+    emptyBottles = numBottles
+    drunkBottles = numBottles
+    while emptyBottles >= numExchange:
+        emptyBottles -= numExchange
+        numExchange += 1
+        emptyBottles += 1
+        drunkBottles += 1
+    #     if emptyBottles < numExchange:
+    #         fullBottles = 0
+    # print(fullBottles, drunkBottles, emptyBottles, numExchange)
+    # if emptyBottles == numExchange:
+    #     drunkBottles += 1
+    return drunkBottles
+
+
+print(maxBottlesDrunk(10, 3))
