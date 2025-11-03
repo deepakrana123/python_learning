@@ -767,12 +767,611 @@ def maxBottlesDrunk(numBottles, numExchange):
         numExchange += 1
         emptyBottles += 1
         drunkBottles += 1
-    #     if emptyBottles < numExchange:
-    #         fullBottles = 0
-    # print(fullBottles, drunkBottles, emptyBottles, numExchange)
-    # if emptyBottles == numExchange:
-    #     drunkBottles += 1
     return drunkBottles
 
 
-print(maxBottlesDrunk(10, 3))
+def missingInteger(nums):
+    # maxLength = 0
+    # resultsSum = 0
+    # sets = set(nums)
+    # for i in range(len(nums)):
+    #     sums = nums[i]
+    #     lengths = 1
+    #     for j in range(i + 1, len(nums)):
+    #         if nums[j - 1] + 1 == nums[j]:
+    #             sums += nums[j]
+    #             lengths += 1
+    #         else:
+    #             break
+    #     if lengths > maxLength:
+    #         maxLength = lengths
+    #         resultsSum = sums
+
+    # while resultsSum in sets:
+    #     resultsSum += 1
+    # return resultsSum
+    num_set = set(nums)
+    max_len = 0
+    sum_of_longest = 0
+    for num in nums:
+        if num - 1 not in num_set:
+            current = num
+            current_sum = 0
+            length = 0
+
+            while current in num_set:
+                current_sum += current
+                length += 1
+                current += 1
+            if length > max_len:
+                max_len = max(max_len, length)
+                sum_of_longest = current_sum
+    while sum_of_longest in num_set:
+        sum_of_longest += 1
+    return sum_of_longest
+
+
+def maxCount(banned, n, maxSum):
+    sets = set(banned)
+    results = float("-inf")
+    count = 0
+    sums = 0
+    for i in range(1, n + 1):
+        if i not in sets:
+            sums += i
+            count += 1
+
+        if maxSum > sums:
+            results = max(count, results)
+        else:
+            sums = 0
+            count = 0
+    return results
+
+
+def findDisappearedNumbers(nums):
+    n = len(nums)
+    results = []
+    sets = set(nums)
+    for i in range(1, n + 1):
+        if i not in sets:
+            results.append(i)
+    return results
+
+
+def findDuplicate(nums):
+    i = 0
+    while i < len(nums):
+        correct_index = nums[i] - 1
+        if nums[i] != nums[correct_index]:
+            nums[i], nums[correct_index] = nums[correct_index], nums[i]
+        else:
+            i += 1
+    return nums[-1]
+
+
+def maximumSum(nums):
+    dicts = {}
+
+    def digitSum(num):
+        abc = str(num)
+        sums = 0
+        for n in abc:
+            sums += int(n)
+        return sums
+
+    for num in nums:
+        abc = digitSum(num)
+        if abc not in dicts:
+            dicts[abc] = []
+        dicts[abc].append(num)
+    sums = [sum(value) for value in dicts.values()]
+    return max(sums)
+
+
+def zeroFilledSubarray(nums):
+    i = 0
+    j = 0
+    result = 0
+    while i < len(nums):
+        if nums[j] != 0:
+            i = j + 1
+        result += j - i + 1
+        j += 1
+    return result
+
+
+def solve(self, coins, amount, index):
+    if index >= 0:
+        if amount == 0:
+            return 0
+        else:
+            return float("inf")
+    skip = self.solve(coins, amount, index + 1)
+    taken = 0
+    if amount - coins[index] >= 0:
+        taken = 1 + self.solve(coins, amount, index)
+    return min(skip, taken)
+
+
+from collections import deque
+
+
+class Solution:
+    def solve(self, coins, amount, index, dp):
+        if index >= len(coins):
+            if amount == 0:
+                return 0
+            else:
+                return float("inf")
+        if amount == 0:
+            return 0
+        if dp[index][amount] != -1:
+            return dp[index][amount]
+        taken = float("inf")
+        skip = self.solve(coins, amount, index + 1, dp)
+        if amount - coins[index] >= 0:
+            taken = 1 + self.solve(coins, amount - coins[index], index, dp)
+        dp[index][amount] = min(taken, skip)
+        return min(taken, skip)
+
+    def coinChange(self, coins, amount: int) -> int:
+        dp = [[-1 for _ in range(amount + 1)] for _ in range(len(coins) + 1)]
+        # a = self.solve(coins, amount, 0, dp)
+        # return a if a != float("inf") else -1
+
+        # for i in range(len(coins)):
+        #     for j in range(1, amount + 1):
+        #         if coins[i - 1] <= j:
+        #             dp[i][j] = min(dp[i - 1][j], 1 + dp[i - 1][j - coins[i - 1]])
+        #         else:
+        #             dp[i][j] = dp[i - 1][j]
+
+        if amount == 0:
+            return 0
+
+        queue = deque([0, 0])
+        visited = set([0])
+        while queue:
+            current, steps = queue.popleft()
+            for coin in coins:
+                nxt = coin + current
+                if nxt == amount:
+                    return steps + 1
+                if nxt < amount and nxt not in visited:
+                    visited.add(nxt)
+                    queue.append((nxt, steps + 1))
+        return -1
+
+
+def numIslands(grid):
+    result = 0
+
+    # def dfs(i, j):
+    #     if i < 0 or i >= len(grid) or j < 0 or j >= len(grid[0]) or grid[i][j] == "0":
+    #         return
+    #     if grid[i][j] == -1:
+    #         return
+    #     grid[i][j] = -1
+    #     dfs(i + -1, j + 0)
+    #     dfs(i + 0, j - 1)
+    #     dfs(i - 1, j - 1)
+    #     dfs(i + 1, j + 1)
+
+    # for i in range(len(grid)):
+    #     for j in range(len(grid[0])):
+    #         if grid[i][j] == "1":
+    #             dfs(i, j)
+    #             result += 1
+    # return result
+
+    if not grid:
+        return 0
+
+    rows, cols = len(grid), len(grid[0])
+    result = 0
+    directions = [(1, 0), (-1, 0), (0, 1), (0, -1)]
+
+    def bfs(i, j):
+        queue = deque()
+        queue.append((i, j))
+        grid[i][j] = "0"
+
+        while queue:
+            x, y = queue.popleft()
+            for _i, _j in directions:
+                new_x = x + _i
+                new_y = y + _j
+                if (
+                    new_x < 0
+                    or new_x >= len(grid)
+                    or new_y < 0
+                    or new_y >= len(grid[0])
+                    or grid[new_x][new_y] == "0"
+                ):
+                    return
+                else:
+                    grid[new_x][new_y] == "0"
+                    queue.append((new_x, new_y))
+
+    for i in range(len(grid)):
+        for j in range(len(grid[0])):
+            if grid[i][j] == "1":
+                bfs(i, j)
+                result += 1
+    return result
+
+
+def swimInWater(grid):
+    m = len(grid)
+    n = len(grid[0])
+
+    # def dfs(i, j, time, visited):
+    #     if (
+    #         i < 0
+    #         or i > m
+    #         or j < 0
+    #         or j > n
+    #         or (i, j) in visited
+    #         or grid[i][j] > time
+    #     ):
+    #         return False
+    #     if i == m - 1 and j == n - 1:
+    #         return True
+    #     visited.add((i, j))
+
+    #     for new_x, new_y in [(-1, 0), (0, -1), (0, 1), (1, 0)]:
+    #         if dfs(new_x + i, new_y + j, time, visited):
+    #             return True
+    #     return False
+
+    def canReach(i, j, time, visited):
+        if grid[0][0] > time:
+            return False
+        stack = [(0, 0)]
+        visited = set((0, 0))
+        while stack:
+            curr_i, curr_j = stack.pop()
+            if curr_i == n - 1 and curr_j == n - 1:
+                return True
+            for new_x, new_y in [(-1, 0), (0, -1), (0, 1), (1, 0)]:
+                if (
+                    curr_i + new_x < 0
+                    or curr_i + new_x > m
+                    or curr_j + new_y < 0
+                    or curr_j + new_y > n
+                    or (curr_i + new_x, curr_j + new_y) in visited
+                    or grid[curr_i + new_x][curr_j + new_y] > time
+                ):
+                    return False
+                else:
+                    visited(curr_i + new_x, curr_j + new_y)
+                    stack.append((curr_i + new_x, curr_j + new_y))
+        return False
+
+    l = 0
+    r = n * n - 1
+    result = 0
+    while l < r:
+        visited = set()
+        mid = l + (r - l) // 2
+        if canReach(0, 0, mid, visited):
+            result = mid
+            r = mid - 1
+        else:
+            l = mid + 1
+    return result
+
+
+import heapq
+
+
+def minOperations(nums, k):
+    nums.sort()
+    if nums[0] >= k:
+        return 0
+    if len(nums) == 1:
+        if nums[0] >= k:
+            return 0
+        else:
+            return -1
+
+    heap = []
+    for num in nums:
+        heapq.heappush(heap, num)
+    count = 0
+    while len(heap) > 1:
+        x = heapq.heappop(heap)
+        y = heapq.heappop(heap)
+        val = min(x, y) * 2 + max(x, y)
+        count += 1
+        if val < k:
+            heapq.heappush(heap, val)
+    if heap and heap[0] < k:
+        return -1
+
+    return count
+
+
+def minAnagramLength(s):
+    dicts = {}
+    for n in s:
+        dicts[n] = dicts.get(n, 0) + 1
+    result = len(dicts)
+    return result
+
+
+def maximumEnergy(energy, k):
+    dp = energy
+    if len(energy) <= k:
+        return max(energy)
+    for i in range(len(energy) - k - 1, -1, -1):
+        dp[i] = dp[i] + dp[i + k]
+    return max(dp)
+
+
+def avoidFlood(rains):
+    ans = [-1] * len(rains)
+    lake_map = {}
+    dry_day = []
+
+    def bs(arr, target):
+        left = 0
+        right = len(arr)
+        while right > left:
+            mid = left + (right - left) // 2
+            if arr[mid] > target:
+                right = mid
+            else:
+                left = mid + 1
+        return left
+
+    for i in range(len(rains)):
+        if rains[i] == 0:
+            dry_day.append(i)
+        else:
+            if rains[i] in lake_map:
+                idx = bs(dry_day, lake_map[rains[i]])
+                if idx == len(dry_day):
+                    return []
+                ans[dry_day[idx]] = rains[i]
+                dry_day.pop(idx)
+        lake_map[rains[i]] = i
+    for i in dry_day:
+        ans[i] = 1
+    return ans
+
+
+def removeAnagrams(words):
+    dicts = {}
+    for i in range(len(words)):
+        abc = "".join(sorted(words[i]))
+        if abc in dicts:
+            words[i] = -1
+        else:
+            dicts[abc] = 1
+    return [word for word in words if word != -1]
+
+
+def hasIncreasingSubarrays(nums):
+    n = len(nums)
+    currRun = 1
+    prevRun = 0
+    result = 0
+    for i in range(1, n):
+        if nums[i] > nums[i - 1]:
+            currRun + 1
+        else:
+            prevRun = currRun
+            currRun = 1
+        result = max(currRun // 2, result)
+        result = max(min(currRun, prevRun), result)
+    return result
+
+
+def finalValueAfterOperations(operations):
+    return sum(1 if "+" in op else -1 for op in operations)
+
+
+def maxFrequency(nums, k, numOperations):
+    maxEl = max(nums)
+    freq = {}
+    for num in nums:
+        freq[num] = freq.get(num, 0) + 1
+
+    for i in range(0, maxEl + 1):
+        freq[i] = freq.get(i, 0) + 1
+    result = 0
+    for i in range(0, maxEl + 1):
+        if freq[i] == 0:
+            continue
+        targetCount = (
+            freq[i + k] if i + k in freq else 0 - freq[i - k] if i - k > 0 else 0
+        )
+        needConversion = freq[i] - freq[i - 1] if i - 1 > 0 else 0
+        maxPossibleFreq = targetCount + min(targetCount - needConversion, numOperations)
+        result = max(result, maxPossibleFreq)
+    return result
+
+
+# def minimumCost(target, words, costs):
+# def solve(index, currString):
+#     if index > len(words):
+#         if currString == target:
+#             return 0
+#         return float("inf")
+#     take = 0
+#     if target.startswith(currString + words[index]):
+#         take = costs[index] + solve(index + 1, currString + words[index])
+#     skip = solve(index + 1, currString)
+#     return min(take, skip)
+# result = solve(0, "")
+# if result == float("inf"):
+#     return -1
+# else:
+#     result
+
+
+def hasSameDigits(s):
+    stack = []
+    for i in range(1, len(s)):
+        stack.append((int(s[i]) + int(s[i - 1])) % 10)
+    while len(stack) > 2:
+        stack = [(stack[i] + stack[i - 1]) % 10 for i in range(1, len(stack))]
+
+    return stack[0] == stack[1] if len(stack) == 2 else False
+
+
+def totalMoney(n):
+    result = 0
+    monday = 1
+    while n > 0:
+        money = monday
+        for i in range(1, min(n, 7) + 1):
+            result += money
+            money += 1
+        monday += 1
+        n -= 7
+    return result
+
+
+def nextBeautifulNumber(n):
+    result = 0
+
+    def balance(num):
+        result = [0] * 10
+        while num > 0:
+            digit = num % 10
+            result[digit] += 1
+            num = num // 10
+        print(result, "result")
+        for i in range(10):
+            if result[i] > 0 and result[i] != i:
+                return False
+        return True
+
+    for i in range(n, pow(10, 6) + 1):
+        if balance(i):
+            result = i
+            break
+    return result
+
+
+class Bank:
+    def __init__(self, balance):
+        self.n = len(balance)
+        self.balance = balance
+
+    def transfer(self, account1: int, account2: int, money: int) -> bool:
+        if account1 > self.n or account2 > self.n or account1 < 1 or account2 < 1:
+            return False
+        if self.balance[account1 - 1] >= money:
+            self.balance[account2 - 1] += money
+            self.balance[account1 - 1] -= money
+            return True
+        return False
+
+    def deposit(self, account: int, money: int) -> bool:
+        if account > self.n:
+            return False
+        self.balance[account - 1] += money
+        return True
+
+    def withdraw(self, account: int, money: int) -> bool:
+        if account > self.n:
+            return False
+        if self.balance[account - 1] < money:
+            return False
+        self.balance[account - 1] -= money
+        return True
+
+
+def minNumberOperations(target):
+    operations = 0
+    prev = 0
+    for i in range(len(target)):
+        if prev < target[i]:
+            operations += target[i] - prev
+        prev = target[i]
+    return operations
+
+
+def mergeIntervalList(arr):
+    results = [interval for sublist in arr for interval in sublist]
+    if not results:
+        return []
+
+    results.sort(key=lambda x: x[0])
+
+    merged = [results[0]]
+    for i in range(1, len(results)):
+        prev = merged[-1]
+        curr = results[i]
+        if prev[1] >= curr[0]:
+            prev[1] = max(prev[1], curr[1])
+        else:
+            merged.append(curr)
+    return merged
+
+
+def findIntervalWithQueries(arr, queries):
+    start = []
+    end = []
+    for i in range(len(arr)):
+        start.append(arr[0])
+        end.append(arr[1])
+    start.sort()
+    end.sort()
+
+    def binarySearch(arr, value):
+        start = 0
+        end = len(arr)
+        while start < end:
+            mid = start + (end - start) // 2
+            if arr[mid] < value:
+                start = mid + 1
+            else:
+                end = mid
+        return start
+
+    result = []
+    for i in range(len(queries)):
+        count_start = binarySearch(start, queries[i])
+        count_end = binarySearch(end, queries[i])
+        result.append(count_end - count_start)
+    return result
+
+
+def taskScheduler(task, n):
+    pass
+
+
+class Solution:
+    def countUnguarded(
+        self, m: int, n: int, guards: List[List[int]], walls: List[List[int]]
+    ) -> int:
+        arr = [[0 for _ in range(n)] for _ in range(m)]
+        for k, l in guards:
+            arr[k][l] = 1
+        for i, j in walls:
+            arr[i][j] = 2
+        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+        for gi, gj in guards:
+            for di, dj in directions:
+                i, j = gi, gj
+                while 0 <= i + di < m and 0 <= j + dj < n:
+                    i += di
+                    j += dj
+                    if arr[i][j] == 2 or arr[i][j] == 1:
+                        break
+                    if arr[i][j] == 0:
+                        arr[i][j] = 3
+        count = sum(arr[i][j] == 0 for i in range(m) for j in range(n))
+        return count
+
+
+print(
+    countUnguarded(
+        m=4, n=6, guards=[[0, 0], [1, 1], [2, 3]], walls=[[0, 1], [2, 2], [1, 4]]
+    )
+)
