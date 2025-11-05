@@ -418,7 +418,7 @@ class TaskManager:
         for user, tasks, priority in tasks:
             self.add(user, tasks, priority)
 
-    def add(self, userId: int, taskId: int, priority: int) -> None:
+    def add(self, userId, taskId: int, priority: int) -> None:
         self.tasks_user[taskId] = userId
         self.task_proiroty[taskId] = priority
         heapq.heappush(self.heap, (-priority, taskId))
@@ -1346,32 +1346,99 @@ def taskScheduler(task, n):
     pass
 
 
-class Solution:
-    def countUnguarded(
-        self, m: int, n: int, guards: List[List[int]], walls: List[List[int]]
-    ) -> int:
-        arr = [[0 for _ in range(n)] for _ in range(m)]
-        for k, l in guards:
-            arr[k][l] = 1
-        for i, j in walls:
-            arr[i][j] = 2
-        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
-        for gi, gj in guards:
-            for di, dj in directions:
-                i, j = gi, gj
-                while 0 <= i + di < m and 0 <= j + dj < n:
-                    i += di
-                    j += dj
-                    if arr[i][j] == 2 or arr[i][j] == 1:
-                        break
-                    if arr[i][j] == 0:
-                        arr[i][j] = 3
-        count = sum(arr[i][j] == 0 for i in range(m) for j in range(n))
-        return count
+def countUnguarded(self, m, n, guards, walls) -> int:
+    arr = [[0 for _ in range(n)] for _ in range(m)]
+    for k, l in guards:
+        arr[k][l] = 1
+    for i, j in walls:
+        arr[i][j] = 2
+    directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+    for gi, gj in guards:
+        for di, dj in directions:
+            i, j = gi, gj
+            while 0 <= i + di < m and 0 <= j + dj < n:
+                i += di
+                j += dj
+                if arr[i][j] == 2 or arr[i][j] == 1:
+                    break
+                if arr[i][j] == 0:
+                    arr[i][j] = 3
+    count = sum(arr[i][j] == 0 for i in range(m) for j in range(n))
+    return count
 
 
-print(
-    countUnguarded(
-        m=4, n=6, guards=[[0, 0], [1, 1], [2, 3]], walls=[[0, 1], [2, 2], [1, 4]]
-    )
-)
+import bisect
+
+
+def jobScheduling(startTime, endTime, profit):
+    arr = []
+    arr = sorted(zip(startTime, endTime, profit), key=lambda x: x[1])
+    dp = [0] * len(arr)
+    ends = [job[1] for job in arr]
+    dp[0] = arr[0][2]
+    for i in range(1, len(arr)):
+        take = arr[i][2]
+        index = bisect.bisect_right(ends, arr[i][0]) - 1
+        if index != -1:
+            take += dp[index]
+        skip = dp[i - 1]
+        dp[i] = max(skip, take)
+    return dp[-1]
+
+
+def minimumTotalCost(arr):
+    heap = []
+    for i in range(len(arr)):
+        heapq.heappush(heap, arr[i])
+    cost = 0
+    while heap and len(heap) >= 2:
+        a = heapq.heappop(heap)
+        b = heapq.heappop(heap)
+        cost += a + b
+        heapq.heappush(heap, a + b)
+    return cost
+
+
+def reorgnizeString(s):
+    dicts = {}
+    for strs in s:
+        dicts[strs] = dicts.get(strs, 0) + 1
+    heap = []
+    for key in dicts:
+        heapq.heappush(heap, (-dicts[key], key))
+    result = ""
+    while heap and len(heap) > 1:
+        value1, str1 = heapq.heappop(heap)
+        value2, str2 = heapq.heappop(heap)
+        result += str1
+        result += str1
+        if value1 + 1 < 0:
+            heapq.heappush(heap, (-(value1 + 1), str1))
+        if value2 + 1 < 0:
+            heapq.heappush(heap, (-(value2 + 1), str2))
+    while heap:
+        last, charlast = heapq.heappop(heap)
+        if last == -1:
+            result += charlast
+        else:
+            return ""
+    return result
+
+
+def ipo(k, w, profits, capital):
+    arr = []
+    for i in range(len(capital)):
+        arr.append([capital[i], profits[i]])
+    arr.sort(key=lambda x: x[0])
+    heap = []
+    i = 0
+    for _ in range(k):
+        while i < len(arr) and arr[i][0] <= w:
+            heapq.heappush(heap, -arr[i][1])
+        if not heap:
+            break
+        w += -heapq.heappop(heap)
+    return w
+
+
+print(ipo(2, 0, [1, 2, 3], [0, 1, 1]))

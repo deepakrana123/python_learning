@@ -4,7 +4,9 @@ import heapq
 def mincostToHireWorkers(quality, wage, k: int) -> float:
     heap = []
     for i in range(len(quality)):
-        heapq.heappush(heap, wage[i] // quality[i])
+        heapq.heappush(heap, (quality[i], quality[i], wage[i]))
+    while heap:
+        
     print(heap)
 
 
