@@ -1,0 +1,42 @@
+constants = [
+    {
+        "id": 1,
+        "name": "Laptop",
+        "category": "Electronics",
+        "price": 899.99,
+        "stock": 12,
+        "rating": 4.5,
+    },
+    {
+        "id": 2,
+        "name": "Wireless Mouse",
+        "category": "Accessories",
+        "price": 24.99,
+        "stock": 150,
+        "rating": 4.3,
+    },
+    {
+        "id": 3,
+        "name": "Office Chair",
+        "category": "Furniture",
+        "price": 129.5,
+        "stock": 30,
+        "rating": 4.1,
+    },
+    {
+        "id": 4,
+        "name": "Mechanical Keyboard",
+        "category": "Accessories",
+        "price": 79.99,
+        "stock": 80,
+        "rating": 4.7,
+    },
+    {
+        "id": 5,
+        "name": "Water Bottle",
+        "category": "Home",
+        "price": 12.0,
+        "stock": 300,
+        "rating": 4.0,
+    },
+]
