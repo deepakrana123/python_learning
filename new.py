@@ -1441,4 +1441,215 @@ def ipo(k, w, profits, capital):
     return w
 
 
-print(ipo(2, 0, [1, 2, 3], [0, 1, 1]))
+def countOperations(num1, num2):
+    count = 0
+    while num1 > 0 and num2 > 0:
+        if num1 >= num2:
+            num1 = num1 - num2
+        elif num2 > num1:
+            num2 = num2 - num1
+        count += 1
+    return count
+
+
+def findXSum(nums, k, x):
+    i = 0
+    j = 0
+    dicts = {}
+
+    def calculateMaxTwo(dicts):
+        heap = []
+        ans = 0
+        for key in dicts:
+            heapq.heappush(heap, (dicts[key], key))
+            if len(heap) > x:
+                heapq.heappop(heap)
+        while heap:
+            freq, num = heapq.heappop(heap)
+            ans += num * freq
+        return ans
+
+    arr = []
+    while j < len(nums):
+        dicts[nums[j]] = dicts.get(nums[j], 0) + 1
+        if j - i + 1 >= k:
+            arr.append(calculateMaxTwo(dicts))
+            dicts[nums[i]] = dicts[nums[i]] - 1
+            if dicts[nums[i]] == 0:
+                del dicts[nums[i]]
+            i += 1
+        j += 1
+    return arr
+
+
+import heapq
+
+
+def networkDelayTime(times, n, k):
+    heap = [(0, k)]
+    dist = [float("inf")] * (n + 1)
+    dist[k] = 0
+    dist[0] = 0
+    adj = {i: [] for i in range(1, n + 1)}
+    for u, v, w in times:
+        adj[u].append((v, w))
+    while heap:
+        curr_dist, node = heapq.heappop(heap)
+        for ni, w in adj[node]:
+            new_dist = curr_dist + w
+            if ni not in dist and new_dist < dist[ni]:
+                dist[ni] = new_dist
+                heapq.heappush(heap, (new_dist, ni))
+
+    return -1 if max(dist) == float("inf") else max(dist)
+
+
+def swimInWater(grid):
+    n = len(grid)
+    left = 0
+    right = n - 1
+    result = 0
+
+    def possibleToReach(grid, i, j, t, visited):
+        if (
+            i < 0
+            or i >= n
+            or j < 0
+            or j >= n
+            or visited[i][j] == True
+            or grid[i][j] > t
+        ):
+            return True
+        visited[i][j] = True
+        if i == n - 1 and j == n - 1:
+            return True
+
+        for x, y in [(-1, 0), (0, 1), (1, 0), (0, -1)]:
+            i_ = i + x
+            j_ = j + y
+            if possibleToReach(grid, i_, j_, t, visited):
+                return True
+        return False
+
+    while left <= right:
+        mid = left + (right - left) // 2
+        visited = [False for _ in range(n)] * n
+        if possibleToReach(grid, 0, 0, mid, visited):
+            result = mid
+            right = mid - 1
+        else:
+            left = mid + 1
+    return result
+
+
+from collections import deque
+
+
+def minimumEffortPath(heights):
+    n, m = len(heights[0]), len(heights)
+    # left = 0
+    # right = float("-inf")
+    # result = 0
+    # for i in range(len(heights)):
+    #     right = max(right, max(heights[i]))
+
+    # def possibleToReach(grid, i, j, t, visited):
+
+    #     if i == n - 1 and j == n - 1:
+    #         return True
+    #     visited[i][j] = True
+
+    #     for x, y in [(-1, 0), (0, 1), (1, 0), (0, -1)]:
+    #         i_ = i + x
+    #         j_ = j + y
+    #         if i_ <= 0 or i_ > n or j_ <= 0 or j_ > n or visited[i][j] == False:
+    #             if abs(grid[i_][j_] - grid[i][j]) <= t:
+    #                 if possibleToReach(grid, i_, j_, t, visited):
+    #                     return True
+    #     return False
+
+    # while left <= right:
+    #     mid = left + (right - left) // 2
+    #     visited = [False for _ in range(n)] * n
+    #     if possibleToReach(heights, 0, 0, mid, visited):
+    #         result = mid
+    #         right = mid - 1
+    #     else:
+    #         left = mid + 1
+    # return result
+    dirs = [(-1, 0), (0, 1), (1, 0), (0, -1)]
+
+    def canReach(threshold):
+        q = deque([(0, 0)])
+        visited = [[False] * n] * m
+        visited[0][0] = True
+
+        while q:
+            x, y = q.popleft()
+            if x == n - 1 and y == n - 1:
+                return True
+            for _x, _y in dirs:
+                new_x, new_y = _x + x, _y + y
+                if (
+                    new_x <= 0
+                    or new_x > n
+                    or new_y <= 0
+                    or new_y > n
+                    or visited[new_x][new_y] == False
+                ):
+                    value = heights[new_x][new_y] - heights[x][y]
+                    if value <= threshold:
+                        visited[new_x][new_y] = True
+                        q.append((new_x, new_y))
+        return False
+
+    left = 0
+    right = max(max(row) for row in heights)
+    while left <= right:
+        mid = (left + right) // 2
+        if canReach(mid):
+            result = mid
+            right = mid - 1
+        else:
+            left = mid + 1
+    return result
+
+
+from collections import defaultdict
+
+
+def findCheapestPrice(n, flights, src: int, dst: int, k: int) -> int:
+    heap = [(0, src, k + 1)]
+    adj = [[] for _ in range(n + 1)]
+    for u, v, w in flights:
+        adj[u].append((v, w))
+    dist = [[float("inf")] * (k + 2) for _ in range(n)]
+    dist[src][k + 1] = 0
+
+    while heap:
+        current_dist, node, stops = heapq.heappop(heap)
+        if node == dst:
+            return current_dist
+        if stops > 0:
+            for v, weight in adj[node]:
+                new_cost = current_dist + weight
+                if new_cost < dist[v][stops - 1]:
+                    heapq.heappush(heap, (current_dist + weight, v, stops - 1))
+
+    return -1
+
+
+def numSub(s):
+    count = 0
+    result = 0
+    for i in range(len(s)):
+        if s[i] == "0":
+            result += (count * (count + 1)) // 2
+            count = 0
+        else:
+            count += 1
+
+    return result + (count * (count + 1)) // 2
+
+
+print(numSub(s="0110111"))

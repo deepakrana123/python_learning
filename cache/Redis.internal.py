@@ -1,6 +1,7 @@
 import time
 import heapq
 import threading
+from collections import OrderedDict
 
 
 class Node:
@@ -255,3 +256,107 @@ class MRUCahce:
                             del self.cache[key]
                             if key in self.frequency_count:
                                 del self.frequency_count[key]
+
+
+class SessionCache:
+    def __init__(self, capacity, ttl_seconds):
+        self.ttl_seconds = ttl_seconds
+        self.capacity = capacity
+        self.session_expiry = {}
+        self.heap_expiry = []
+        self.lock = threading.Lock()
+        self._start_cleanup_thread()
+
+    def get(self, key):
+        with self.lock:
+            if key not in self.session_expiry:
+                return -1
+            value, expire_time = self.session_expiry[key]
+            if expire_time < time.time():
+                del self.session_expiry[key]
+                return -1
+            return value
+
+    def put(self, key, value):
+        with self.lock:
+            if (len(self.session_expiry)) >= self.capacity:
+                return None
+            if key in self.session_expiry:
+                self.session_expiry[key] = (value, time.time() + self.ttl_seconds)
+            self.session_expiry[key] = (value, time.time() + self.ttl_seconds)
+
+    def remove(self, key):
+        with self.lock:
+            if key in self.session_expiry:
+                del self.session_expiry[key]
+
+    def contains(self, key):
+        with self.lock:
+            item = self.session_expiry.get(key)
+            return item is not None
+
+    def _start_cleanup_thread(self):
+        def cleanup():
+            while True:
+                time.sleep(self._cleanup_interval)
+                now = time.time()
+                with self._lock:
+                    keys_to_remove = [
+                        k for k, (_, exp) in self.session_expiry.items() if now > exp
+                    ]
+                    for k in keys_to_remove:
+                        del self.session_expiry[k]
+
+        t = threading.Thread(target=cleanup, daemon=True)
+        t.start()
+
+
+class LRUCacheWithOrderDict:
+    def __init__(self, capacity):
+        self.cache = OrderedDict()
+        self.capacity = capacity
+
+    def get(self, key):
+        if key not in self.cache:
+            return None
+        self.cache.move_to_end(key)
+        return self.cache[key]
+
+    def put(self, key, value):
+        if key in self.cache:
+            self.cache.move_to_end(key)
+        self.cache[key] = value
+
+        if len(self.cache) > self.capacity:
+            self.cache.popitem(last=False)
+
+
+class SimulatedDiskCache:
+    def __init__(self):
+        self.storage = {}
+
+    def get(self, key):
+        time.sleep(0.05)
+        return self.storage.get(key)
+
+    def put(self, key, value):
+        self.storage[key] = value
+
+
+class MultiLevelCache:
+    def __init__(self, l1_capacity=5):
+        self.l1 = LRUCacheWithOrderDict(l1_capacity)
+        self.l2 = SimulatedDiskCache()
+
+    def get(self, key):
+        value = self.l1.get(key)
+        if value is not None:
+            return value
+        value1 = self.l2.get(key)
+        if value1 is not None:
+            return value1
+        return {"Miss"}
+
+    def put(self, key, value):
+        self.l1.put(key, value)
+        self.l2.put(key, value)

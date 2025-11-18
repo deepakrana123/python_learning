@@ -24,7 +24,7 @@ class TTlCacheStore(CacheStore):
             value, expire_at = item
             if time.time() > expire_at:
                 del self._store[key]
-                return None
+
             return value
 
     def remove(self, key):
