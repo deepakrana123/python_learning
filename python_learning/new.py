@@ -1652,4 +1652,9 @@ def numSub(s):
     return result + (count * (count + 1)) // 2
 
 
-print(numSub(s="0110111"))
+def minimumOperations(nums):
+    results = 0
+    for num in nums:
+        if num % 3 != 0:
+            results += min(num % 3, 3 - (num % 3))
+    return results
