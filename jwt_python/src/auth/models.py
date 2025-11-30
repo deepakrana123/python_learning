@@ -5,13 +5,6 @@ import sqlalchemy.dialects.postgresql as pg
 from sqlalchemy import func
 from typing import Optional
 
-"""
-class User:
-uid:uuid.UUID,
-
-
-"""
-
 
 class User(SQLModel, table=True):
     __tablename__ = "users"
@@ -27,21 +20,28 @@ class User(SQLModel, table=True):
         ),
     )
 
-    username: str = Field(..., min_length=3, max_length=50, unique=True, index=True)
-    email: str = Field(..., unique=True, index=True)
-    hash_password: str = Field(exclude=True)
+    username: str = Field(
+        ..., sa_column=Column(pg.VARCHAR(30), unique=True, index=True)
+    )
+    email: str = Field(..., sa_column=Column(pg.VARCHAR(120), unique=True, index=True))
+
+    hash_password: str = Field(sa_column=Column(pg.TEXT), exclude=True)
     is_verified: bool = Field(default=False)
+
     phone_number: Optional[str] = Field(
         default=None, sa_column=Column(pg.VARCHAR(20), nullable=True, unique=True)
     )
 
     created_at: datetime = Field(
-        sa_column=Column(pg.TIMESTAMP(timezone=True), server_default=func.now()),
         default_factory=datetime.utcnow,
+        sa_column=Column(pg.TIMESTAMP(timezone=True), server_default=func.now()),
     )
+
     updated_at: datetime = Field(
-        sa_column=Column(pg.TIMESTAMP(timezone=True), server_default=func.now()),
         default_factory=datetime.utcnow,
+        sa_column=Column(
+            pg.TIMESTAMP(timezone=True), server_default=func.now(), onupdate=func.now()
+        ),
     )
 
     def __repr__(self):

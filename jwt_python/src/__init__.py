@@ -18,3 +18,4 @@ app = FastAPI(title="Fast Api project", version=version, lifespan=lifespan)
 app.include_router(
     category_router, prefix=f"/api/{version}/categories", tags=["Categories"]
 )
+app.include_router(category_router, prefix=f"/api/{version}/auth", tags=["Auth"])

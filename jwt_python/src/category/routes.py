@@ -9,10 +9,11 @@ from src.category.category_schema import (
 from src.db.main import get_session
 from sqlmodel.ext.asyncio.session import AsyncSession
 from src.category.service import CategoryService
-
+from src.auth.dependencies import AccessTokenBearer
 
 category_router = APIRouter()
 category_service = CategoryService()
+access_token_bearer = AccessTokenBearer()
 
 
 @category_router.get("/", status_code=status.HTTP_200_OK)
@@ -23,9 +24,12 @@ async def health_check():
 @category_router.get(
     "/all", response_model=List[CategoryResponseModal], status_code=status.HTTP_200_OK
 )
-async def get_all_categories(session: AsyncSession = Depends(get_session)):
+async def get_all_categories(
+    session: AsyncSession = Depends(get_session),
+    user_details=Depends(access_token_bearer),
+):
     category = await category_service.get_all_categories(session)
-    print(category, "category")
+
     if not category:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Category not found"
@@ -37,7 +41,9 @@ async def get_all_categories(session: AsyncSession = Depends(get_session)):
     "/", response_model=CategoryResponseModal, status_code=status.HTTP_201_CREATED
 )
 async def create_category(
-    category_data: CategoryCreateModel, session: AsyncSession = Depends(get_session)
+    category_data: CategoryCreateModel,
+    session: AsyncSession = Depends(get_session),
+    user_details=Depends(access_token_bearer),
 ):
     print(category_data, "category_data")
     return await category_service.create_category(category_data, session)
@@ -46,7 +52,11 @@ async def create_category(
 @category_router.get(
     "/{uid}", response_model=CategoryResponseModal, status_code=status.HTTP_200_OK
 )
-async def get_category_by_id(uid: str, session: AsyncSession = Depends(get_session)):
+async def get_category_by_id(
+    uid: str,
+    session: AsyncSession = Depends(get_session),
+    user_details=Depends(access_token_bearer),
+):
     category = await category_service.get_category(uid, session)
     if not category:
         raise HTTPException(
@@ -62,6 +72,7 @@ async def update_category(
     uid: str,
     category_data: CategoryUpdateModal,
     session: AsyncSession = Depends(get_session),
+    user_details=Depends(access_token_bearer),
 ):
     updated = await category_service.update_category(uid, category_data, session)
     if not updated:
@@ -72,7 +83,11 @@ async def update_category(
 
 
 @category_router.delete("/{uid}", status_code=status.HTTP_200_OK)
-async def delete_category(uid: str, session: AsyncSession = Depends(get_session)):
+async def delete_category(
+    uid: str,
+    session: AsyncSession = Depends(get_session),
+    user_details=Depends(access_token_bearer),
+):
     deleted = await category_service.delete_category(uid, session)
     if not deleted:
         raise HTTPException(

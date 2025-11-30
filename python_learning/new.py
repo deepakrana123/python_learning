@@ -1658,3 +1658,119 @@ def minimumOperations(nums):
         if num % 3 != 0:
             results += min(num % 3, 3 - (num % 3))
     return results
+
+
+def twoSum(nums, target):
+    # nums.sort()
+    # start = 0
+    # end = len(nums) - 1
+    # while start < end:
+    #     if nums[start] + nums[end] > target:
+    #         end -= 1
+    #     elif nums[start] + nums[end] < target:
+    #         start += 1
+    #     else:
+    #         return [start, end, nums[start], nums[end]]
+    dicts = {}
+    for i in range(len(nums)):
+        value = target - nums[i]
+        if value in dicts:
+            return [nums[dicts[value]], nums[i]]
+        dicts[nums[i]] = i
+    return -1
+
+
+def moveZeroes(nums):
+    # arr = [0] * len(nums)
+    # i = 0
+    # for num in nums:
+    #     if num != 0:
+    #         arr[i] = num
+    #         i += 1
+    # return arr
+    i = 0
+    j = 0
+    while j < len(nums):
+        if nums[j] != 0:
+            nums[i], nums[j] = nums[j], nums[i]
+            i += 1
+        j += 1
+    return nums
+
+
+def containsDuplicate(nums):
+    # dicts = {}
+    # for num in nums:
+    #     if num in dicts:
+    #         return [num, True]
+    #     dicts[num] = 1
+    # return False
+    i = 0
+    while i < len(nums):
+        correct = nums[i] - 1
+        if nums[i] != nums[correct]:
+            nums[correct], nums[i] = nums[i], nums[correct]
+        else:
+            i += 1
+    for i in range(len(nums)):
+        if nums[i] - 1 != i:
+            return nums[i]
+    return -1
+
+
+def maxProfit(nums):
+    i = len(nums) - 1
+    stacks = [0] * len(nums)
+    maxElement = -1
+    while i > 0:
+        if maxElement == -1 or maxElement < nums[i]:
+            maxElement = max(nums[i], maxElement)
+        stacks[i] = maxElement
+        i -= 1
+
+    result = 0
+    for i in range(len(nums)):
+        result = max(result, stacks[i] - nums[i])
+    return result
+
+
+def missingNumbers(nums):
+    i = 0
+    n = len(nums)
+    while i < len(nums):
+        correct = nums[i]
+        if nums[i] < n and nums[i] != nums[correct]:
+            nums[correct], nums[i] = nums[i], nums[correct]
+        else:
+            i += 1
+    for i in range(len(nums)):
+        if nums[i] != i:
+            return [nums[i], i]
+
+
+def longestConsectiveSequnce(nums):
+    nums.sort()
+    result = 1
+    count = 1
+    for i in range(1, len(nums)):
+        if nums[i - 1] + 1 == nums[i]:
+            count += 1
+        else:
+            count = 1
+        result = max(result, count)
+    return result
+
+
+def returnAllMissingNumber(nums):
+    i = 0
+    n = len(nums)
+    while i < len(nums):
+        correct = nums[i] - 1
+        if nums[i] != nums[correct]:
+            nums[correct], nums[i] = nums[i], nums[correct]
+        else:
+            i += 1
+    return nums
+
+
+print(returnAllMissingNumber([4, 3, 2, 7, 8, 2, 3, 1]))
