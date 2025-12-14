@@ -3,7 +3,7 @@ from typing import List
 from .service import UserService
 from src.db.main import get_session
 from sqlmodel.ext.asyncio.session import AsyncSession
-from .schema import UserBaseModel, UserCreateModel
+from .schema import UserBaseModel, UserCreateModel, UserLoginModel
 from .utils import (
     create_access_token,
     decode_token,
@@ -12,6 +12,8 @@ from .utils import (
     REFRESH_TOKEN_EXPIRY,
 )
 from fastapi.responses import JSONResponse
+from .dependencies import RefreshTokenBearer
+from datetime import datetime
 
 auth_router = APIRouter()
 auth_service = UserService()
@@ -40,7 +42,7 @@ async def create_user_Account(
 
 @auth_router.post("/login")
 async def login_users(
-    user_data: UserCreateModel, session: AsyncSession = Depends(get_session)
+    user_data: UserLoginModel, session: AsyncSession = Depends(get_session)
 ):
     email = user_data.email
     password = user_data.password
@@ -48,7 +50,7 @@ async def login_users(
     if not user:
         raise HTTPException(status_code=403, detail="Invalid user")
 
-    if not verify_password(password, user_data.hash_password):
+    if not verify_password(password, user.hash_password):
         raise HTTPException(status_code=403, detail="Invalid password")
 
     access_token = create_access_token(
@@ -69,3 +71,21 @@ async def login_users(
             "user": {"email": user.email, "uid": str(user.uid)},
         }
     )
+
+
+@auth_router.post("/refresh-token")
+async def get_refresh_token(token_details: dict = Depends(RefreshTokenBearer)):
+    expiry_timestamp = token_details["exp"]
+
+    user_data = token_details["user"]
+
+    if datetime.fromtimestamp(expiry_timestamp) < datetime.utcnow():
+        raise HTTPException(status_code=400, detail="Refresh token expired")
+
+    new_access_token = create_access_token(
+        user_data=user_data,
+        expiry=ACCESS_TOKEN_EXPIRY,
+        refresh=False,
+    )
+
+    return {"access_token": new_access_token}

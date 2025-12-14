@@ -25,14 +25,14 @@ def create_access_token(user_data: dict, expiry: timedelta, refresh: bool = Fals
         expiry = REFRESH_TOKEN_EXPIRY if refresh else ACCESS_TOKEN_EXPIRY
     payload = {
         "user": user_data,
-        "jti": str(uuid.uuId()),
+        "jti": str(uuid.uuId4()),
         "refresh": refresh,
         "exp": datetime.utcnow() + expiry,
         "iat": datetime.utcnow(),
     }
 
     token = jwt.encode(
-        payload=payload, key=Config.JWT_TOKEN, algorithm=Config.JWT_ALGORITHIM
+        payload=payload, key=Config.JWT_TOKEN, algorithm=[Config.JWT_ALGORITHIM]
     )
     return token
 
@@ -40,7 +40,7 @@ def create_access_token(user_data: dict, expiry: timedelta, refresh: bool = Fals
 def decode_token(token: str):
     try:
         token_data = jwt.decode(
-            jwt=token, key=Config.JWT_TOKEN, algorithm=Config.JWT_ALGORITHIM
+            jwt=token, key=Config.JWT_TOKEN, algorithm=[Config.JWT_ALGORITHIM]
         )
         return token_data
     except jwt.ExpiredSignatureError:

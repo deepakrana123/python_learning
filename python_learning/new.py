@@ -1773,4 +1773,33 @@ def returnAllMissingNumber(nums):
     return nums
 
 
-print(returnAllMissingNumber([4, 3, 2, 7, 8, 2, 3, 1]))
+def kadaneAlgorithim(nums):
+    curr_sum = 0
+    max_sum = nums[0]
+    for x in nums[1:]:
+        curr_sum = max(x, curr_sum + x)
+        max_sum = max(max_sum, curr_sum)
+    return max_sum
+
+
+def maximumSubarrayInCircularSum(nums):
+
+    max_sum_kadane = kadaneAlgorithim(nums)
+    total_sum = sum(nums)
+    inverted = [-num for num in nums]
+    max_inverse_kadane = kadaneAlgorithim(inverted)
+    circular_sum = total_sum + max_inverse_kadane
+    if circular_sum == 0:
+        return max_sum_kadane
+    return max(max_sum_kadane, circular_sum)
+
+
+def maximumPorductSubArray(nums):
+    min_ending = nums[0]
+    max_ending = nums[0]
+    max_product = nums[0]
+    for x in nums[1::]:
+        max_ending = max(x, x * max_ending, x * min_ending)
+        min_ending = min(x, x * min_ending, x * max_ending)
+        max_product = max(max_ending, max_product)
+    return max_product
