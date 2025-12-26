@@ -1,3 +1,5 @@
+# Event Source → Ingestion → Queue → Processor → State → Broadcast → Clients
+
 # multi fsm , a single fsm quickly becomes exhuasted , too larege and complex and impossible to debug
 #  so what we do we break fsm on the basis of requriement to build single responsibility system
 

@@ -1803,3 +1803,22 @@ def maximumPorductSubArray(nums):
         min_ending = min(x, x * min_ending, x * max_ending)
         max_product = max(max_ending, max_product)
     return max_product
+
+
+def minDeletionSize(strs):
+    rows = len(strs)
+    cols = len(strs[0])
+    deletion = 0
+    alreadySorted = [False] * rows
+    for col in cols + 1:
+        deleted = False
+        for row in rows:
+            if alreadySorted[row] == True and strs[row][col] > strs[row + 1][col]:
+                deletion += 1
+                deleted = True
+                break
+        if deleted:
+            continue
+        for i in range(rows):
+            alreadySorted[i] = alreadySorted[i] or (strs[row][col] < strs[row + 1][col])
+    return deletion
