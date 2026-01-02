@@ -1822,3 +1822,118 @@ def minDeletionSize(strs):
         for i in range(rows):
             alreadySorted[i] = alreadySorted[i] or (strs[row][col] < strs[row + 1][col])
     return deletion
+
+
+# def maximumSubArray(nums):
+#     curr = 0
+#     sums = float("-inf")
+#     for x in nums:
+#         curr = max(x, x + curr)
+#         sums = max(curr, sums)
+#     return sums
+
+
+def longestSubarrayKDistinct(nums, k):
+    i = 0
+    j = 0
+    n = len(nums)
+    dicts = {}
+    result = 0
+    while j < n:
+        dicts[nums[j]] = dicts.get(nums[j], 0) + 1
+        while len(dicts) > k:
+            dicts[nums[i]] = dicts.get(nums[i], 0) - 1
+            if dicts[nums[i]] == 0:
+                del dicts[nums[i]]
+
+            i += 1
+        result = max(result, j - i + 1)
+        j += 1
+    return result
+
+
+def sumSubarrayK(nums, k):
+    # i = 0
+    # j = 0
+    # n = len(nums)
+    # sums=0
+    # result=0
+    # while j < n:
+    #     sums+=nums[j]
+    #     while sums>k:
+    #         sums-=nums[i]
+    #         i+=1
+    #     if sums==k:
+    #         result+=1
+    #     j+=1
+    # return result
+    prefix = 0
+    freq = {0: 1}
+    count = 0
+    for x in nums:
+        prefix += x
+        if prefix - k in freq:
+            count += freq[prefix - k]
+        freq[prefix] = freq.get(prefix, 0) + 1
+    return count
+
+
+def numMagicSquaresInside(grid):
+    count = 0
+    n = len(grid[0])
+    m = len(grid)
+
+    def countSum(grid, row, col):
+        dicts = {}
+        for i in range(3):
+            for j in range(3):
+                value = grid[row + i][col + j]
+                if value < 1 and value > 15 and value not in dicts:
+                    return False
+                dicts[value] = 1
+        rSum = grid[row][col] + grid[row][col + 1] + grid[row][col + 2]
+        dSum = grid[row][col] + grid[row + 1][col + 1] + grid[row + 2][col + 2]
+        antiSum = grid[row][col + 2] + grid[row + 1][col + 1] + grid[row + 2][col]
+        if rSum != dSum or rSum != antiSum or dSum != antiSum:
+            return False
+
+        for i in range(3):
+            if (
+                grid[row + i][col] + grid[row + i][col + 1] + grid[row + i][col + 2]
+                != rSum
+            ):
+                return False
+            if (
+                grid[row][col + i] + grid[row + 1][col + i] + grid[row + 2][col + i]
+                != rSum
+            ):
+                return False
+        return True
+
+    for i in range(m - 2):
+        for j in range(n - 2):
+            if countSum(grid, i, j):
+                count += 1
+    return count
+
+
+def repeatedNTimes(nums):
+    n = len(nums) // 2
+    dicts = {}
+    for num in nums:
+        dicts[num] = dicts.get(num, 0) + 1
+        if dicts[num] == n:
+            return num
+
+    return -1
+
+
+def plusOne(digits):
+    s = ""
+    for n in digits:
+        s += str(n)
+    result = int(s) + 1
+    anc = []
+    for n in str(result):
+        anc.append(int(n))
+    return anc
