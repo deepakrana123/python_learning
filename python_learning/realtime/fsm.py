@@ -182,3 +182,105 @@ asyncio.run(main())
 # Exit parent = child is terminated/reset.
 
 # Parent decides high-level mode, child handles fine details.
+
+
+class PaymentFSM:
+    def __init__(self):
+        self.state = "VERIFYING"
+        self.retry = 0
+        self.MAX_RETRY = 3
+
+    def handle(self, event):
+        if self.state == "VERIFYING":
+            if event == "payment_success":
+                self.state = "SUCCESS"
+            elif event == "payment_failed":
+                self.state = "RETRY"
+        elif self.state == "RETRY":
+            if event == "retry":
+                if self.retry < self.MAX_RETRY:
+                    self.retry += 1
+                    self.state = "VERIFYING"
+                else:
+                    self.state = "FAILED"
+        if self.state in ("SUCCESS", "FAILED"):
+            return self.state
+        return self.state
+
+
+class TableDrivenPaymentFSM:
+    def __init__(self):
+        self.state = "VERIFYING"
+        self.retry = 0
+        self.MAX_RETRY = 3
+        self.table = {
+            ("VERIFYING", "success"): ("SUCCESS", None),
+            ("VERIFYING", "fail"): ("RETRY", self.increment_retry),
+            ("RETRY", "retry"): ("VERIFYING", None),
+            ("RETRY", "max_retry"): ("FAILED", None),
+            ("SUCCESS", "*"): ("SUCCESS", None),
+            ("FAILED", "*"): ("FAILED", None),
+        }
+
+    def increment_retry(self):
+        self.retry += 1
+
+    def handle(self, event):
+        if self.state == "RETRY" and self.retry >= self.MAX_RETRY:
+            event = "max_retry"
+        key = (self.state, event)
+        if key not in self.table:
+            key = (self.state, "*")
+        next_state, action = self.table[key]
+        if action:
+            action()
+        self.state = next_state
+        return self.state
+
+
+class TableDrivenDeliveryFSM:
+    def __init__(self):
+        self.state = "PACKING"
+        self.retry = 0
+        self.MAX_RETRY = 3
+        self.table = {
+            ("PACKING", "success"): ("SHIPPED", None),
+            ("PACKING", "fail"): ("FAILED", None),
+            # ("RETRY", "retry"): ("PACKING", None),
+            # ("RETRY", "max_retry"): ("FAILED", None),
+            ("SHIPPED", "*"): ("SHIPPED", None),
+            ("FAILED", "*"): ("FAILED", None),
+        }
+
+    def handle(self, event):
+        key = (self.state, event)
+        if key not in self.table:
+            key = (self.state, "*")
+        next_state, action = self.table[key]
+        if action:
+            action()
+        self.state = next_state
+        return self.state
+
+
+class TableDrivenOrder:
+    def __init__(self):
+        self.state = "ORDER_ACTIVE"
+        self.payment_fsm = TableDrivenPaymentFSM()
+        self.delivery_fsm = TableDrivenDeliveryFSM()
+
+    def handle_payment_event(self, event):
+        if self.state != "ORDER_ACTIVE":
+            return self.state
+        payment_state = self.payment_fsm.handle(event)
+        delivery_state = self.delivery_fsm.handle(event)
+
+        if payment_state == "FAILED":
+            self.state = "ORDER_FAILED"
+        elif payment_state == "SUCCESS":
+            self.state = "ORDER_SUCCESS"
+        elif delivery_state == "FAILED":
+            self.state = "ORDER_FAILED"
+        elif delivery_state == "SUCCESS":
+            self.state = "ORDER_SUCCESS"
+        return self.state
