@@ -72,7 +72,6 @@ def majorityElement(nums):
             count += 1
         else:
             count -= 1
-    print(num, candidate)
     return candidate
 
 
@@ -672,11 +671,9 @@ class Solution:
         for i in range(len(a)):
             a[i] = self.compressInitial(a[i])
             b[i] = self.compressInitial(b[i])
-        print(a, b)
         result = 0
         for i in range(len(a)):
             if int(a[i]) > int(b[i]):
-                print(a[i], b[i])
                 result = 1
             elif int(a[i]) < int(b[i]):
                 result = -1
@@ -686,7 +683,6 @@ class Solution:
 
 
 ac = Solution()
-# print(ac.compareVersion("1.0", version2="1.0.0.0"))
 
 
 def largestTriangleArea(points):
@@ -1244,7 +1240,7 @@ def nextBeautifulNumber(n):
             digit = num % 10
             result[digit] += 1
             num = num // 10
-        print(result, "result")
+
         for i in range(10):
             if result[i] > 0 and result[i] != i:
                 return False
@@ -1937,3 +1933,275 @@ def plusOne(digits):
     for n in str(result):
         anc.append(int(n))
     return anc
+
+
+def sumFourDivisors(nums):
+    def divisorBy4(num):
+        count = 0
+        i = 1
+        while i * i <= num:
+            if num % i == 0:
+                if i * i == num:
+                    count += 1
+                else:
+                    count += 2
+            i += 1
+        return count
+
+    result = 0
+    for num in nums:
+        if divisorBy4(num) >= 4:
+            result += num
+    return result
+
+
+def maximumSubarraySum(nums, k):
+    result = 0
+    # for i in range(len(nums) - k):
+    #     sums = 0
+    #     dicts = {}
+    #     for j in range(i, i + k):
+    #         if nums[j] in dicts:
+    #             sums = 0
+    #             break
+    #         else:
+    #             sums += nums[j]
+    #             dicts[nums[j]] = dicts.get(nums[j], 0) + 1
+    #     result = max(sums, result)
+    # return result
+    i = 0
+    j = 0
+    dicts = {}
+    sums = 0
+    result = 0
+    while j < len(nums):
+        if j - i < k:
+            if dicts[nums[j]] in dicts:
+                dicts[nums[j]] = dicts.get(nums[j], 0) + 1
+            else:
+                dicts[nums[j]] = dicts.get(nums[j], 0) + 1
+            sums += nums[j]
+            j += 1
+        else:
+            if len(dicts) == k:
+                result = max(sums, result)
+            if nums[j] in dicts:
+                dicts[nums[j]] = dicts.get(nums[j], 0) + 1
+            else:
+                dicts[nums[j]] = dicts.get(nums[j], 0) + 1
+            if dicts[nums[i]] > 1:
+                dicts[nums[i]] = dicts.get(nums[i], 0) - 1
+            elif dicts[nums[i]] == 0:
+                del dicts[nums[i]]
+            sums += nums[j] - nums[i]
+            i += 1
+            j += 1
+    return result
+
+
+def lengthOfLongestSubstring(s):
+    result = 0
+    dicts = {}
+
+    def valueTwice(dicts):
+        for key in dicts:
+            if dicts[key] > 1:
+                return False
+        return True
+
+    # for i in range(len(s)):
+    #     dicts = {}
+    #     for j in range(i, len(s)):
+    #         dicts[s[j]] = dicts.get(s[j], 0) + 1
+    #         if valueTwice(dicts):
+    #             result = max(len(dicts), result)
+    #         else:
+    #             break
+    # return result
+    i = 0
+    j = 0
+    while j < len(s):
+        dicts[s[j]] = dicts.get(s[j], 0) + 1
+        while i < len(s) and valueTwice(dicts):
+            dicts[s[i]] = dicts.get(s[i], 0) - 1
+            if dicts[s[i]] == 0:
+                del dicts[s[i]]
+            i += 1
+        result = max(len(dicts), result)
+        j += 1
+    return result
+
+
+def longestSubarray(arr, k):
+    result = 0
+    # for i in range(len(arr)):
+    #     sum = 0
+    #     for j in range(i, len(arr)):
+    #         sum += arr[j]
+    #         if sum == k:
+    #             maxLen = j - i + 1
+    #             result = max(maxLen, result)
+    # return result
+    dicts = {}
+    res = 0
+    preSum = 0
+    for i in range(len(arr)):
+        preSum += arr[i]
+        if preSum == k:
+            res = i + 1
+        elif preSum - arr[i] in dicts:
+            res = max(res, i - dicts[preSum - arr[i]])
+        if preSum not in dicts:
+            dicts[preSum] = i
+    return res
+
+
+def longestRepeatingCharcater(arr, k):
+    i = 0
+    j = 0
+    dicts = {}
+    result = 0
+    maxs = 0
+    while j < len(arr):
+        dicts[arr[j]] = dicts.get(arr[j], 0) + 1
+        maxs = max(maxs, dicts[arr[j]])
+        while j - i + 1 - maxs > k:
+            if arr[i] in dicts:
+                dicts[arr[i]] = dicts.get(arr[i], 0) - 1
+                if dicts[arr[i]] == 0:
+                    del dicts[arr[i]]
+            i += 1
+        result = max(result, j - i + 1)
+        j += 1
+    return result
+
+
+def consecutiveOnes(nums, k):
+    i = 0
+    j = 0
+    result = 0
+    maxOnes = 0
+    while j < len(nums):
+        if nums[j] == 0:
+            maxOnes += 1
+        while (j - i + 1) - maxOnes > k:
+            if nums[i] == 1:
+                maxOnes -= 1
+            i += 1
+        result = max(result, j - i + 1)
+        j += 1
+    return result
+
+
+def smallestSubStringContainingBoth(s, t):
+    i = 0
+    j = 0
+    dicts2 = {}
+    dicts1 = {}
+    result = max(len(s), len(t))
+
+    def misMatch(dicts1, dicts2):
+        if len(dicts1) > len(dicts2):
+            return False
+        for key in dicts1:
+            if key in dicts2 and dicts2[key] < dicts1[key]:
+                return False
+        return False
+
+    leastI = 0
+    lestJ = 0
+    for k in t:
+        dicts2[k] = dicts2.get(k, 0) + 1
+    while j < len(s):
+        dicts2[s[j]] = dicts2.get(s[j], 0) + 1
+        while misMatch(dicts1, dicts2):
+            dicts1[s[i]] = dicts1[s[i]] - 1
+            if dicts1[s[i]] == 0:
+                del dicts1[s[i]]
+            i += 1
+        if result > j - i + 1:
+            result = j - i + 1
+            lestJ = j
+            lestI = i
+        j += 1
+    print(lestJ, lestI)
+
+    return result
+
+
+def longestSubArray(nums):
+    firstIndex = {0: -1}
+    currSum = 0
+    start = 0
+    result = 0
+    while start < len(nums):
+        value = -1 if nums[start] == 0 else 1
+        currSum += value
+        if currSum in firstIndex:
+            result = max(result, start - firstIndex[currSum])
+        else:
+            firstIndex[currSum] = start
+        start += 1
+    return result
+
+
+def countSubarray(nums, k):
+    start = 0
+    result = 0
+    currSum = 0
+    dicts = {0: 1}
+    while start < len(nums):
+        currSum += nums[start]
+        print(dicts, start, currSum)
+        if currSum - k in dicts:
+            result += dicts[currSum - k]
+        dicts[currSum] = dicts.get(currSum, 0) + 1
+        start += 1
+    return result
+
+
+def continousSubarrayDivisibleByK(nums, k):
+    firstIndex = {0: -1}
+    start = 0
+    currSum = 0
+    while start < len(nums):
+        currSum += nums[start]
+        if currSum % k in firstIndex and start - firstIndex[currSum % k] >= 2:
+            return True
+        firstIndex[currSum % k] = start
+        start += 1
+    return False
+
+
+def twoSum2Sorted(nums, k):
+    start = 0
+    end = len(nums) - 1
+    while end > start:
+        value = nums[end] + nums[start]
+        if value > k:
+            end -= 1
+        elif value < k:
+            start += 1
+        else:
+            return [start, end]
+    return [-1, -1]
+
+
+def maxArea(height):
+    start = 0
+    end = len(height) - 1
+    area = 0
+    while end > start:
+        area = min(height[start], height[end]) * (end - start)
+        if height[end] > height[start]:
+            start += 1
+        else:
+            end -= 1
+    return area
+
+
+if __name__ == "__main__":
+    numbers = [2, 7, 11, 15]
+    target = 9
+
+    print(twoSum2Sorted(numbers, target))
