@@ -2200,8 +2200,265 @@ def maxArea(height):
     return area
 
 
-if __name__ == "__main__":
-    numbers = [2, 7, 11, 15]
-    target = 9
+from collections import deque
 
-    print(twoSum2Sorted(numbers, target))
+
+def slidingWindowMaximum(nums, k):
+    dq = deque([])
+    result = []
+    for i in range(len(nums)):
+        while dq and nums[i] > nums[dq[-1]]:
+            dq.pop()
+        dq.append(i)
+        if dq[0] <= i - k:
+            dq.popleft()
+        if i >= k - 1:
+            result.append(nums[dq[0]])
+    return result
+
+
+def slidingWindowMinimum(nums, k):
+    dq = deque([])
+    result = []
+    for i in range(len(nums)):
+        while dq and nums[i] < nums[dq[-1]]:
+            dq.pop()
+        dq.append(i)
+        if dq[0] <= i - k:
+            dq.popleft()
+        if i >= k - 1:
+            result.append(nums[dq[0]])
+    return result
+
+
+def firstNegativeNumber(nums, k):
+    dq = deque([])
+    result = []
+    for i in range(len(nums)):
+        while dq and nums[dq[-1]] > 0:
+            dq.pop()
+        dq.append(i)
+        if dq[0] <= i - k:
+            dq.popleft()
+        if i >= k - 1:
+            print(dq)
+            result.append(nums[dq[0]] if nums[dq[0]] < 0 else 0)
+    return result
+
+
+def subArraySumToK(nums, k):
+    dicts = {0: 1}
+    currSum = 0
+    result = 0
+    for i in range(len(nums)):
+        currSum += nums[i]
+        if currSum - k in dicts:
+            result += 1
+        dicts[currSum] = dicts.get(currSum, 0) + 1
+    return result
+
+
+def rangeAddition(nums, length):
+    result = [0] * length
+    nums.sort(key=lambda x: x[0])
+    for i in range(len(nums)):
+        l, r, v = nums[i]
+        for j in range(l, r + 1):
+            result[j] = result[j] + v
+    return result
+
+
+def shipWithinDays(weights, days):
+    low = max(weights)
+    end = sum(weights)
+
+    def ships(mid):
+        capDays = 0
+        currCap = 0
+        for w in weights:
+            if currCap + w > mid:
+                capDays += 1
+                currCap = w
+            else:
+                currCap += w
+        return capDays < days
+
+    while low <= end:
+        mid = low + (end - low) // 2
+        if ships(mid):
+            end = mid - 1
+        else:
+            low = mid + 1
+    return low
+
+
+import math
+
+
+def minEatingSpeed(piles, h):
+    low = 1
+    end = max(weights)
+
+    def ships(speed):
+        hours = 0
+        for pile in piles:
+            hours += math.ceil(pile / speed)
+        return hours <= h
+
+    while low <= end:
+        mid = low + (end - low) // 2
+        if ships(mid):
+            end = mid - 1
+        else:
+            low = mid + 1
+    return low
+
+
+def splitArray(nums, k):
+    low = max(nums)
+    end = sum(nums)
+
+    def canSplit(mid):
+        splits = 0
+        curr_sum = 0
+        for num in nums:
+            if curr_sum + num > mid:
+                splits += 1
+                curr_sum = num
+            else:
+                curr_sum += num
+        return splits + 1 <= k
+
+    while low <= end:
+        mid = low + (end - low) // 2
+        if canSplit(mid):
+            end = mid - 1
+        else:
+            low = mid + 1
+    return low
+
+
+def minDays(bloomDay, m, k):
+    if m * k > len(bloomDay):
+        return -1
+    low = min(bloomDay)
+    high = max(bloomDay)
+
+    def checkForBloom(mid):
+        countBloomDay = 0
+        countBouqet = 0
+        for bloom in bloomDay:
+            if bloom <= mid:
+                countBloomDay += 1
+                if countBloomDay == k:
+                    countBouqet += 1
+                    countBloomDay = 0
+            else:
+                countBloomDay = 0
+        return countBouqet >= m
+
+    while low <= high:
+        mid = low + (high - low) // 2
+        if checkForBloom(mid):
+            high = mid - 1
+        else:
+            low = mid + 1
+    return low
+
+
+def aggresiveCows(stalls, k):
+    stalls.sort()
+    low = stalls[0]
+    end = stalls[-1] - stalls[0]
+
+    def checkCowExist(mid):
+        countCow = 0
+        firstStall = stalls[0]
+        for i in range(1, len(stalls)):
+            if stalls[i] - firstStall >= mid:
+                firstStall = stalls[i]
+                countCow += 1
+        return countCow >= k
+
+    answer = -1
+    while end >= low:
+        mid = low + (end - low) // 2
+        if checkCowExist(mid):
+            answer = low
+            low = mid + 1
+        else:
+            end = mid - 1
+    return answer
+
+
+def twoDiffElements(arr):
+    xor_all = 0
+    for num in arr:
+        xor_all ^= num
+    abc = xor_all ^ -xor_all
+    a, b = 0, 0
+    for num in arr:
+        if num & abc:
+            a ^= num
+        else:
+            b ^= num
+    return (a, b)
+
+
+def missingElement(arr):
+    xor_all = 0
+    for n in range(len(arr)):
+        xor_all ^= n
+    print(xor_all)
+    xor_expected = 0
+    for n in arr:
+        xor_expected ^= n
+    print(xor_all, xor_expected)
+    return xor_expected ^ xor_all
+
+
+def singleNumber2(nums):
+    # ans = [n for n in format(0, "032b")]
+    # for num in nums:
+    #     value = format(num, "032b")
+    #     for i in range(32):
+    #         ans[i] = (int(ans[i]) + int(value[i])) % 3
+    # values = ""
+    # for n in ans:
+    #     values += str(n)
+    # return int(values, 2)
+    # bit_count = [0] * 32
+    # for num in nums:
+    #     for i in range(32):
+    #         bit_count[i] += (num >> i) & 1
+    #         bit_count[i] %= 3
+    # result = 0
+
+    # for i in range(32):
+    #     if bit_count[i]:
+    #         result |= 1 << i
+
+    # if result >= 2**31:
+    #     result -= 2**32
+    # return result
+
+    ones = 0
+    twos = 0
+    for num in nums:
+        ones = ones ^ num & ~twos
+        twos = twos ^ num & ~ones
+    print(ones, twos)
+
+
+def countSetBit(n):
+    result = 0
+    for num in range(1, n + 1):
+        for i in range(32):
+            if (num >> i) & 1:
+                result += 1
+    return n
+
+
+if __name__ == "__main__":
+    nums = 4
+    print(countSetBit(nums))
