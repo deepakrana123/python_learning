@@ -2459,6 +2459,94 @@ def countSetBit(n):
     return n
 
 
+def subsetGeneration(nums):
+    n = len(nums)
+    result = []
+    for mask in range(1 << n):
+        subset = []
+        for i in range(n):
+            if mask & (1 << i):
+                subset.append(nums[i])
+        result.append(subset)
+    return result
+
+
+def subsetSumEqualsK(nums, k):
+    n = len(nums)
+    result = []
+    for mask in range(1 << n):
+        subset = []
+        for i in range(n):
+            if mask & (1 << i):
+                subset.append(nums[i])
+        if sum(subset) == k:
+            result.append(subset)
+    return result
+
+
+def minCostAssignment(cost):
+    n = len(cost)
+    dp = {}  # for previous visited jobs
+
+    def solve(mask):
+        if mask == (1 << n) - 1:
+            return
+        if mask in dp:
+            return dp[mask]
+        worker = bin(mask).count("1")
+        ans = float("inf")
+        for job in range(n):
+            if not (mask & (1 << job)):
+                ans = min(ans, cost[worker][job] + solve(mask | (1 << job)))
+        dp[mask] = ans
+        return ans
+
+    return solve(0)
+
+
+def maxStudentAssignment(student):
+    n = len(student)
+    dp = {}  # for previous visited jobs
+
+    def solve(mask):
+        if mask == (1 << n) - 1:
+            return
+        if mask in dp:
+            return dp[mask]
+        worker = bin(mask).count("1")
+        ans = float("inf")
+        for job in range(n):
+            if not (mask & (1 << job)):
+                ans = max(ans, student[worker][job] + solve(mask | (1 << job)))
+        dp[mask] = ans
+        return ans
+
+    return solve(0)
+
+
+def countNoConsecutiveOnes(n):
+    digits = list(map(int, bin(n)[2:]))
+    L = len(digits)
+    dp = [[[-1] * 2 for _ in range(2)] for _ in range(L)]
+
+    def dfs(pos, tight, prev):
+        if pos == L:
+            return 1
+        if dp[pos][tight][prev] != -1:
+            return dp[pos][tight][prev]
+        limit = digits[pos] if tight else 1
+        ans = 0
+
+        for bit in range(limit + 1):
+            if prev == 1 and bit == 1:
+                continue
+            ans += dfs(pos + 1, tight and (bit == limit), bit)
+        dp[pos][tight][prev] = ans
+        return ans
+
+    return dfs(0, 1, 0)
+
+
 if __name__ == "__main__":
     nums = 4
-    print(countSetBit(nums))
+    print(countNoConsecutiveOnes(111))

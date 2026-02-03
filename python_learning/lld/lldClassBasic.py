@@ -124,6 +124,19 @@ class UserValidator:
         return True
 
 
+class Email:
+    def __init__(self, value: str):
+        if "@" not in value:
+            raise ValueError("Invalid Email")
+        self._value = value
+
+    def value(self):
+        return self._value
+
+    def __eq__(self, other):
+        return isinstance(other, Email) and self._value == other._value
+
+
 class UserRepository:
     def __init__(self):
         self._users = []
@@ -156,10 +169,10 @@ class SMSNotification(NotificationChannel):
 
 
 class UserRegistrationService:
-    def __init__(self, channels):
-        self._user_repo = UserRepository()
+    def __init__(self, user_repo, Email, channels):
+        self._user_repo = user_repo
         self._channels = channels
-        self._user_validation = UserValidator()
+        self._user_validation = Email
 
     def register(self, user):
         self._user_repo.ensure_user_does_not_exist(user)
@@ -167,3 +180,146 @@ class UserRegistrationService:
         self._user_repo.save_user(user)
         for channel in self._channels:
             channel.notify(user)
+
+
+def build_user_registration_service():
+    repo = UserRepository()
+    Email = Email()
+
+    channels = [
+        EmailNotification(),
+        SMSNotification(),
+    ]
+
+    return UserRegistrationService(user_repo=repo, Email=Email, channels=channels)
+
+
+class BankAccount:
+    def __init__(self, name: str, accountNumber: str, email: str, mobileNumber: str):
+        self._name = name
+        self._accountNumber = accountNumber
+        self._email = email
+        self._mobileNumber = mobileNumber
+
+
+class BankAccountFactory:
+    def create(
+        self, name: str, account_number: str, email: str, mobile_number: str
+    ) -> Bank:
+        if not name:
+            raise ValueError("Name empty nahi ho sakta")
+        if not account_number:
+            raise ValueError("Account Number nahi ho sakta")
+        if not email:
+            raise ValueError("Email nahi ho sakta")
+        if not mobile_number:
+            raise ValueError("Mobile nahi hai")
+        if len(mobile_number) != 10:
+            raise ValueError("Mobile Number nahi ho sakta")
+        if "@" not in email:
+            raise ValueError("Email galat hai")
+        return Bank(name, account_number, email, mobile_number)
+
+
+class DiscountStrategy:
+    def discount(self, amount):
+        raise NotImplementedError()
+
+
+class DicountByCounpon(DiscountStrategy):
+    def discount(self, amount):
+        print(f"paid {amount} via UPI")
+
+
+class DiscountByReferral(DiscountStrategy):
+    def discount(self, amount):
+        print(f"Paid {amount} via card")
+
+
+class DiscountProcessor:
+    def __init__(self, strategy: DiscountStrategy):
+        self._strategy = strategy
+
+    def process(self, amount):
+        self._strategy.discount(amount)
+
+
+class PlayerState:
+    def play(self, player):
+        raise NotImplementedError()
+
+    def pause(self, player):
+        raise NotImplementedError()
+
+    def stop(self, player):
+        raise NotImplementedError()
+
+
+class PlayingState(PlayerState):
+    def play(self, player):
+        print("Already playing")
+
+    def pause(self, player):
+        player.state = PausedState()
+
+    def stop(self, player):
+        player.state = StoppedState()
+
+
+class PausedState(PlayerState):
+    def play(self, player):
+        player.stater = PlayingState()
+
+    def pause(self, player):
+        print("Already paused")
+
+    def stop(self, player):
+        player.state = StoppedState()
+
+
+class StoppedState(PlayerState):
+    def play(self, player):
+        player.stater = PlayingState()
+
+    def pause(self, player):
+        player.state = PausedState()
+        print("Already paused")
+
+    def stop(self, player):
+        print("Already stopped")
+
+
+class MusicPlayer:
+    def __init__(self):
+        self.state = StoppedState()
+
+    def play(self):
+        self.state.play(self)
+
+    def pause(self):
+        self.state.pause(self)
+
+    def stop(self):
+        self.state.stop(self)
+
+
+class Observer:
+    def update(self, data):
+        pass
+
+
+class OrderPlacedObserver(Observer):
+    def update(self, order_id):
+        print(f"Order placed:{order_id}")
+
+
+class Order:
+    def __init__(self):
+        self._observers = []
+
+    def attach(self, observer):
+        self._observers.append(observer)
+
+    def place(self):
+        for o in self._observers:
+            o.update("Order123")
