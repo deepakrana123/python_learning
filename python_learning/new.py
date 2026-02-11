@@ -2547,6 +2547,501 @@ def countNoConsecutiveOnes(n):
     return dfs(0, 1, 0)
 
 
+def countKNonZeros(n, k):
+    digits = list(map(int, bin(n)[2:]))
+    L = len(digits)
+    dp = [[[-1] * 2 for _ in range(2)] for _ in range(L)]
+    print(dp)
+
+    def dfs(pos, tight, prev):
+        if pos == L:
+            return 1
+        if dp[pos][tight][prev] != -1:
+            return dp[pos][tight][prev]
+        limit = digits[pos] if tight else 1
+        ans = 0
+        for bit in range(1, limit + 1):
+            if prev == 1 and bit == 0:
+                continue
+            ans += dfs(pos + 1, tight and (bit == limit), bit)
+        dp[pos][tight][prev] = ans
+        return ans
+
+    return dfs(0, 1, 0)
+
+
+def countSumOfKthDigits(n, k):
+    digits = list(map(int, bin(n)[2:]))
+    L = len(digits)
+    dp = [[[-1] * 2 for _ in range(2)] for _ in range(L)]
+
+    def dfs(pos, tight, sum_so_far):
+        if sum_so_far > k:
+            return 0
+        if pos == L:
+            return 1
+        if dp[pos][tight][sum_so_far] != -1:
+            return dp[pos][tight][sum_so_far]
+        limit = digits[pos] if tight else 0
+        ans = 0
+        for bit in range(limit + 1):
+            ans += dfs(pos + 1, tight and (bit == limit), sum_so_far + bit)
+        dp[pos][tight][sum_so_far] = ans
+        return ans
+
+    return dfs(0, 1, 0)
+
+
+def countNonConsecutive1KthDigits(n, k):
+    digits = list(map(int, bin(n)[2:]))
+    L = len(digits)
+    dp = [[[-1] * 2 for _ in range(2)] for _ in range(L)]
+
+    def dfs(pos, tight, prev):
+        if prev > k:
+            return 0
+        if pos == L:
+            return 1
+        if dp[pos][tight][prev] != -1:
+            return dp[pos][tight][prev]
+        limit = digits[pos] if tight else 9
+        ans = 0
+        for bit in range(limit + 1):
+            if prev and bit == 1:
+                continue
+            ans += dfs(pos + 1, tight and (bit == limit), bit)
+        dp[pos][tight][prev] = ans
+        return ans
+
+    return dfs(0, 1, 0)
+
+
+def countNumber(L, R):
+    def solve(N):
+        digits = list(map(int, str(N)))
+        n = len(digits)
+        dp = [[[-1] * (n + 1) for _ in range(2)] for _ in range(n)]
+
+        def dfs(pos, tight, count_7):
+            total = 0
+            if pos == n:
+                return count_7
+            if dp[pos][tight][count_7] != -1:
+                return dp[pos][tight][count_7]
+            limit = digits[pos] if tight else 9
+            for digit in range(limit + 1):
+                new_tight = tight and (digit == limit)
+                count_7 = 1 if digit == 7 else 0
+                total += dfs(pos + 1, new_tight, count_7)
+            dp[pos][tight][count_7] = total
+
+            return total
+
+        result = dfs(0, 1, 0)
+        return result
+
+    if L > R:
+        return 0
+    if L == 0:
+        return solve(R)
+    result = solve(R) - solve(L - 1)
+    return result
+
+
+def sumOfNumberOddDigits(L, R):
+    def solve(N):
+        digits = list(map(int, str(N)))
+        n = len(digits)
+        dp = [[[-1] * (2) for _ in range(2)] for _ in range(n)]
+
+        def dfs(pos, tight, sum_odd_digit):
+            total = 0
+            if pos == n:
+                return 1 if sum_odd_digit == 1 else 0
+            if dp[pos][tight][sum_odd_digit] != -1:
+                return dp[pos][tight][sum_odd_digit]
+            limit = digits[pos] if tight else 9
+            for digit in range(limit + 1):
+                new_tight = tight and (digit == limit)
+                new_odd_digit = (sum_odd_digit + digit) % 2
+                total += dfs(pos + 1, new_tight, new_odd_digit)
+            dp[pos][tight][sum_odd_digit] = total
+
+            return total
+
+        result = dfs(0, 1, 0)
+        return result
+
+    if L > R:
+        return 0
+    if L == 0:
+        return solve(R)
+    result = solve(R) - solve(L - 1)
+    return result
+
+
+def sumOfNumberWhoHaveOddDigits(L, R):
+    def solve(N):
+        digits = list(map(int, str(N)))
+        n = len(digits)
+        dp = [[[-1] * (2) for _ in range(2)] for _ in range(n)]
+
+        def dfs(pos, tight, sum_odd_digit):
+            total = 0
+            if pos == n:
+                return sum_odd_digit
+            if dp[pos][tight][sum_odd_digit] != -1:
+                return dp[pos][tight][sum_odd_digit]
+            limit = digits[pos] if tight else 9
+            for digit in range(limit + 1):
+                new_tight = tight and (digit == limit)
+                new_odd_digit = sum_odd_digit + 1 if digit % 2 != 0 else 0
+                total += dfs(pos + 1, new_tight, new_odd_digit)
+            dp[pos][tight][sum_odd_digit] = total
+
+            return total
+
+        result = dfs(0, 1, 0)
+        return result
+
+    if L > R:
+        return 0
+    if L == 0:
+        return solve(R)
+    result = solve(R) - solve(L - 1)
+    return result
+
+
+def sum_of_nums_with_odd_digits(N):
+    def solve(N):
+        if N < 0:
+            return 0
+        digits = list(map(int, str(N)))
+        n = len(digits)
+        dp = [[[None for _ in range(2)] for _ in range(2)] for _ in range(n)]
+
+        def dfs(pos, tight, sum_mode_2):
+            if pos == n:
+                return (1, 0) if sum_mode_2 % 2 != 0 else (0, 0)
+            if dp[pos][tight][sum_mode_2] != -1:
+                return dp[pos][tight][sum_mode_2]
+            limit = digits[pos] if tight else 9
+            total_count = 0
+            total_sum = 0
+            remaining_positions = n - pos - 1
+            for digit in range(limit + 1):
+                new_tight = tight and (digit == limit)
+                (curr_sum, next_cnt) = dfs(
+                    pos + 1, new_tight, new_sum_mod=(sum_mode_2 + digit) % 2
+                )
+                if next_cnt > 0:
+                    contribution = digit * (10**remaining_positions) * next_cnt
+
+                    total_count += next_cnt
+                    total_sum += curr_sum + contribution
+            dp[pos][tight][sum_mode_2] = (total_sum, total_count)
+            return (total_sum, total_count)
+
+
+def countNumberWithDigit5(N):
+    def solve(N):
+        digits = list(map(int, str(N)))
+        n = len(N)
+        dp = [[-1 for _ in range(2)] for _ in range(n)]
+
+        def dfs(pos, tight):
+            if pos == n:
+                return total
+            if dp[pos][tight] != -1:
+                return dp[pos][tight]
+            limit = digits[pos] if tight else 9
+            total = 0
+            for digit in range(limit + 1):
+                new_tight = tight and (digit == limit)
+                total += 1 if digit != 5 else 0
+                dfs(pos + 1, new_tight)
+            dp[pos][tight] = total
+            return total
+
+        return dfs(0, 1)
+
+    return solve(N)
+
+
+def countNumberWithDigit5(N):
+    def solve(N):
+        digits = list(map(int, str(N)))
+        n = len(N)
+        dp = [[-1 for _ in range(2)] for _ in range(n)]
+
+        def dfs(pos, tight):
+            if pos == n:
+                return 1
+            if dp[pos][tight] != -1:
+                return dp[pos][tight]
+            limit = digits[pos] if tight else 9
+            total = 0
+            for digit in range(limit + 1):
+                new_tight = tight and (digit == limit)
+                total += 1 if digit != 5 else 0
+                dfs(pos + 1, new_tight)
+            dp[pos][tight] = total
+            return total
+
+        return dfs(0, 1)
+
+    return solve(N)
+
+
+def countEvenNumber(N):
+    def solve(N):
+        digits = list(map(int, str(N)))
+        n = len(N)
+        dp = [[-1 for _ in range(2)] for _ in range(n)]
+
+        def dfs(pos, tight):
+            if pos == n:
+                return 1
+            if dp[pos][tight] != -1:
+                return dp[pos][tight]
+            limit = digits[pos] if tight else 9
+            total = 0
+            for digit in range(limit + 1):
+                new_tight = tight and (digit == limit)
+                total += 1 if digit % 2 == 0 else 0
+                dfs(pos + 1, new_tight)
+            dp[pos][tight] = total
+            return total
+
+        return dfs(0, 1)
+
+    return solve(N)
+
+
+def countNumberSumOfDigit10(N):
+    def solve(N):
+        digits = list(map(int, str(N)))
+        n = len(digits)
+        dp = [[[-1 for _ in range(n)] for _ in range(2)] for _ in range(n)]
+
+        def dfs(pos, tight, sum):
+            if pos == n:
+                return 1 if sum == 10 else 0
+            if dp[pos][tight][sum] != -1:
+                return dp[pos][tight][sum]
+            limit = digits[pos] if tight else 9
+            total = 0
+            for digit in range(limit + 1):
+                new_tight = tight and (digit == limit)
+                new_sum += digit
+                if new_sum > 10:
+                    continue
+                total += dfs(pos + 1, new_tight, new_sum)
+            dp[pos][tight][sum] = total
+            return total
+
+        return dfs(0, 1, 0)
+
+    return solve(N)
+
+
+def countNumberOfDigitAtMostKOdd(N, k):
+    def solve(N):
+        digits = list(map(int, str(N)))
+        n = len(digits)
+        dp = [[[-1 for _ in range(n + 1)] for _ in range(2)] for _ in range(n)]
+
+        def dfs(pos, tight, count_odd):
+            if pos == n:
+                return 1
+            if dp[pos][tight][count_odd] != -1:
+                return dp[pos][tight][count_odd]
+            limit = digits[pos] if tight else 9
+            total = 0
+            for digit in range(limit + 1):
+                new_tight = tight and (digit == limit)
+                new_count_odd = count_odd
+                if new_count_odd > k:
+                    continue
+                else:
+                    new_count_odd += 1
+                total = +dfs(pos + 1, new_tight, new_count_odd)
+            dp[pos][tight][new_count_odd] = total
+            return total
+
+        return dfs(0, 1, 0)
+
+    return solve(N)
+
+
+def countNumberWhereFirstAndLast(N):
+    def solve(N):
+        digits = list(map(int, str(N)))
+        n = len(digits)
+        dp = {}
+
+        def dfs(pos, tight, first, last):
+            if pos == n:
+                if n == 1:
+                    return 1
+                return 1 if first == last else 0
+            key = (pos, tight, first, last)
+            if key in dp:
+                return dp[key]
+            limit = digits[pos] if tight else 9
+            total = 0
+            for digit in range(limit + 1):
+                new_tight = tight and (digit == limit)
+                if first == -1:
+                    first = digit
+                total = +dfs(pos + 1, new_tight, first, digit)
+            dp[(pos, tight, first, last)] = total
+            return total
+
+        return dfs(0, 1, 0, -1, -1)
+
+    return solve(N)
+
+
+def countNumberWhoseDigitAndSumSame(N):
+    def solve(N):
+        digits = list(map(int, str(N)))
+        n = len(digits)
+        dp = {}
+
+        def dfs(pos, tight, product, sum):
+            if pos == n:
+                return 1 if product == sum else 0
+            key = (pos, tight, product, sum)
+            if key in dp:
+                return dp[key]
+            limit = digits[pos] if tight else 9
+            total = 0
+            for digit in range(limit + 1):
+                new_tight = tight and (digit == limit)
+                new_product = product * digit
+                sum = sum + digit
+                total = +dfs(pos + 1, new_tight, new_product, sum)
+            dp[(pos, tight, product, sum)] = total
+            return total
+
+        return dfs(0, 1, 1, 0)
+
+    return solve(N)
+
+
+from collections import deque
+
+
+def dfs(node, graph, visited):
+    if node in visited:
+        return
+    visited.append(node)
+    for nei in graph[node]:
+        dfs(nei, graph, visited)
+
+
+def bfs(start, graph):
+    queue = deque([start])
+    visited = set([start])
+    dist = {start: 0}
+    while queue:
+        node = queue.popleft()
+        for nei in graph[node]:
+            if nei not in visited:
+                visited.add(nei)
+                dist[nei] = dist[node] + 1
+                queue.append(nei)
+    return dist
+
+
+def allPathFormSource(graph):
+    result = []
+
+    def dfs(node, adjList, path):
+        path.append(node)
+        if node == len(graph) - 1:
+            result.append(list(path))
+        if node in path:
+            return -1
+        for nei in adjList[node]:
+            dfs(nei, adjList, path)
+        path.pop(node)
+
+    dfs(0, graph, path=[])
+    return result
+
+
+def numberOfIslands(graph):
+    result = 0
+
+    def dfs(row, col, graph):
+        graph[row][col] = 0
+        for i, j in [[-1, 0], [0, -1], [1, 0], [0, 1]]:
+            new_x = row + i
+            new_y = col + j
+            if (
+                new_x >= 0
+                and new_y >= 0
+                and new_x < len(graph)
+                and new_y < len(graph[0]) - 1
+                and graph[new_x][new_y] == "1"
+            ):
+                dfs(new_x, new_y, graph)
+
+    for row in range(len(graph)):
+        for col in range(len(graph[0]) - 1):
+            if graph[row][col] == "1":
+                dfs(row, col, graph)
+                result += 1
+    return result
+
+
+def floodFill(sr, sc, newColor, graph):
+    def dfs(row, col, graph):
+        graph[row][col] = newColor
+        for i, j in [[-1, 0], [0, -1], [1, 0], [0, 1]]:
+            new_x = row + i
+            new_y = col + j
+            if (
+                0 <= new_x
+                and new_x < len(graph)
+                and 0 <= new_y
+                and new_y < len(graph[0]) - 1
+                and graph[new_x][new_y] == graph[sr][sc]
+            ):
+                dfs(new_x, new_y, graph)
+
+    dfs(sr, sc, graph)
+    return graph
+
+
+def maxAreaIslands(graph):
+    maxArea = 0
+
+    def dfs(row, col, graph, islandArea):
+        graph[row][col] = 0
+        for i, j in [[-1, 0], [0, -1], [1, 0], [0, 1]]:
+            new_x = row + i
+            new_y = col + j
+            if (
+                new_x >= 0
+                and new_y >= 0
+                and new_x < len(graph)
+                and new_y < len(graph[0]) - 1
+                and graph[new_x][new_y] == "1"
+            ):
+                dfs(new_x, new_y, graph, islandArea + 1)
+        return islandArea
+
+    for row in range(len(graph)):
+        for col in range(len(graph[0]) - 1):
+            if graph[row][col] == "1":
+                islandArea = dfs(row, col, graph)
+                maxArea = max(islandArea, maxArea)
+    return maxArea
+
+
 if __name__ == "__main__":
     nums = 4
-    print(countNoConsecutiveOnes(111))
+    print(sumOfNumberOddDigits(10, 20))

@@ -323,3 +323,207 @@ class Order:
     def place(self):
         for o in self._observers:
             o.update("Order123")
+
+
+class BankAccount:
+    def __init__(self, account_id, email, balance, kyc_done):
+        self.account_id = account_id
+        self.email = email
+        self.balance = balance
+        self.kyc_done = kyc_done
+
+
+class BankAccountValdaition:
+    def __init__(self, account_id, email, kyc_done):
+        self._account_id = account_id
+        self._kyc_done = kyc_done
+        self._email = email
+        self._balance = 0
+
+    def with_account_id(self, account_id):
+        self._account_id = account_id
+        return self
+
+    def with_email(self, email):
+        if "@" not in email:
+            raise ValueError("Invalid Email")
+        self._email = email
+        return self
+
+    def with_initial_balance(self, balance):
+        if balance < 0:
+            raise ValueError("Negative balance not allowed")
+        self._balance = balance
+        return self
+
+    def kyc_compeleted(self):
+        self._kyc_done = True
+        return self
+
+    def build(self):
+        if not self._account_id:
+            raise ValueError("Account Id required")
+        if not self._email:
+            raise ValueError("Email required")
+        return BankAccount(self._account_id, self._email, self._balance, self._kyc_done)
+
+
+class Coffee:
+    def cost(self):
+        raise NotImplementedError()
+
+
+class BasicCoffee(Coffee):
+    def cost(self):
+        return 50
+
+
+class CoffeeDecorator(Coffee):
+    def __init__(self, coffee: Coffee):
+        self._coffee = coffee
+
+
+class MilkDecorator(Coffee):
+    def cost(self):
+        return self._coffee.cost() + 10
+
+
+class SugarDecorator(Coffee):
+    def cost(self):
+        return self._coffee.cost() + 5
+
+
+class CharacterFlyweight:
+    def __init__(self, char, font):
+        self.char = char
+        self.font = font
+
+    def draw(self, position):
+        print(self.char, self.font, position)
+
+
+class CharacterFactory:
+    _cache = {}
+
+    def get(self, char, font):
+        key = (char, font)
+        if key not in self._cache:
+            self._cache[key] = CharacterFlyweight
+        return self._cache[key]
+
+
+class Order:
+    def __init__(self, user, items, total):
+        self._user = user
+        self._items = items
+        self._total = total
+
+
+class OrderBuilder:
+    def __init__(self):
+        self._user = None
+        self._items = []
+
+    def user(self, user):
+        self._user = user
+        return self
+
+    def add_items(self, item):
+        self._items.append(item)
+        return self
+
+    def build(self):
+        if not self._user:
+            raise ValueError("User required")
+        if not self._items:
+            raise ValueError("At least one items needed")
+        total = sum(i.price for i in self._items)
+        return Order(self._user, self._items, total)
+
+
+class Send_Result:
+    def __init__(self, success: bool, reason: str = ""):
+        self.success = success
+        self.reason = reason
+
+    def is_success(self):
+        return self.success
+
+
+class RetryPolicy:
+    def __init__(self, max_attempts: int):
+        self.max_attempts = max_attempts
+
+
+class NotificationChannel:
+    def notify(self, message, user):
+        raise NotImplementedError()
+
+
+class EmailNotification(NotificationChannel):
+    def __init__(self, retry_policy: RetryPolicy):
+        self.retry_policy = retry_policy
+
+    def notify(self, message, user) -> Send_Result:
+        # raise Exception("f{message} is send to the user")
+        attempts = 0
+        while attempts < self.retry_policy.max_attempts:
+            attempts += 1
+            try:
+                print(f"SMS attempt {attempts} to {user}")
+                return Send_Result(True)
+            except Exception:
+                continue
+
+
+class SMSNotification(NotificationChannel):
+    def __init__(self, retry_policy: RetryPolicy):
+        self.retry_policy = retry_policy
+
+    def notify(self, message, user):
+        # raise Exception("f{message} is send to the user")
+        # def notify(self, message, user) -> Send_Result:
+        # raise Exception("f{message} is send to the user")
+        attempts = 0
+        while attempts < self.retry_policy.max_attempts:
+            attempts += 1
+            try:
+                print(f"SMS attempt {attempts} to {user}")
+                return Send_Result(True)
+            except Exception:
+                continue
+
+
+channels = {"SMS": SMSNotification, "EMAIL": EmailNotification}
+
+
+class NotifcationService:
+    def __int__(self, channels: dict[str, NotificationChannel]):
+        self._channels = channels
+
+    def _notify(self, message, channelMethod, user):
+        channel = self._channels[channelMethod]
+        return channel.send(message, user)
+
+
+class RuleBook:
+    def choose_channel(self):
+        return ["SMS", "EMAIL"]
+
+
+class NotificationOrceshator:
+    def __init__(self, service: NotifcationService, rulebook: RuleBook):
+        self._notification = set()
+        self._service = service
+        self._rulebook = rulebook
+
+    def notify_user(self, user, message, channel, idempotency):
+        if idempotency in self._notification:
+            return "Duplicate suppressed"
+        channels = self._rulebook.choose_channel(user)
+        for channel in channels:
+            result = self._service.notify(user, message, channel)
+            if result.is_success():
+                self._notification.add(idempotency)
+                return "Notification send"
+        return "All channels failed"
