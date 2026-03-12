@@ -3042,6 +3042,438 @@ def maxAreaIslands(graph):
     return maxArea
 
 
-if __name__ == "__main__":
-    nums = 4
-    print(sumOfNumberOddDigits(10, 20))
+def shortestPathInBinaryMatrix(grid):
+    n = len(grid)
+    dirs = [(1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (1, -1), (-1, 1), (-1, -1)]
+    if not grid or grid[0][0] == 1 or grid[-1][-1] == 1:
+        return -1
+    queue = deque([(0, 0, 1)])
+    grid[0][0] = 1
+
+    while queue:
+        r, c, dist = queue.popleft()
+        if r == n - 1 and c == n - 1:
+            return dist
+        for x, y in dirs:
+            new_x = r + x
+            new_y = c + y
+            if 0 <= new_x < n and 0 <= new_y < n and grid[new_x][new_y] == 0:
+                grid[new_x][new_y] = 1
+                queue.append((new_x, new_y, dist + 1))
+    return -1
+
+
+def networkDelayTime(times, n, k):
+    adj = {i: [] for i in range(1, n + 1)}
+    for u, v, w in times:
+        adj[u].append((v, w))
+
+    def solve(start):
+        heap = [(0, start)]
+        dist = {i: float("inf") for i in range(1, n + 1)}
+        dist[k] = 0
+        while heap:
+            curr_dist, node = heapq.heappop(heap)
+            if curr_dist > dist[node]:
+                continue
+
+            for nei, w in adj[node]:
+                new_dist = curr_dist + w
+                if nei not in dist or new_dist < dist[nei]:
+                    dist[nei] = new_dist
+                    heapq.heappush((new_dist, nei))
+        return dist
+
+    return solve(k)
+
+
+def networkDelayTime(times, n, k):
+    adj = {i: [] for i in range(1, n + 1)}
+    for u, v, w in times:
+        adj[u].append((v, w))
+
+    def solve(start):
+        heap = [(0, start)]
+        dist = {i: float("inf") for i in range(1, n + 1)}
+        dist[k] = 0
+        while heap:
+            curr_dist, node = heapq.heappop(heap)
+            if curr_dist > dist[node]:
+                continue
+
+            for nei, w in adj[node]:
+                new_dist = curr_dist + w
+                if nei not in dist or new_dist < dist[nei]:
+                    dist[nei] = new_dist
+                    heapq.heappush((new_dist, nei))
+        return dist
+
+    return solve(k)
+
+
+def cheapestFlightWithKStops(fights, src, dst, k, n):
+    adj = {i: [] for i in range(1, n + 1)}
+    for u, v, w in fights:
+        adj[u].append((v, w))
+
+    def solve(start):
+        heap = [(0, 0, start)]
+        dist = [[0 for _ in range(n)] for _ in range(n)]
+        dist[k][0] = 0
+        while heap:
+            curr_dist, stops, node = heapq.heappop(heap)
+            if node == dst:
+                return curr_dist
+            if stops == k + 1:
+                continue
+            for nei, w in adj[node]:
+                new_dist = curr_dist + w
+                if nei not in dist or new_dist < dist[nei][stops + 1]:
+                    dist[nei][stops + 1] = new_dist
+                    heapq.heappush((new_dist, stops + 1, nei))
+        return -1
+
+    return solve(src)
+
+
+def maximumProbability(fights, src, n):
+    adj = {i: [] for i in range(1, n + 1)}
+    for u, v, w in fights:
+        adj[u].append((v, w))
+
+    def solve(start):
+        heap = [(-1, start)]
+        dist = [0] * n
+        dist[start] = 1
+        while heap:
+            p, node = heapq.heappop(heap)
+            p = -p
+            if p < dist[node]:
+                continue
+            for nei, w in adj[node]:
+                new_prob = p * w
+                if nei not in dist or new_prob < dist[nei]:
+                    dist[nei] = new_prob
+                    heapq.heappush(heap, (-new_prob, nei))
+        return dist[-1]
+
+    return solve(src)
+
+
+def BellmanFord(edges):
+    n = len(edges)
+    dist = [float("inf")] * n
+
+    dist[0] = 0
+    for _ in range(n - 1):
+        for u, v, w in edges:
+            if dist[u] != float("inf") and dist[u] + w < dist[v]:
+                dist[v] = dist[u] + w
+
+    for u, v, w in edges:
+        if dist[u] != float("inf") and dist[u] + w < dist[v]:
+            return None
+    return dist
+
+
+def minCostConnectPoints(points):
+    n = len(points)
+    adj = [[0] * n for _ in range(n)]
+    for i in range(n):
+        for j in range(i + 1, n):
+            dist = abs([points[i][0]] - points[i][1])
+            adj[i][j] = dist
+            adj[j][i] = dist
+    visited = [False] * n
+    min_edge = [float("inf")] * n
+    min_edge[0] = 0
+    total_cost = 0
+    for _ in range(n):
+        u = -1
+        for i in range(n):
+            if not visited[i] and (u == -1 or min_edge[i] < min_edge[u]):
+                u = i
+        visited[u] = True
+        total_cost += min_edge[u]
+        for v in range(n):
+            if not visited[v] and adj[u][v] < min_edge[v]:
+                min_edge[v] = adj[u][v]
+    return total_cost
+
+
+def countBinaryNoConsecutiveOnes(n):
+    digits = list(map(int, bin(n)[2:]))
+    L = len(digits)
+    dp = [[[-1] * 2 for _ in range(2)] for _ in range(L)]
+
+    def dfs(pos, tight, prev1):
+        if pos == L:
+            return 1
+        if dp[pos][tight][prev1] != -1:
+            return dp[pos][tight][prev1]
+
+        limit = digits[pos] if tight else 1
+        ans = 0
+        for bit in range(limit + 1):
+            if prev1 and bit == 1:
+                continue
+            ans += dfs(pos + 1, tight and (bit == limit), bit)
+
+        dp[pos][tight][prev1] = ans
+        return ans
+
+    return dfs(0, 1, 0)
+
+
+class TrieNode:
+    def __init__(self):
+        self.is_end_of_word = False
+        self.children = {}
+
+
+class Trie:
+    def __init__(self):
+        self.root = TrieNode()
+
+    def insert(self, word: str) -> None:
+        crawl = self.root
+        for char in word:
+            if char not in crawl.children:
+                crawl.children[char] = TrieNode()
+            crawl = crawl.children[char]
+        crawl.is_end_of_word = True
+
+    def search(self, word: str) -> None:
+        crawl = self.root
+        for char in word:
+            if char not in crawl.children:
+                return False
+            crawl = crawl.children[char]
+        return crawl.is_end_of_word
+
+    def startWith(self, prefix: str) -> None:
+        crawl = self.root
+        for char in prefix:
+            if char not in crawl.children:
+                return False
+            crawl = crawl.children[char]
+        return True
+
+    def delete(self, word):
+        def _delete(current_node, word, depth):
+            # reached end of word
+            if depth == len(word):
+                if not current_node.is_end_of_word:
+                    return False  # word doesnot exist
+                current_node.is_end_of_word = False
+                return len(current_node.children) == 0
+            char = word[depth]
+            if char not in current_node.children:
+                return False  # word doesnot exist
+            can_delete_child = _delete(current_node.children[char], word, depth + 1)
+            if can_delete_child:
+                del current_node.children[char]
+                # if current node has no children and not end of other word
+                return (
+                    len(current_node.children) == 0 and not current_node.is_end_of_word
+                )
+            return False
+
+        _delete(self.root, word, 0)
+
+
+class TrieNodes:
+    def __init__(self):
+        self.children = {}
+        self.wordCount = 0
+        self.prefixCount = 0
+        self.is_end_of_word = False
+
+
+class TrieClass:
+    def __init__(self):
+        self.root = TrieNodes()
+
+    def insert(self, word):
+        node = self.root
+        for ch in word:
+            if ch not in node.children:
+                node.children[ch] = TrieNodes()
+            node = node.children[ch]
+            self.prefixCount += 1
+        self.wordCount += 1
+        self.is_end_of_word = True
+
+    def countWordsEqualTo(self, word):
+        node = self.root
+        for ch in word:
+            if ch not in node.children:
+                return 0
+            node = node.children[ch]
+        return node.wordCount
+
+    def countWordsStartingWith(self, prefix):
+        node = self.root
+        for ch in prefix:
+            if ch not in node.children:
+                return 0
+            node = node.children[ch]
+        return node.prefixCount
+
+
+class LongestPrefixTrie:
+    def __init__(self):
+        self.children = {}
+        self.endCount = 0
+        self.prefixCount = 0
+
+
+class LongestPrefix:
+    def __init__(self):
+        self.root = LongestPrefixTrie()
+        self.best = ""
+
+    def insert(self, words: str) -> None:
+        node = self.root
+        for word in words:
+            if word not in node.children:
+                node.children[word] = LongestPrefixTrie()
+            node = node.children[word]
+            node.prefixCount += 1
+        node.endCount += 1
+
+    def isValid(self, word: str) -> None:
+        node = self.root
+        for ch in word:
+            if ch not in node.children:
+                return False
+            node = node.children[ch]
+            if node.endCount == 0:
+                return False
+        return node.endCount > 0
+
+    def longestWordWithALlPrefixes(self, arr):
+        for word in arr:
+            self.insert(word)
+        best = ""
+        for word in arr:
+            if self.isValid(word):
+                if len(best) < len(word):
+                    best = word
+                elif len(word) == len(best) and best > word:
+                    best = word
+        return best
+
+    def dfs(self, node, path):
+        for ch in sorted(node.children.keys()):
+            child = node.children[ch]
+            if child.endCount > 0:
+                new_word = path + ch
+                if len(new_word) > len(self.best):
+                    self.best = new_word
+                self.dfs(child, new_word)
+
+    def longestWordWithAllPrefixes(self, arr):
+        for word in arr:
+            self.insert(word)
+        self.dfs(self.root, "")
+        return self.best
+
+    def erase(self, word: str) -> None:
+        node = self.root
+        stack = []
+        for ch in word:
+            if ch not in node.children:
+                return
+            stack.append((node, ch))
+            node = node.children[ch]
+        if node.endCount == 0:
+            return
+        node.endCount -= 1
+        for parent, ch in reversed(stack):
+            child = parent.children[ch]
+            child.prefixCount -= 1
+            if child.prefixCount == 0:
+                del parent.children[ch]
+            else:
+                break
+
+
+class DistinctSubstringTrie:
+    def __init__(self):
+        self.root = TrieNode()
+
+    def countDistinctSubStrings(self, s: str) -> None:
+        count = 0
+        for i in range(len(s)):
+            node = self.root
+            for j in range(i, len(s)):
+                ch = s[j]
+                if ch not in node.children:
+                    node.children[ch] = TrieNode()
+                    count += 1
+                node = node.children[ch]
+        return count
+
+
+class MaximumBitWiseXor:
+    def __init__(self):
+        self.root = TrieNode()
+
+    def insert(self, number):
+        node = self.root
+        for i in range(31, -1, -1):
+            bit = (number >> i) & 1
+            if bit not in node.children:
+                node.children[bit] = TrieNode()
+            node = node.children[bit]
+
+    def getMaxOr(self, num):
+        node = self.root
+        max_or = 0
+        for i in range(31, -1, -1):
+            bit = (num >> i) & 1
+            opposite = 1 - bit
+            if opposite in node.children:
+                max_or |= 1 << i
+                node = node.children[opposite]
+            else:
+                node = node.children.get(bit)
+        return max_or
+
+    def findMaximumXor(self, nums):
+        max_result = 0
+        self.insert(nums[0])
+        for i in range(1, len(nums)):
+            max_result = max(max_result, self.getMaxOr(nums[i]))
+            self.insert(nums[i])
+        return max_result
+
+
+def search(nums, target):
+    start = 0
+    end = len(nums) - 1
+    while start <= end:
+        mid = (end - start) // 2 + start
+        print(mid, "mid")
+        if nums[mid] == target:
+            return mid
+        if nums[start] <= nums[mid]:
+            if nums[start] <= target < nums[mid]:
+                end = mid - 1
+            else:
+                start = mid + 1
+        else:
+            if nums[mid] > target <= nums[end]:
+                start = mid + 1
+            else:
+                end = mid - 1
+    return -1
+
+
+print(search([4, 5, 6, 7, 0, 1, 2], 0))
+
+
+# if __name__ == "__main__":
+# nums = 4
+# print(sumOfNumberOddDigits(10, 20))

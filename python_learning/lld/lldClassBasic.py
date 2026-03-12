@@ -527,3 +527,73 @@ class NotificationOrceshator:
                 self._notification.add(idempotency)
                 return "Notification send"
         return "All channels failed"
+
+
+class State:
+    def __init__(self, name: str, is_terminal: bool):
+        self.name = name
+        self._is_terminal = is_terminal
+
+
+class Transition:
+    def __init__(self, form_state: str, to_state: str, rules):
+        self.rules = rules
+        self.to_state = to_state
+        self.form_state = form_state
+
+
+class Rule:
+    def validate(self, task, user) -> bool:
+        raise NotImplementedError()
+
+
+class ReviewerAssginedRule(Rule):
+    def validate(self, task, user):
+        return task.reviewer is not None
+
+
+class OnlyAssginedCanClose(Rule):
+    def validate(self, task, user):
+        return task.assginee == user
+
+
+class Task:
+    def __init__(self, task_id, title, assginee=None):
+        self.task_id = task_id
+        self.title = title
+        self.assginee = assginee
+        self.reviewer = None
+        self.state = "ToDo"
+
+
+class WorkFlow:
+    def __init__(self):
+        self.states = {}
+        self.transitions = {}
+
+    def add_state(self, state: State):
+        self.states[state.name] = state
+
+    def add_transition(self, transition: Transition):
+        key = (transition.form_state, transition.to_state)
+        self.transitions[key] = transition
+
+
+class WorkFlowEngine:
+    def __init__(self, workflow: WorkFlow):
+        self.workflow = workflow
+        self.audit_log = []
+
+    def move(self, task: Task, to_state: str, user):
+        key = (task.state, to_state)
+        if key not in self.workflow.transitions:
+            raise Exception("Invalid Transition")
+        transition = self.workflow.transitions
+        for rule in transition.rules:
+            if not rule.validate(task, user):
+                raise Exception("Rule validate")
+        old_state = task.state
+        task.state = to_state
+        self.audit_log.append(f"{task.task_id}: {old_state} → {to_state}")
+
+        return True
