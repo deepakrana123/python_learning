@@ -3540,13 +3540,6 @@ nums = [100, 80, 120, 90, 110]
 result = allFourFunctions(nums)
 
 
-print(nums, result["ngr"], result["ngl"])
-
-# if __name__ == "__main__":
-# nums = 4
-# print(sumOfNumberOddDigits(10, 20))
-
-
 def getNextElements(nums):
     def compute(nums, compare, reverse=False):
         n = len(nums)
@@ -3575,7 +3568,6 @@ def topological_sort_bfs(graph):
     for node in graph:
         for neighbour in graph[node]:
             indegree[neighbour] += 1
-    print(indegree, "ho")
     queue = deque()
     for node in indegree:
         if indegree[node] == 0:
@@ -3612,8 +3604,6 @@ def topological_sort_dfs(graph):
 
 
 graph = {0: [], 1: [], 2: [3], 3: [1], 4: [0, 1], 5: [0, 2]}
-# print("DFS Topological Sort:", topological_sort_dfs(graph))
-# print("Bfs topological sort", topological_sort_bfs(graph))
 
 
 def canFinish(numCourses, prerequisites):
@@ -3805,3 +3795,131 @@ def orangesRotting(grid):
             if grid[i][j] == 2:
                 result += bfs(grid, i, j)
     return result
+
+
+def networkDelayTime(times, n, k):
+    dicts = {}
+    for u, v, w in times:
+        if u in dicts:
+            dicts[u].append([v, w])
+        else:
+            dicts[u] = [v, w]
+    print(dicts)
+
+
+def longestCommonSubsequence(text1, text2):
+    # def solve(text1, text2, i, j):
+    #     if i == len(text1) or j == len(text2):
+    #         return 0
+    #     if text1[i] == text2[j]:
+    #         return 1 + solve(text1, text2, i + 1, j + 1)
+    #     return max(solve(text1, text2, i + 1, j), solve(text1, text2, i, j + 1))
+
+    # return solve(text1, text2, 0, 0)
+    # dp = [[-1 for _ in range(len(text2))] for _ in range(text1)]
+
+    # def solve(text1, text2, i, j):
+    #     if i == len(text1) or j == len(text2):
+    #         return 0
+    #     if dp[i][j] != -1:
+    #         return dp[i][j]
+    #     if text1[i] == text2[j]:
+    #         dp[i][j] = 1 + solve(text1, text2, i + 1, j + 1)
+    #         return dp[i][j]
+    #     else:
+    #         dp[i][j] = max(solve(text1, text2, i + 1, j), solve(text1, text2, i, j + 1))
+    #     return dp[i][j]
+    dp = [[0 for _ in range(len(text2))] for _ in range(text1)]
+    for i in range(1, len(text1)):
+        for j in range(1, len(text2)):
+            if text1[i - 1] == text2[j - 1]:
+                dp[i][j] = 1 + dp[i - 1][j - 1]
+            else:
+                dp[i][j] = max(dp[i - 1][j], dp[i][j - 1])
+    return dp
+
+
+def findOrders(numCourses, prerequisites):
+    graph = defaultdict(list)
+    indegree = [0] * numCourses
+    for a, b in prerequisites:
+        graph[b].append(a)
+        indegree[a] += 1
+    queue = deque()
+    for i in range(numCourses):
+        if indegree[i] == 0:
+            queue.append(i)
+    result = []
+    while queue:
+        node = queue.popleft()
+        result.append(node)
+        for current_node in graph[node]:
+            indegree[current_node] -= 1
+            if indegree[current_node] == 0:
+                queue.append(current_node)
+    return result
+
+
+def pathSum(root, targetSum):
+    result = []
+
+    def solve(root, temp, current_sum):
+        if root is None:
+            return
+        current_sum += root.val
+        temp.append(root.val)
+        if root.left == None and root.right == None:
+            if current_sum == targetSum:
+                result.append(temp[:])
+        else:
+            solve(root.left, temp, current_sum)
+            solve(root.right, temp, current_sum)
+        temp.pop()
+
+    solve(root, [], 0)
+    return 0
+
+
+def pathSumWithStack(root, targetSum):
+    if not root:
+        return []
+    stack = [(root, (root.val), root.val)]
+    result = []
+    while stack:
+        root, curr_path, curr_sum = stack.pop()
+        if not root.left and not root.right:
+            if curr_sum == targetSum:
+                result.append(curr_path[:])
+        if root.right:
+            stack.append(
+                (root.right, curr_path + [root.right.val], root.right.val + curr_sum)
+            )
+        if root.left:
+            stack.append(
+                (root.left, curr_path + [root.left.val], root.left.val + curr_sum)
+            )
+    return result
+
+
+def pathSumLessMemoary(root, targetSum):
+    def solve(root, temp, current_sum):
+        if root is None:
+            return
+        current_sum += root.val
+        temp.append(root.val)
+        if root.left == None and root.right == None:
+            if root.val == current_sum:
+                return [[root.val]]
+            else:
+                return []
+
+        left = solve(root.left, current_sum - root.left.val)
+        right = solve(root.right, current_sum - root.right.val)
+        result=[]
+        for val in left+right:
+            result.append([root.val] + val)
+        return result
+        
+
+    return solve(root, targetSum)
+    

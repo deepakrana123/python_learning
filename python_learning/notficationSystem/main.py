@@ -4,6 +4,7 @@ from service.notfication_service import NotificationService
 from worker.worker import Worker
 from api.controller import NotificationController
 from domain.models import ChannelType
+from Scheduler import Scheduler
 
 
 queue = InMemoryQueue()
@@ -15,6 +16,7 @@ worker.start(5)
 
 
 controller = NotificationController(queue)
+scheduler = Scheduler(controller)
 
 
 controller.send_notification(
@@ -26,3 +28,14 @@ controller.send_notification(
         "data": {},
     }
 )
+
+scheduler.add_job(
+    {
+        "job_id": "reminder_1",
+        "event_type": "REMINDER",
+        "interval": 10,
+        "payload": {"user_id": "u1", "data": {"msg": "Daily reminder"}},
+    }
+)
+
+scheduler.start()
