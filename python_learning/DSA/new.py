@@ -3915,11 +3915,138 @@ def pathSumLessMemoary(root, targetSum):
 
         left = solve(root.left, current_sum - root.left.val)
         right = solve(root.right, current_sum - root.right.val)
-        result=[]
-        for val in left+right:
+        result = []
+        for val in left + right:
             result.append([root.val] + val)
         return result
-        
 
     return solve(root, targetSum)
-    
+
+
+def canPartition1(nums):
+    target = sum(nums) // 2
+    if sum(nums) % 2 != 0:
+        return False
+    dp = [[-1 for _ in range(target + 1)] for _ in range(len(nums))]
+
+    def solve(i, currSum, dp):
+        if currSum == target:
+            return True
+        if i >= len(nums):
+            return False
+        if dp[i][currSum] != -1:
+            return dp[i][currSum]
+        if currSum + nums[i] < target:
+            take = solve(i + 1, currSum + nums[i])
+        dp[i][currSum] = solve(i + 1, currSum) or take
+        return dp[i][currSum]
+
+    return solve(0, 0, dp)
+
+
+def canPartition(nums):
+    total = sum(nums)
+    if total % 2 != 0:
+        return False
+
+    target = total // 2
+
+    possible = set([0])
+
+    for num in nums:
+        new = set()
+        for s in possible:
+            if s + num == target:
+                return True
+            new.add(s + num)
+        possible |= new
+
+    return target in possible
+
+
+def canPartitionBottomUp(nums):
+    target = sum(nums) // 2
+    if sum(nums) % 2 != 0:
+        return False
+    dp = [[False for _ in range(target + 1)] for _ in range(len(nums))]
+    for i in range(len(nums)):
+        dp[i][0] = True
+    for i in range(len(nums)):
+        for j in range(target + 1):
+            if nums[i - 1] <= j:
+                dp[i][j] = dp[i - 1][j] or dp[i - 1][j - nums[i - 1]]
+            else:
+                dp[i][j] = dp[i - 1][j]
+    return dp[len(nums) - 1][target - 1]
+
+
+def ladderLength(beginWord, endWord, wordList):
+    wordset = set(wordList)
+    queue = deque([(beginWord, 1)])
+    if endWord not in wordset:
+        return False
+    while queue:
+        word, steps = queue.popleft()
+        for i in range(len(word)):
+            for c in "abcdefghijklmnopqrstuvwxyz":
+                newword = word[:i] + c + word[i + 1 :]
+                if newword == endWord:
+                    return steps + 1
+                if newword in wordset:
+                    wordset.remove(newword)
+                    queue.append([newword, steps + 1])
+    return -1
+
+
+from collections import defaultdict
+
+
+def ladderLength1(beginWord, endWord, wordList):
+    wordset = set(wordList)
+    # queue = deque([(beginWord, 1)])
+    # if endWord not in wordset:
+    #     return False
+    # while queue:
+    #     word, steps = queue.popleft()
+    #     for i in range(len(word)):
+    #         for c in "abcdefghijklmnopqrstuvwxyz":
+    #             newword = word[:i] + c + word[i + 1 :]
+    #             if newword == endWord:
+    #                 return steps + 1
+    #             if newword in wordset:
+    #                 wordset.remove(newword)
+    #                 queue.append([newword, steps + 1])
+    # return -1
+    pattern_map = defaultdict(list)
+
+    for word in wordList:
+        for i in range(len(word)):
+            pattern = word[:i] + "*" + word[i + 1 :]
+            pattern_map[pattern].append(word)
+    queue = deque([(beginWord, 1)])
+    if endWord not in wordset:
+        return False
+    visited = set()
+    while queue:
+        word, steps = queue.popleft()
+        for i in range(len(word)):
+            newword = word[:i] + "*" + word[i + 1 :]
+            for neigh in pattern_map[newword]:
+                if neigh == endWord:
+                    return steps + 1
+                if neigh not in visited:
+                    visited.add(neigh)
+                    queue.append([neigh, steps + 1])
+    return -1
+
+
+print(
+    ladderLength(
+        "hit", endWord="cog", wordList=["hot", "dot", "dog", "lot", "log", "cog"]
+    )
+)
+print(
+    ladderLength1(
+        "hit", endWord="cog", wordList=["hot", "dot", "dog", "lot", "log", "cog"]
+    )
+)

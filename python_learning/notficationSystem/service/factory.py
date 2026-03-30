@@ -1,13 +1,17 @@
 from domain.models import ChannelType
-from service.channels import SMSChannel, EmailChannel, PushChannel
+from python_learning.notficationSystem.service.channelManager import (
+    SMSChannel,
+    EmailChannel,
+    PushChannel,
+)
 
 
 class ChannelFactory:
     @staticmethod
-    def get(channel_type: ChannelType):
+    def send(channel_type: ChannelType, task):
         if channel_type == ChannelType.SMS:
-            return SMSChannel()
+            return SMSChannel(task)
         elif channel_type == ChannelType.EMAIL:
-            return EmailChannel()
+            return EmailChannel(task)
         elif channel_type == ChannelType.PUSH:
-            return PushChannel()
+            return PushChannel(task)
