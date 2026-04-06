@@ -4040,13 +4040,245 @@ def ladderLength1(beginWord, endWord, wordList):
     return -1
 
 
+def findTargetSumWays(nums, target):
+    # def solve(index, currSum):
+    #     if index >= len(nums):
+    #         if currSum == target:
+    #             return 1
+    #         return 0
+    #     plus = solve(index + 1, currSum + nums[index])
+    #     minus = solve(index + 1, currSum - nums[index])
+    #     return plus + minus
+
+    # return solve(0, 0)
+    total = sum(target)
+    if (target + total) % 2 != 0 or abs(target) > total:
+        return 0
+    S1 = (target + total) // 2
+
+    dp = [0] * (S1 + 1)
+    dp[0] = 1
+    for num in nums:
+        for i in range(S1, num - 1, -1):
+            dp[i] += dp[i - num]
+    return dp[S1]
+
+
+# print(findTargetSumWays([1], target=1))
+
+
+def findCheapestPrice(n, flights, src, dst, k):
+    graph = defaultdict(list)
+    for u, v, w in flights:
+        graph[u].append([v, w])
+
+    heap = [(0, src, 0)]
+    dist = [[float("inf") for _ in range(k + 2)] for _ in range(n)]
+    dist[src][0] = 0
+    while heap:
+        curr_dist, node, stops = heapq.heappop(heap)
+        if node == dst:
+            return curr_dist
+        if stops == k + 1:
+            continue
+        for neigh, weight in graph[node]:
+            if curr_dist + weight > dist[neigh][stops + 1]:
+                continue
+            if curr_dist + weight < dist[neigh][stops + 1]:
+                dist[neigh][stops + 1] = curr_dist + weight
+                heapq.heappush(heap, (curr_dist + weight, neigh, stops + 1))
+    return -1
+
+
 print(
-    ladderLength(
-        "hit", endWord="cog", wordList=["hot", "dot", "dog", "lot", "log", "cog"]
+    findCheapestPrice(
+        n=4,
+        flights=[[0, 1, 100], [1, 2, 100], [2, 0, 100], [1, 3, 600], [2, 3, 200]],
+        src=0,
+        dst=3,
+        k=1,
     )
 )
-print(
-    ladderLength1(
-        "hit", endWord="cog", wordList=["hot", "dot", "dog", "lot", "log", "cog"]
-    )
-)
+
+
+def findCheapestPrice(n, flights, src, dst, k):
+    dist = [float("inf")] * n
+    dist[src] = 0
+    for _ in range(k + 1):
+        temp = dist.copy()
+        for u, v, w in flights:
+            if dist[u] != float("inf") and dist[u] + w < temp[v]:
+                temp[v] = dist[u] + w
+        dist = temp
+    return -1 if dist[dst] == float("inf") else dist[dst]
+
+
+from collections import defaultdict, deque
+
+
+def findCheapestPrice(n, flights, src, dst, k):
+    graph = defaultdict(list)
+    for u, v, w in flights:
+        graph[u].append([v, w])
+    dist = [float("inf")] * n
+    dist[src] = 0
+    queue = deque([(src, 0)])
+    stops = 0
+    while queue and stops <= k:
+        size = len(queue)
+        temp = dist.copy()
+        for _ in range(size):
+            node, cost = queue.popleft()
+            for nei, w in graph[node]:
+                if cost + w < temp[node]:
+                    temp[nei] = cost + w
+                    queue.append((nei, cost + w))
+        dist = temp
+        stops += 1
+    return -1 if dist[dst] == float("inf") else dist[dst]
+
+
+def maximumAmount(coins):
+    def solve(i, j, k):
+        if i < 0 and i >= len(coins) and j < 0 and j >= len(coins) - 1:
+            return float("inf")
+        val = coins[i][j]
+        if i == len(coins) - 1 and j == len(coins) - 1:
+            if val < 0 and k > 0:
+                return 0
+        take = val + max(solve(i + 1, j, k) + solve(i, j + 1, k))
+        neturalize = float("-inf")
+        if val < 0 and k > 0:
+            neturalize = max(solve(i + 1, j, k - 1) + solve(i, j + 1, k - 1))
+        return max(take, neturalize)
+
+    return solve(0, 0, 2)
+
+
+def shortestPathBinaryMatrix(grid):
+    dirs = [
+        [
+            -1,
+            -1,
+        ],
+        [1, 0],
+        [0, 1],
+        [-1, 0],
+        [0, -1],
+        [1, 1],
+        [-1, 1],
+        [1, -1],
+    ]
+
+    if grid[0][0] == 1:
+        return -1
+    queue = [(0, 0, 1)]
+    grid[0][0] = 1
+    while queue:
+        curr_i, curr_j, dist = queue.popleft()
+        if curr_i == len(grid) - 1 and curr_j == len(grid[0]) - 1:
+            return dist
+        for dx, dy in dirs:
+            new_x = dx + curr_i
+            new_y = dy + curr_j
+            if (
+                0 <= new_x < len(grid)
+                and 0 <= new_y < len(grid[0])
+                and grid[new_x][new_y] == 0
+            ):
+                queue.append((new_x, new_y, dist + 1))
+    return -1
+
+
+def maxPathSum(root):
+    max_sum = [float("-inf")]
+
+    def solve(root, max_sum):
+        if root is None:
+            return 0
+        left = max(0, solve(root.left, max_sum))
+        right = max(0, solve(root.right, max_sum))
+        max_sum[0] = max(left + right + root.val, max_sum[0])
+        return max_sum[0]
+
+    return solve(root, max_sum)
+
+
+def judgeCircle(moves):
+    dirs = [v for v in moves]
+    points = [0, 0]
+    for d in dirs:
+        if d == "U":
+            points[0] = points[0] + 0
+            points[1] = points[1] + 1
+        elif d == "D":
+            points[0] = points[0] + 0
+            points[1] = points[1] - 1
+        elif d == "R":
+            points[0] = points[0] + 1
+            points[1] = points[1] + 0
+        else:
+            points[0] = points[0] - 1
+            points[1] = points[1] + 0
+    return points[0] == 0 and points[1] == 0
+
+
+def allPathsSourceTarget(graph):
+    nodes = defaultdict(list)
+    for u in range(len(graph)):
+        for value in graph[u]:
+            nodes[u].append(value)
+    result = []
+    visited = set()
+
+    def solve(current_node, path, visited):
+        visited.add(current_node)
+        path.append(current_node)
+        if current_node == len(graph) - 1:
+            result.append(path.copy())
+        else:
+            for v in graph[current_node]:
+                if v not in visited:
+                    solve(v, path, visited)
+        path.pop()
+        visited.remove(current_node)
+
+    solve(0, [], visited)
+    return result
+
+
+class TreeNode:
+    def __init__(self, val=0, left=None, right=None):
+        self.val = val
+        self.left = left
+        self.right = right
+
+    def rob_brute_force(self, root):
+        if not root:
+            return 0
+        inculde_current = root.val
+        if root.left:
+            inculde_current += self.rob_brute_force(
+                root.left.left
+            ) + self.rob_brute_force(root.left.right)
+        if root.right:
+            inculde_current += self.rob_brute_force(
+                root.right.left
+            ) + self.rob_brute_force(root.right.right)
+        exclude_current = self.rob_brute_force(root.left) + self.rob_brute_force(
+            root.right
+        )
+        return max(inculde_current, exclude_current)
+
+
+def rob_optimization(root):
+    def helper(root):
+        if not root:
+            return [0, 0]
+        left = helper(root.left)
+        right = helper(root.right)
+        inculde = root.val + left[1] + right[1]
+        exclude = max(left) + max(right)
+        return [inculde, exclude]
+
+    helper(root)

@@ -12,30 +12,39 @@ class BatchBuffer:
         self.lock = threading.Lock()
         self.last_flush_time = datetime.now()
         self._start_background_thread()
+        self.stop_event=threading.Event()
 
     def add(self, item):
         with self.lock:
             self.batch.append(item)
-            if len(self.batch) >= self.batch_size:
-                self._flush()
+            should_flush=len(self.batch) >= self.batch_size:
+        if should_flush:
+            self._flush()
+    
+    def stop(self):
+        self.stop_event.set()
 
     def _flush(self):
-        if not self.batch:
-            return []
-        batch_to_send = self.batch
-        self.batch = []
-        self.last_flush_time = datetime.now()
+        with self.lock:
+            if not self.batch:
+                return []
+            batch_to_send = self.batch
+            self.batch = []
+            self.last_flush_time = datetime.now()
         self.flush_callback(batch_to_send)
 
     def _run_background_task(self):
-        while True:
+        while not self.stop_event.is_set():
             time.sleep(0.5)
-            with self.lock:
-                if (
-                    self.batch
-                    and datetime.now() - self.last_flush_time >= self.flush_interval
-                ):
-                    self._flush()
+            while True:
+                with self.lock:
+                    if (
+                        self.batch
+                        and datetime.now() - self.last_flush_time >= self.flush_interval
+                    ).total_seconds():
+                        should_flush=True
+        if should_flush:
+            self._flush()
 
     def _start_background_thread(self):
         t = threading.Thread(target=self._run_background_task, args=("job1"))
