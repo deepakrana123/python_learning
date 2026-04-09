@@ -4284,17 +4284,74 @@ def rob_optimization(root):
     helper(root)
 
 
-
-
 def numIslands(grid):
-    def dfs(i,j):
-        if 0<i or i>=len(grid) or 0<j or j>=len(grid[0]) or grid[i][j]=='0':
+    def dfs(i, j):
+        if i < 0 or i >= len(grid) or j < 0 or j >= len(grid[0]) or grid[i][j] == 0:
             return 0
-        if grid[i][j]==-1:
-                return
-        
-             dfs(grid,i+1,j)
-            dfs(grid,i,j+1)
-            dfs(grid,i-1,j)
-            dfs(grid,i,j-1)
-        
+
+        grid[i][j] == 0
+        count = 1
+        count += dfs(i + 1, j)
+        count += dfs(i, j + 1)
+        count += dfs(i - 1, j)
+        count += dfs(i, j - 1)
+        return count
+
+    # def bfs(i, j):
+
+    #     queue = deque()
+    #     queue.append([i, j])
+    #     grid[i][j] = "0"
+    #     count=1
+    #     while queue:
+    #         x, y = queue.popleft()
+    #         for x_, y_ in [(-1, 0), (0, 1), (0, -1), (1, 0)]:
+    #             new_x, new_y = x + x_, y + y_
+    #             if (
+    #                 new_x < 0
+    #                 or new_x >= len(grid)
+    #                 or new_y < 0
+    #                 or new_y >= len(grid[0])
+    #                 or grid[new_x][new_y] == "0"
+    #             ):
+    #                 continue
+    #             queue.append([new_x, new_y])
+    #             count+=1
+    #             grid[new_x][new_y]="0"
+    #     return count
+
+    result = 0
+    for i in range(len(grid)):
+        for j in range(len(grid[0])):
+            if grid[i][j] == "1":
+                result = max(dfs(i, j), result)
+    return result
+
+
+def lengthOfLIS(nums):
+    n = len(nums)
+    dp = [1 for _ in range(len(nums))]
+    for i in range(len(nums)):
+        for j in range(i):
+            if nums[i] > nums[j]:
+                dp[i] = max(dp[i], dp[j] + 1)
+    return max(dp)
+
+
+import bisect
+
+
+def lengthOfLTSB(nums):
+    tails = []
+    for num in nums:
+        idx = bisect.bisect(tails, num)
+        print(idx, tails)
+        if idx == len(tails):
+            tails.append(num)
+        else:
+            tails[idx] = num
+    print(tails)
+    return len(tails)
+
+
+print(lengthOfLTSB([7, 7, 7, 7, 7, 7, 7]))
