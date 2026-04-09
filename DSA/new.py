@@ -4282,3 +4282,19 @@ def rob_optimization(root):
         return [inculde, exclude]
 
     helper(root)
+
+
+
+
+def numIslands(grid):
+    def dfs(i,j):
+        if 0<i or i>=len(grid) or 0<j or j>=len(grid[0]) or grid[i][j]=='0':
+            return 0
+        if grid[i][j]==-1:
+                return
+        
+             dfs(grid,i+1,j)
+            dfs(grid,i,j+1)
+            dfs(grid,i-1,j)
+            dfs(grid,i,j-1)
+        
