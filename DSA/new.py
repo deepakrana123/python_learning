@@ -4350,8 +4350,14 @@ def lengthOfLTSB(nums):
             tails.append(num)
         else:
             tails[idx] = num
-    print(tails)
     return len(tails)
 
 
-print(lengthOfLTSB([7, 7, 7, 7, 7, 7, 7]))
+def minimumDistance(nums):
+    mins = float("inf")
+    for i in range(len(nums) - 3):
+        for j in range(i + 1, len(nums) - 2):
+            for k in range(j + 1, len(nums)):
+                if nums[i] == nums[j] == nums[k]:
+                    mins = min(mins, (abs(i - j) + abs(j - k) + abs(k - i)))
+    return mins
