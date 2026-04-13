@@ -1,7 +1,7 @@
 import threading
 from typing import List, Dict
 from collections import defaultdict
-from .marketEvent import Rule
+from marketEvent import Rule
 
 
 class RuleEngine:
@@ -18,8 +18,8 @@ class RuleEngine:
             self.rules_by_stock[rule.stock].append(rule)
 
     def get_rule(self, stock: str) -> List[Rule]:
-        if stock not in self.rules:
-            return ValueError("No rule for this stock")
+        # if stock not in self.rules_by_stock:
+        #     return ValueError("No rule for this stock")
         with self.lock:
             rules = self.rules_by_stock.get(stock, [])
             active_rules = [rule for rule in rules if rule.is_active()]
@@ -31,7 +31,7 @@ class RuleEngine:
         rules = self.get_rule(stock)
         for rule in rules:
             if rule.matches(price):
-                matched.append(stock)
+                matched.append(rule)
         return matched
 
     def cleanup(self):

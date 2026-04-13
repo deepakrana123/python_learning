@@ -4361,3 +4361,94 @@ def minimumDistance(nums):
                 if nums[i] == nums[j] == nums[k]:
                     mins = min(mins, (abs(i - j) + abs(j - k) + abs(k - i)))
     return mins
+
+
+def getMinDistance(nums, target, start):
+    mins = float("inf")
+    for i in range(len(nums)):
+        if nums[i] == target:
+            mins = min(mins, abs(start - i))
+            break
+    for i in range(len(nums) - 1, -1, -1):
+        if nums[i] == target:
+            mins = min(mins, abs(i - start))
+            break
+    return mins
+
+
+def shortestPath(grid):
+    result = 0
+    queu = deque()
+    queu.append((0, 0))
+    grid[0][0] = 1
+    # while queu:
+    #     x_, y_, dist = queu.popleft()
+    #     if x_ == len(grid) - 1 and y_ == len(grid[0]) - 1:
+    #         return dist
+    #     for dir in [
+    #         (0, 1),
+    #         (1, 1),
+    #         (1, 0),
+    #         (1, -1),
+    #         (0, -1),
+    #         (-1, -1),
+    #         (-1, 0),
+    #         (-1, 1),
+    #     ]:
+    #         d1, d2 = dir
+    #         new_x = x_ + d1
+    #         new_y = y_ + d2
+    #         if (
+    #             0 <= new_x
+    #             and new_x < len(grid)
+    #             and 0 <= new_y
+    #             and new_y < len(grid[0])
+    #             and grid[new_x][new_y] == 0
+    #         ):
+    #             queu.append((new_x, new_y, dist + 1))
+    #             grid[new_x][new_y] = 1
+
+    # return -1 if result == 0 else result
+    while queu:
+        level_size = len(queu)
+        for _ in range(level_size):
+            x_, y_ = queu.popleft()
+            if x_ == len(grid) - 1 and y_ == len(grid[0]) - 1:
+                return result
+            for dir in [
+                (0, 1),
+                (1, 1),
+                (1, 0),
+                (1, -1),
+                (0, -1),
+                (-1, -1),
+                (-1, 0),
+                (-1, 1),
+            ]:
+
+                d1, d2 = dir
+                new_x = x_ + d1
+                new_y = y_ + d2
+                if (
+                    0 <= new_x
+                    and new_x < len(grid)
+                    and 0 <= new_y
+                    and new_y < len(grid[0])
+                    and grid[new_x][new_y] == 0
+                ):
+                    queu.append((new_x, new_y))
+                    grid[new_x][new_y] = 1
+            result += 1
+    return -1
+
+
+def orangesRotting(grid):
+    result = 0
+    m = len(grid)
+    n = len(grid[0])
+    directions = [(-1, 0), (1, 0), (0, 1), (0, -1)]
+
+    def bfs(i, j):
+        queue = deque()
+        queue.append(i, j)
+        grid[i][j] = 1

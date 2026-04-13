@@ -11,13 +11,6 @@ class Operator(Enum):
 
 
 @dataclass(frozen=True)
-class MarketEvent:
-    stock: str
-    price: float
-    timestamp: float
-
-
-@dataclass(frozen=True)
 class NotificationEvent:
     message: str
     price: float
