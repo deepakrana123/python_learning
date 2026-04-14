@@ -1,6 +1,7 @@
 from realTimeSystem.disptacher.dispatcher import Dispatcher
 from realTimeSystem.rule.ruleEngine import RuleEngine
 from realTimeSystem.model.market import MarketEvent
+from realTimeSystem.metrics.metrics import metrics
 
 
 class Processor:
@@ -9,6 +10,6 @@ class Processor:
         self.rule_engine = ruleEngine
 
     def process(self, event: MarketEvent) -> None:
-        print(event, "event")
         matched_rules = self.rule_engine.evaluate(event.stock, event.price)
         self.dispatcher.disptach(event, matched_rules)
+        metrics.inc("events_processed")

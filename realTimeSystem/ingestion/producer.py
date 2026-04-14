@@ -9,6 +9,7 @@ from realTimeSystem.model.market import (
     MAX_PER_STOCK,
 )
 from typing import Callable
+from realTimeSystem.metrics.metrics import metrics
 
 latest_event_by_stock = {}
 latest_lock = threading.Lock()
@@ -16,7 +17,6 @@ last_price_stock = {}
 
 
 def generate_event():
-
     stock_name, price = random.choice(companies)
     base_price = last_price_stock.get(stock_name, price)
     new_price = base_price + random.uniform(-20, 20)
@@ -29,6 +29,7 @@ def start_producer(generate_event: Callable, event_queue) -> None:
 
     while True:
         stock, price, ts = generate_event()
+        metrics.inc("events_generated")
         event = MarketEvent(stock, price, ts)
         stock = event.stock
         with latest_lock:

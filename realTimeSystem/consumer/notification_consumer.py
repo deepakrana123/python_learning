@@ -1,4 +1,5 @@
 import asyncio
+from realTimeSystem.metrics.metrics import metrics
 
 
 def notification_consumer(stock, notification_queue, ws_manager):
@@ -7,3 +8,4 @@ def notification_consumer(stock, notification_queue, ws_manager):
         if msg:
             print(f"[Notify--{stock}] {msg}")
             asyncio.run(ws_manager.send(stock, msg))
+            metrics.inc("notifications_sent")
