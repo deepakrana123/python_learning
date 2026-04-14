@@ -1,14 +1,14 @@
 from threading import Thread
-from queue.mainQueue import PartitionQueue
-from rule.ruleEngine import RuleEngine
-from disptacher.dispatcher import Dispatcher
-from processor.processor import Processor
-from manager.manager import Manager
-from model.market import Rule, Operator
+from realTimeSystem.queues.mainQueue import PartitionQueue
+from realTimeSystem.rule.ruleEngine import RuleEngine
+from realTimeSystem.disptacher.dispatcher import Dispatcher
+from realTimeSystem.processor.processor import Processor
+from realTimeSystem.manager.manager import Manager
+from realTimeSystem.model.market import Rule, Operator
 import time
-from ingestion.producer import generate_event, start_producer
-from consumer.notificationConsumer import notification_consumer
-from webSocketManager import WebSocketManager
+from realTimeSystem.ingestion.producer import generate_event, start_producer
+from realTimeSystem.consumer.notification_consumer import notification_consumer
+from realTimeSystem.web_socket_manager import WebSocketManager
 
 event_queue = PartitionQueue()
 notification_queue = PartitionQueue()
@@ -43,7 +43,9 @@ Thread(
     daemon=True,
 ).start()
 Thread(
-    target=notification_consumer, args=("Tesla", notification_queue), daemon=True
+    target=notification_consumer,
+    args=("Tesla", notification_queue, ws_manager),
+    daemon=True,
 ).start()
 
 print("[Main] System running. Press Ctrl+C to stop.")

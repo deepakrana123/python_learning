@@ -1,4 +1,4 @@
-from realTimeSystem.queue.mainQueue import PartitionQueue
+from realTimeSystem.queues.mainQueue import PartitionQueue
 
 
 class Dispatcher:

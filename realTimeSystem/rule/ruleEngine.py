@@ -18,8 +18,7 @@ class RuleEngine:
             self.rules_by_stock[rule.stock].append(rule)
 
     def get_rule(self, stock: str) -> List[Rule]:
-        # if stock not in self.rules_by_stock:
-        #     return ValueError("No rule for this stock")
+
         with self.lock:
             rules = self.rules_by_stock.get(stock, [])
             active_rules = [rule for rule in rules if rule.is_active()]

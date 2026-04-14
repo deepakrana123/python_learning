@@ -1,6 +1,6 @@
 from realTimeSystem.rule.ruleEngine import RuleEngine
 from realTimeSystem.processor.processor import Processor
-from realTimeSystem.queue.mainQueue import PartitionQueue
+from realTimeSystem.queues.mainQueue import PartitionQueue
 from realTimeSystem.consumer.consumer import consumer
 from threading import Thread
 from realTimeSystem.model.market import Rule

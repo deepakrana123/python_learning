@@ -16,6 +16,7 @@ last_price_stock = {}
 
 
 def generate_event():
+
     stock_name, price = random.choice(companies)
     base_price = last_price_stock.get(stock_name, price)
     new_price = base_price + random.uniform(-20, 20)
@@ -25,14 +26,13 @@ def generate_event():
 
 
 def start_producer(generate_event: Callable, event_queue) -> None:
-    from realTimeSystem.model.market import MarketEvent
 
     while True:
         stock, price, ts = generate_event()
         event = MarketEvent(stock, price, ts)
         stock = event.stock
         with latest_lock:
-            event = latest_event_by_stock.get(stock)
+            latest_event_by_stock[stock] = event
         if event_queue.size(stock) > MAX_PER_STOCK:
             print(f"[BACKPRESSURE] Skipping {stock}")
             continue

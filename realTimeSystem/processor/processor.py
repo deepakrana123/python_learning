@@ -9,5 +9,6 @@ class Processor:
         self.rule_engine = ruleEngine
 
     def process(self, event: MarketEvent) -> None:
+        print(event, "event")
         matched_rules = self.rule_engine.evaluate(event.stock, event.price)
         self.dispatcher.disptach(event, matched_rules)

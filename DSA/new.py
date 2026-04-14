@@ -4440,15 +4440,3 @@ def shortestPath(grid):
                     grid[new_x][new_y] = 1
             result += 1
     return -1
-
-
-def orangesRotting(grid):
-    result = 0
-    m = len(grid)
-    n = len(grid[0])
-    directions = [(-1, 0), (1, 0), (0, 1), (0, -1)]
-
-    def bfs(i, j):
-        queue = deque()
-        queue.append(i, j)
-        grid[i][j] = 1
