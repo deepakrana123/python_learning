@@ -1,4 +1,38 @@
 from dataclasses import dataclass
+
+
+MAX_PER_STOCK = 5000
+GLOBAL_LIMIT = 20000
+
+
+@dataclass(frozen=True)
+class MarketEvent:
+    stock: str
+    price: float
+    timestamp: float
+
+    def __str__(self):
+        return f"{self.stock} (Price:{self.price}) {self.timestamp}"
+
+    def __repr__(self):
+        return f"Stock(stock={self.stock}) ,price={self.price} , timestamp={self.timestamp}"
+
+
+companies = [
+    ("Apple", 175.50),
+    ("Microsoft", 420.75),
+    ("Google", 140.25),
+    ("Amazon", 185.30),
+    ("Tesla", 245.80),
+    ("Meta", 330.60),
+    ("Netflix", 485.90),
+    ("Nvidia", 895.40),
+    ("Tata", 815.40),
+    ("Adani", 89.40),
+]
+
+
+from dataclasses import dataclass
 from typing import Optional
 from enum import Enum
 from time import time

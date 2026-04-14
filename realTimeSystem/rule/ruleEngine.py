@@ -1,7 +1,7 @@
 import threading
 from typing import List, Dict
 from collections import defaultdict
-from marketEvent import Rule
+from realTimeSystem.model.market import Rule
 
 
 class RuleEngine:
