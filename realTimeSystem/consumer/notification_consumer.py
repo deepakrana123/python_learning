@@ -14,6 +14,5 @@ def notification_consumer(stock, notification_queue, ws_manager):
         latency = now - timestamp
         metrics.add_latency(latency)
         if msg:
-            print(f"[Notify--{stock}] {msg}")
             asyncio.run(ws_manager.send(stock, msg))
             metrics.inc("notifications_sent")
