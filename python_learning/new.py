@@ -72,7 +72,7 @@ def majorityElement(nums):
             count += 1
         else:
             count -= 1
-    print(num, candidate)
+   
     return candidate
 
 
@@ -672,11 +672,11 @@ class Solution:
         for i in range(len(a)):
             a[i] = self.compressInitial(a[i])
             b[i] = self.compressInitial(b[i])
-        print(a, b)
+       
         result = 0
         for i in range(len(a)):
             if int(a[i]) > int(b[i]):
-                print(a[i], b[i])
+               
                 result = 1
             elif int(a[i]) < int(b[i]):
                 result = -1
@@ -686,7 +686,6 @@ class Solution:
 
 
 ac = Solution()
-# print(ac.compareVersion("1.0", version2="1.0.0.0"))
 
 
 def largestTriangleArea(points):
@@ -1244,7 +1243,7 @@ def nextBeautifulNumber(n):
             digit = num % 10
             result[digit] += 1
             num = num // 10
-        print(result, "result")
+       
         for i in range(10):
             if result[i] > 0 and result[i] != i:
                 return False

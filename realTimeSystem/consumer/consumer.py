@@ -1,4 +1,5 @@
 from realTimeSystem.ingestion.producer import latest_event_by_stock, latest_lock
+import time
 
 
 def consumer(stock, event_queue, processor):
@@ -13,3 +14,4 @@ def consumer(stock, event_queue, processor):
                 event = latest_event_by_stock.get(stock)
             if event:
                 processor.process(event)
+                time.sleep(1)

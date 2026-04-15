@@ -4,6 +4,7 @@ from dataclasses import dataclass
 MAX_PER_STOCK = 5000
 GLOBAL_LIMIT = 20000
 MAX_NOTIFICATIONS_PER_EVENT = 50
+MAX_NOTIFICATION_QUEUE_SIZE = 1000
 
 
 @dataclass(frozen=True)

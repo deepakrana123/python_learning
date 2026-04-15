@@ -26,7 +26,6 @@ def generate_event():
 
 
 def start_producer(generate_event: Callable, event_queue) -> None:
-
     while True:
         stock, price, ts = generate_event()
         metrics.inc("events_generated")
@@ -35,13 +34,11 @@ def start_producer(generate_event: Callable, event_queue) -> None:
         with latest_lock:
             latest_event_by_stock[stock] = event
         if event_queue.size(stock) > MAX_PER_STOCK:
-            print(f"[BACKPRESSURE] Skipping {stock}")
+
             continue
         if event_queue.total_size() > GLOBAL_LIMIT:
-            print("[GLOBAL BACKPRESSURE] slowing producer")
             time.sleep(0.05)
             continue
 
-        event_queue.push(stock, stock)
-        print(f"[Producer] Generated:{event}", event_queue.total_size())
-        time.sleep(0.01)
+        event_queue.push(stock, stock, event.timestamp)
+        time.sleep(0)

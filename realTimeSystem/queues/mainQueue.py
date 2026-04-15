@@ -1,5 +1,6 @@
 from queue import Queue
 from collections import defaultdict
+import threading
 
 # class IngestionQueue:
 #     def __init__(self):
@@ -44,9 +45,10 @@ class SimpleQueue:
 class PartitionQueue:
     def __init__(self):
         self.queues = defaultdict(Queue)
+        self.lock = threading.Lock()
 
-    def push(self, stock, item):
-        self.queues[stock].put(item)
+    def push(self, stock, item, ts):
+        self.queues[stock].put((item, ts))
 
     def pop(self, stock):
         if not self.queues[stock].empty():
@@ -57,7 +59,11 @@ class PartitionQueue:
         return self.queues[stock].qsize()
 
     def total_size(self):
-        return sum(q.qsize() for q in self.queues.values())
+        # return sum(q.qsize() for q in self.queues.values())
+        with self.lock:
+            queues = list(self.queues.values())
+
+        return sum(q.qsize() for q in queues)
 
 
 event_queue = SimpleQueue()

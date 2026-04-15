@@ -5,6 +5,8 @@ from realTimeSystem.model.market import (
     MAX_NOTIFICATION_QUEUE_SIZE,
 )
 
+import time
+
 
 class Dispatcher:
     def __init__(self, notification_queue: PartitionQueue, rate_limiter: RateLimiter):
@@ -12,13 +14,14 @@ class Dispatcher:
         self.rate_limiter = rate_limiter
 
     def disptach(self, event, after_matched):
-        print(f"Matched rules: {len(after_matched)}")
         if not after_matched:
             return
         if len(after_matched) > 100:
             after_matched = after_matched[:MAX_NOTIFICATIONS_PER_EVENT]
         for rule in after_matched:
+            if not self.rate_limiter.allow(rule.user_id):
+                continue
             message = f"Alret {event.stock} crossed {rule.target_price}"
             if self.notification_queue.size(event.stock) > MAX_NOTIFICATION_QUEUE_SIZE:
                 return
-            self.notification_queue.push(event.stock, message)
+            self.notification_queue.push(event.stock, message, event.timestamp)

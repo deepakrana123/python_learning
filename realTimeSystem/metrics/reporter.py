@@ -5,10 +5,14 @@ from realTimeSystem.metrics.metrics import metrics
 def start_metrics_reporter():
     while True:
         time.sleep(5)
-        generated, processed, notified = metrics.snapshot()
+        report = metrics.snapshot()
 
         print(
-            f"[METRICS] Generated: {generated} | "
-            f"Processed: {processed} | "
-            f"Notifications: {notified}"
+            f"[report] Generated: {report['generated']} | "
+            f"Processed: {report['processed']} | "
+            f"Notifications Sent: {report['notifications_sent']} | "
+            f"Dropped Events: {report['dropped_events']} | "
+            f"Rate Limited: {report['rate_limited']} | "
+            f"Avg Latency: {report['avg_latency']} | "
+            f"report",
         )

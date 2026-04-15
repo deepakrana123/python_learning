@@ -30,22 +30,39 @@ def generate_rules(num_rules, choices, price):
     for i in range(1, num_rules + 1):
         user_id = f"user{i}"
         stock_name = random.choice(choices)
-        price = price + random.choice(-100, 100)
+        price = price + random.randint(-100, 100)
         operator = random.choice([Operator.GREATER_THAN, Operator.LESS_THAN])
         rules.append(Rule(user_id, stock_name, price, operator))
     return rules
 
 
-for rule in generate_rules(100, ["Tesla", "Tata"], 800):
-    manager.add_rules(rule)
 for rule in generate_rules(50, ["Google", "Amazon", "Apple"], 900):
+    manager.add_rules(rule)
+for rule in generate_rules(100, ["Tesla"], 800):
+    manager.add_rules(rule)
+
+for rule in [
+    Rule("user1", "Google", 900, Operator.LESS_THAN),
+    Rule("user1", "Amazon", 900, Operator.GREATER_THAN),
+    Rule("user1", "Amazon", 900, Operator.GREATER_THAN),
+    Rule("user1", "Apple", 900, Operator.GREATER_THAN),
+    Rule("user1", "Apple", 900, Operator.GREATER_THAN),
+    Rule("user1", "Apple", 900, Operator.GREATER_THAN),
+    Rule("user1", "Tata", 900, Operator.GREATER_THAN),
+    Rule("user1", "Nvidia", 900, Operator.GREATER_THAN),
+    Rule("user1", "Microsoft", 900, Operator.GREATER_THAN),
+    Rule("user1", "Google", 900, Operator.GREATER_THAN),
+    Rule("user1", "Adani", 900, Operator.GREATER_THAN),
+    Rule("user1", "Adani", 900, Operator.GREATER_THAN),
+    Rule("user1", "Amazon", 900, Operator.GREATER_THAN),
+]:
     manager.add_rules(rule)
 
 
 Thread(target=start_producer, args=(generate_event, event_queue), daemon=True).start()
 Thread(
     target=manager.ensure_consumer,
-    args=("Tesla", 5),
+    args=("Tesla", 1),
     daemon=True,
 ).start()
 Thread(
@@ -53,16 +70,55 @@ Thread(
     args=("Tesla", notification_queue, ws_manager),
     daemon=True,
 ).start()
+Thread(
+    target=manager.ensure_consumer,
+    args=("Google", 2),
+    daemon=True,
+).start()
+Thread(
+    target=notification_consumer,
+    args=("Google", notification_queue, ws_manager),
+    daemon=True,
+).start()
+Thread(
+    target=manager.ensure_consumer,
+    args=("Amazon", 1),
+    daemon=True,
+).start()
+Thread(
+    target=notification_consumer,
+    args=("Amazon", notification_queue, ws_manager),
+    daemon=True,
+).start()
+Thread(
+    target=manager.ensure_consumer,
+    args=("Apple", 3),
+    daemon=True,
+).start()
+Thread(
+    target=notification_consumer,
+    args=("Apple", notification_queue, ws_manager),
+    daemon=True,
+).start()
+Thread(
+    target=manager.ensure_consumer,
+    args=("Tata", 3),
+    daemon=True,
+).start()
+Thread(
+    target=notification_consumer,
+    args=("Tata", notification_queue, ws_manager),
+    daemon=True,
+).start()
 
 Thread(
     target=start_metrics_reporter,
     daemon=True,
 ).start()
-print("[Main] System running. Press Ctrl+C to stop.")
+
 try:
     while True:
         time.sleep(10)
-
         print(
             f"[STATS] Event queue: {event_queue.total_size()} | Notification queue: {notification_queue.total_size()}"
         )

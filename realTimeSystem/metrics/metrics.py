@@ -32,7 +32,7 @@ class Metrics:
 
     def add_latency(self, seconds):
         with self.lock:
-            avg_latency = (
+            self.avg_latency = (
                 self.latency_total / self.self.latency_count
                 if self.latency_count
                 else 0
@@ -41,12 +41,12 @@ class Metrics:
     def snapshot(self):
         with self.lock:
             return {
-                "generated": self.generated,
-                "processed": self.processed,
+                "generated": self.events_generated,
+                "processed": self.events_processed,
                 "notifications_sent": self.notifications_sent,
                 "dropped_events": self.dropped_events,
                 "rate_limited": self.rate_limited,
-                "avg_latency": round(avg_latency, 3),
+                "avg_latency": round(self.avg_latency, 3),
             }
 
 
