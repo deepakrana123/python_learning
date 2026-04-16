@@ -4,7 +4,7 @@ import random
 from threading import Lock
 from realTimeSystem.model.market import (
     MarketEvent,
-    companies,
+    companiesWithPrice,
     GLOBAL_LIMIT,
     MAX_PER_STOCK,
 )
@@ -17,7 +17,7 @@ last_price_stock = {}
 
 
 def generate_event():
-    stock_name, price = random.choice(companies)
+    stock_name, price = random.choice(companiesWithPrice)
     base_price = last_price_stock.get(stock_name, price)
     new_price = base_price + random.uniform(-20, 20)
     last_price_stock[stock_name] = new_price

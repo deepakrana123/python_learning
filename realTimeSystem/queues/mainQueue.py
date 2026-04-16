@@ -51,20 +51,31 @@ class PartitionQueue:
         self.queues[stock].put((item, ts))
 
     def pop(self, stock):
-        if not self.queues[stock].empty():
-            return self.queues[stock].get()
+        q = self.queues.get(stock)
+        if q and not q.empty():
+            return q.get()
         return None
+
+    def peek(self, stock):
+        q = self.queues.get(stock)
+        if q and not q.empty():
+            with q.mutex:
+                if len(q.queue) == 0:
+                    return None
+                return q.queue[0]
 
     def size(self, stock):
         return self.queues[stock].qsize()
 
     def total_size(self):
-        # return sum(q.qsize() for q in self.queues.values())
         with self.lock:
             queues = list(self.queues.values())
 
         return sum(q.qsize() for q in queues)
 
+    def get_all_stock(self):
+        with self.lock:
+            return list(self.queues.keys())
 
-event_queue = SimpleQueue()
+
 notificationQueue = SimpleQueue()

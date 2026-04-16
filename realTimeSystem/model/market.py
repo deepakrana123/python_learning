@@ -20,7 +20,7 @@ class MarketEvent:
         return f"Stock(stock={self.stock}) ,price={self.price} , timestamp={self.timestamp}"
 
 
-companies = [
+companiesWithPrice = [
     ("Apple", 175.50),
     ("Microsoft", 420.75),
     ("Google", 140.25),
@@ -31,6 +31,19 @@ companies = [
     ("Nvidia", 895.40),
     ("Tata", 815.40),
     ("Adani", 89.40),
+]
+
+companies = [
+    "Apple",
+    "Microsoft",
+    "Google",
+    "Amazon",
+    "Tesla",
+    "Meta",
+    "Netflix",
+    "Nvidia",
+    "Tata",
+    "Adani",
 ]
 
 

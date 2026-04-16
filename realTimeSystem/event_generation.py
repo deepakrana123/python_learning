@@ -11,6 +11,7 @@ from realTimeSystem.metrics.reporter import start_metrics_reporter
 from realTimeSystem.rateLimiter import RateLimiter
 from realTimeSystem.testing.load_rules import load_rules
 from realTimeSystem.retry_worker import retry_worker
+from realTimeSystem.model.market import companies
 import time
 
 app = {}
@@ -41,7 +42,7 @@ def load_rules_mode(mode):
 
 
 def retry_thread():
-    for value in ["Google", "Tesla", "Apple", "Amazon", "Tata"]:
+    for value in companies:
         Thread(
             target=retry_worker,
             args=(value, app["retry_queue"], app["dlq_queue"], app["ws_manager"]),
@@ -53,11 +54,6 @@ def start_services():
     Thread(
         target=start_producer, args=(generate_event, app["event_queue"]), daemon=True
     ).start()
-    # Thread(
-    #     target=retry_worker,
-    #     args=("Tesla", app["retry_queue"], app["dlq_queue"], app["ws_manager"]),
-    #     daemon=True,
-    # ).start()
     retry_thread()
     Thread(
         target=start_metrics_reporter,
@@ -67,7 +63,9 @@ def start_services():
 
 
 def start_workers():
-    worker_map = {"Tesla": 1, "Google": 1, "Apple": 1, "Amazon": 1, "Tata": 1}
+    worker_map = {}
+    for value in companies:
+        worker_map[value] = worker_map.get(value, 0) + 1
     for stock, count in worker_map.items():
         app["manager"].ensure_consumer(stock, count)
         Thread(
