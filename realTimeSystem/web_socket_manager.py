@@ -14,11 +14,19 @@ class WebSocketManager:
 
     async def send(self, stock, message):
         dead_clients = []
-        for ws in self.client_by_stock[stock]:
+        clients = self.client_by_stock[stock]
+        print(clients, self.client_by_stock, stock, "clients")
+        if not clients:
+            raise Exception("No clients connected")
+        success = 0
+        dead_clients = []
+        for ws in clients:
             try:
                 await ws.send_text(message)
+                success += 1
             except:
                 dead_clients.append(ws)
-
         for dc in dead_clients:
             self.client_by_stock[stock].remove(dc)
+        if success == 0:
+            raise Exception("All websocket sends fails")

@@ -10,6 +10,7 @@ from realTimeSystem.web_socket_manager import WebSocketManager
 from realTimeSystem.metrics.reporter import start_metrics_reporter
 from realTimeSystem.rateLimiter import RateLimiter
 from realTimeSystem.testing.load_rules import load_rules
+from realTimeSystem.retry_worker import retry_worker
 import time
 
 app = {}
@@ -18,6 +19,8 @@ app = {}
 def build_system():
     event_queue = PartitionQueue()
     notification_queue = PartitionQueue()
+    retry_queue = PartitionQueue()
+    dlq_queue = PartitionQueue()
     rule_engine = RuleEngine()
     ws_manager = WebSocketManager()
     rate_limiter = RateLimiter(interval=1)
@@ -29,16 +32,33 @@ def build_system():
     app["rule_engine"] = rule_engine
     app["ws_manager"] = ws_manager
     app["manager"] = manager
+    app["retry_queue"] = retry_queue
+    app["dlq_queue"] = dlq_queue
 
 
 def load_rules_mode(mode):
     load_rules(app["manager"], mode=mode)
 
 
+def retry_thread():
+    for value in ["Google", "Tesla", "Apple", "Amazon", "Tata"]:
+        Thread(
+            target=retry_worker,
+            args=(value, app["retry_queue"], app["dlq_queue"], app["ws_manager"]),
+            daemon=True,
+        ).start()
+
+
 def start_services():
     Thread(
         target=start_producer, args=(generate_event, app["event_queue"]), daemon=True
     ).start()
+    # Thread(
+    #     target=retry_worker,
+    #     args=("Tesla", app["retry_queue"], app["dlq_queue"], app["ws_manager"]),
+    #     daemon=True,
+    # ).start()
+    retry_thread()
     Thread(
         target=start_metrics_reporter,
         args=(app["event_queue"], app["notification_queue"]),
@@ -47,12 +67,17 @@ def start_services():
 
 
 def start_workers():
-    worker_map = {"Tesla": 3, "Google": 2, "Apple": 2, "Amazon": 1, "Tata": 1}
+    worker_map = {"Tesla": 1, "Google": 1, "Apple": 1, "Amazon": 1, "Tata": 1}
     for stock, count in worker_map.items():
         app["manager"].ensure_consumer(stock, count)
         Thread(
             target=notification_consumer,
-            args=(stock, app["notification_queue"], app["ws_manager"]),
+            args=(
+                stock,
+                app["notification_queue"],
+                app["ws_manager"],
+                app["retry_queue"],
+            ),
             daemon=True,
         ).start()
 

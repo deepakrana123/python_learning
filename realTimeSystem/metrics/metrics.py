@@ -23,6 +23,10 @@ class Metrics:
         self.prev_dropped = 0
         self.prev_event_q = 0
         self.prev_notif_q = 0
+        self.retry_attempted = 0
+        self.retry_success = 0
+        self.retry_failed = 0
+        self.dlq_count = 0
 
     def inc(self, field, value=1):
         with self.lock:
@@ -74,6 +78,10 @@ class Metrics:
                 "notif_queue": notif_q,
                 "event_q_growth": round(event_q_growth, 1),
                 "notif_q_growth": round(notif_q_growth, 1),
+                "retry_attempted": self.retry_attempted,
+                "retry_success": self.retry_success,
+                "retry_failed": self.retry_failed,
+                "dlq_count": self.dlq_count,
             }
             self.last_time = now
             self.prev_generated = self.events_generated
