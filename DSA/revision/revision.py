@@ -88,4 +88,106 @@ def subarraySum(nums, k):
     return result
 
 
-print(subarraySum([1, 1, 1], k=2))
+def countDistinct(arr):
+    # result = 0
+    # for i in range(len(arr)):
+    #     j = 0
+    #     for j in range(i):
+    #         if arr[i] == arr[j]:
+    #             break
+    #     if i == j + 1:
+    #         result += 1
+
+    # return result
+    # arr.sort()
+    # result = 1
+    # for i in range(1, len(arr)):
+    #     if arr[i] != arr[i - 1]:
+    #         result += 1
+    # return result
+    print(len(set(arr)))
+    result = set()
+    for num in arr:
+        if num not in result:
+            result.add(num)
+    return len(result)
+
+
+# def findAnagrams(s, p):
+#     dicts = {}
+#     for i in range(0, len(s)):
+#         abc = "".join(sorted(s[i : len(p)]))
+#         print(abc, "abc")
+#         if abc == "".join(sorted(p)):
+#             if abc not in dicts:
+#                 dicts[abc] = [i]
+#             else:
+#                 dicts[abc].append(i)
+#     return dicts
+
+
+def longestSubarray(arr):
+    result = 0
+    # for i in range(len(arr)):
+    #     sums = arr[i]
+    #     for j in range(i + 1, len(arr)):
+    #         sums += arr[j]
+    #         if sums == 0:
+    #             result = max(result, j - i + 1)
+    # return result
+    dicts = {}
+    prefixSum = 0
+    dicts[prefixSum] = -1
+    result = 0
+    for i in range(len(arr)):
+        prefixSum += arr[i]
+        if prefixSum in dicts:
+            prevIndex = dicts[prefixSum]
+            length = i - prevIndex
+            result = max(result, length)
+        else:
+            dicts[prefixSum] = i
+    return result
+
+
+from collections import Counter
+
+
+def findAnagrams(s, p):
+    # result = []
+    # for i in range(len(s) - len(p) + 1):
+    #     if sorted(s[i : i + len(p)]) == sorted(p):
+    #         result.append(i)
+    # return result
+    # need = Counter(p)
+    # window = {}
+    # k = len(p)
+    # ans = []
+    # for j in range(len(s)):
+    #     window[s[j]] = window.get(s[j], 0) + 1
+    #     if j >= k:
+    #         left = s[j - k]
+    #         window[left] -= 1
+    #         if window[left] == 0:
+    #             del window[left]
+    #     if window == need:
+    #         ans.append(j - k + 1)
+    # return ans
+    if len(p) > len(s):
+        return []
+    need = [0] * 26
+    window = [0] * 26
+    for ch in p:
+        need[ord(ch) - 97] += 1
+    ans = []
+    k = len(p)
+    for j in range(len(s)):
+        window[ord(ch) - 97] += 1
+        if j >= k:
+            window[ord(s[j - k]) - 97] -= 1
+        if window == need:
+            ans.append(j - k + 1)
+    return ans
+
+
+print(findAnagrams("cbaebabacd", p="abc"))

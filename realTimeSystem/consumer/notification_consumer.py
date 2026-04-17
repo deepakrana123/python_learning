@@ -1,7 +1,6 @@
 import asyncio
 from realTimeSystem.metrics.metrics import metrics
 import time
-from realTimeSystem.metrics.metrics import metrics
 
 
 def notification_consumer(stock, notification_queue, ws_manager, retry_queue):
@@ -20,3 +19,10 @@ def notification_consumer(stock, notification_queue, ws_manager, retry_queue):
         except Exception:
             payload = {"stock": stock, "msg": msg, "attempt": 1}
             retry_queue.push(stock, payload, time.time())
+
+
+def run_consumer_in_thread(stock, notification_queue, ws_manager, retry_queue):
+    async def _run():
+        await notification_consumer(stock, notification_queue, ws_manager, retry_queue)
+
+    asyncio.run(_run())

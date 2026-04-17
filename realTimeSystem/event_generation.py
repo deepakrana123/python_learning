@@ -5,7 +5,9 @@ from realTimeSystem.disptacher.dispatcher import Dispatcher
 from realTimeSystem.processor.processor import Processor
 from realTimeSystem.manager.manager import Manager
 from realTimeSystem.ingestion.producer import generate_event, start_producer
-from realTimeSystem.consumer.notification_consumer import notification_consumer
+from realTimeSystem.consumer.notification_consumer import (
+    notification_consumer,
+)
 from realTimeSystem.web_socket_manager import WebSocketManager
 from realTimeSystem.metrics.reporter import start_metrics_reporter
 from realTimeSystem.rateLimiter import RateLimiter
@@ -55,6 +57,7 @@ def start_services():
         target=start_producer, args=(generate_event, app["event_queue"]), daemon=True
     ).start()
     retry_thread()
+
     Thread(
         target=start_metrics_reporter,
         args=(app["event_queue"], app["notification_queue"]),

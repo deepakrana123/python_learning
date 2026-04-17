@@ -80,7 +80,6 @@ def consumer(stock):
     while True:
         if not q.empty():
             event = q.get()
-            print(f"[{stock}] Processing {event.stock} {event.price}")
             processor.process(event)
             time.sleep(0.03)
         else:

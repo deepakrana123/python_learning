@@ -1,10 +1,10 @@
 import time
 from realTimeSystem.metrics.metrics import metrics
+import asyncio
 
 
 def retry_worker(stock, retry_queue, dl_queue, ws_manager):
     while True:
-
         data = retry_queue.pop(stock)
         if not data:
             continue
@@ -12,7 +12,7 @@ def retry_worker(stock, retry_queue, dl_queue, ws_manager):
         msg = item["msg"]
         attempt = item["attempt"]
         try:
-            ws_manager.send(stock, msg)
+            asyncio.run(ws_manager.send(stock, msg))
             metrics.inc("retry_success")
         except Exception:
             if attempt < 3:
