@@ -6,6 +6,7 @@ import time
 def notification_consumer(stock, notification_queue, ws_manager, retry_queue):
     while True:
         data = notification_queue.pop(stock)
+        time.sleep(3)
         if not data:
             time.sleep(0.1)
             continue

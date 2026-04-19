@@ -52,10 +52,17 @@ def retry_thread():
         ).start()
 
 
+def starts():
+    for _ in range(20):
+        Thread(
+            target=start_producer,
+            args=(generate_event, app["event_queue"]),
+            daemon=True,
+        ).start()
+
+
 def start_services():
-    Thread(
-        target=start_producer, args=(generate_event, app["event_queue"]), daemon=True
-    ).start()
+    starts()
     retry_thread()
 
     Thread(
@@ -89,6 +96,8 @@ def run_forever():
             time.sleep(10)
             eq = app["event_queue"].total_size()
             nq = app["notification_queue"].total_size()
+            # for stock in companies:
+            #     print(f"[starts] event queue {stock}={app["event_queue"].size(stock)}")
             print(f"[STATS] Event Queue={eq} | Notify Queue={nq}")
     except KeyboardInterrupt:
         print("Shutting down...")

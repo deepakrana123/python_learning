@@ -1,4 +1,5 @@
 from collections import defaultdict
+import random
 
 
 class WebSocketManager:
@@ -15,14 +16,15 @@ class WebSocketManager:
     async def send(self, stock, message):
         dead_clients = []
         clients = self.client_by_stock[stock]
-        print(clients, "hlo ")
         if not clients:
-            raise Exception("No clients connected")
+            if random.random() < 0.3:
+                raise Exception("Various")
+            # print(f"[NO CLIENTS] simulated delivery: {stock} -> {message}")
+            return
         success = 0
         dead_clients = []
         for ws in clients:
             try:
-                print("hlo ", "hlo")
                 await ws.send_text(message)
                 success += 1
             except:

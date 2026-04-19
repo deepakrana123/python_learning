@@ -22,6 +22,8 @@ def generate_event():
     new_price = base_price + random.uniform(-20, 20)
     last_price_stock[stock_name] = new_price
     timestamp = time.time()
+    if random.random() < 0.30:
+        stock_name = "Tesla"
     return stock_name, new_price, timestamp
 
 
@@ -34,11 +36,10 @@ def start_producer(generate_event: Callable, event_queue) -> None:
         with latest_lock:
             latest_event_by_stock[stock] = event
         if event_queue.size(stock) > MAX_PER_STOCK:
-
             continue
         if event_queue.total_size() > GLOBAL_LIMIT:
             time.sleep(0.05)
             continue
 
         event_queue.push(stock, stock, event.timestamp)
-        time.sleep(0)
+        time.sleep(0.01)

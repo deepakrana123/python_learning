@@ -5,8 +5,6 @@ from realTimeSystem.model.market import (
     MAX_NOTIFICATION_QUEUE_SIZE,
 )
 
-import time
-
 
 class Dispatcher:
     def __init__(self, notification_queue: PartitionQueue, rate_limiter: RateLimiter):
