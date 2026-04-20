@@ -26,14 +26,14 @@ def create_workflow_service(payload: WorkflowCreate, db: Session):
     return workflow
 
 
-def get_workflow_service(workflow_id: int, db=Session):
+def get_workflow_service(workflow_id: int, db: Session):
     workflow = get_workflow_by_id(db, workflow_id)
     if not workflow:
         raise HTTPException(status_code=400, detail="Workflow not found")
     return workflow
 
 
-def list_workflow_service(domain, db):
+def list_workflow_service(domain: str, db: Session):
     return list_workflows_by_domain(db, domain)
 
 

@@ -13,7 +13,7 @@ from app.services.workflow_service import (
     debug_parse_service,
 )
 
-router = APIRouter(prefix="/workflows", target=["Workflows"])
+router = APIRouter(prefix="/workflows")
 
 
 def get_db():
@@ -29,6 +29,6 @@ def create_workflow(payload: WorkflowCreate, db: Session = (get_db)):
     return create_workflow_service(payload, db)
 
 
-@router.get("/{worflow_id}", response_model=WorkflowResponse)
+@router.get("/{workflow_id}", response_model=WorkflowResponse)
 def get_workflow(workflow_id: int, db: Session = (get_db)):
     return get_workflow_service(workflow_id, db)
