@@ -10,10 +10,18 @@ class RuleEngine:
         self.lock = threading.Lock()
 
     def add_rule(self, rule: Rule) -> None:
+        # ─────────────────────────────────────────────
+        # PREVIOUS CODE:
+        # if not rule.stock:
+        #     return ValueError("stock is not in market")   ← BUG: `return` not `raise`.
+        # if rule.target_price <= 0:                          Returns the exception object as a value
+        #     return ValueError("Price cannot be in negative") and exits the function silently.
+        #                                                       The caller gets None back, no error raised.
+        #                                                       Invalid rules are accepted into the engine.
         if not rule.stock:
-            return ValueError("stock is not in market")
+            raise ValueError("stock is not in market")
         if rule.target_price <= 0:
-            return ValueError("Price cannot be in negative")
+            raise ValueError("Price cannot be in negative")
         with self.lock:
             self.rules_by_stock[rule.stock].append(rule)
 

@@ -9,4 +9,4 @@ def start_metrics_reporter(event_queue, notif_queue):
         for k, v in snap.items():
             print(f"{k}: {v}")
 
-        time.sleep(10)
+        

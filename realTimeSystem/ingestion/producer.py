@@ -41,5 +41,13 @@ def start_producer(generate_event: Callable, event_queue) -> None:
             time.sleep(0.05)
             continue
 
-        event_queue.push(stock, stock, event.timestamp)
+        # ─────────────────────────────────────────────
+        # PREVIOUS CODE:
+        # event_queue.push(stock, stock, event.timestamp)
+        #
+        # BUG: Pushing `stock` (a plain string like "Tesla") instead of the `event` object.
+        # The consumer pops this and passes it to processor.process(event) — which then
+        # calls event.stock, event.price etc. A string has none of those attributes.
+        # This crashes the processor on every single event silently inside the consumer try/except.
+        event_queue.push(stock, event, event.timestamp)
         time.sleep(0.01)

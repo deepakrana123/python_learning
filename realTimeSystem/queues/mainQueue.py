@@ -1,81 +1,51 @@
-from queue import Queue
+from queue import Queue, Empty
 from collections import defaultdict
 import threading
-
-# class IngestionQueue:
-#     def __init__(self):
-#         self.queue = Queue()
-
-#     def push_to_queue(self, stock_event):
-#         self.queue.put(stock_event)
-
-#     def pop_to_queue(self):
-#         if self.queue:
-#             return self.queue.get()
-#         return None
-
-
-# class NotificationQueue:
-#     def __init__(self):
-#         self.queue = Queue()
-
-#     def push_to_queue(self, message):
-#         self.queue.put(message)
-
-#     def pop_to_queue(self):
-#         if self.queue:
-#             return self.queue.get()
-#         return None
-
-
-class SimpleQueue:
-    def __init__(self):
-        self.queue = Queue()
-
-    def push(self, item):
-        self.queue.put(item)
-
-    def pop(self):
-        return self.queue.get()
-
-    def length(self):
-        return self.queue.qsize()
 
 
 class PartitionQueue:
     def __init__(self):
-        self.queues = defaultdict(Queue)
-        self.lock = threading.Lock()
+        self._queues: dict[str, Queue] = {}
+        self._lock = threading.Lock()
 
-    def push(self, stock, item, ts):
-        self.queues[stock].put((item, ts))
+    def _get_or_create(self, stock: str) -> Queue:
+        q = self._queues.get(stock)
+        if q is None:
+            with self._lock:
+                q = self._queues.get(stock)
+                if q is None:
+                    q = Queue()
+                    self._queues[stock] = q
+        return q
 
-    def pop(self, stock):
-        q = self.queues.get(stock)
-        if q and not q.empty():
-            return q.get()
-        return None
+    def push(self, stock: str, item, ts: float) -> None:
+        self._get_or_create(stock).put((item, ts))
 
-    def peek(self, stock):
-        q = self.queues.get(stock)
-        if q and not q.empty():
-            with q.mutex:
-                if len(q.queue) == 0:
-                    return None
-                return q.queue[0]
+    def pop(self, stock: str, timeout: float = 0.05):
+        q = self._queues.get(stock)
+        if q is None:
+            return None
+        try:
+            return q.get(timeout=timeout)
+        except Empty:
+            return None
 
-    def size(self, stock):
-        return self.queues[stock].qsize()
+    def peek(self, stock: str):
+        q = self._queues.get(stock)
+        if q is None:
+            return None
+        with q.mutex:
+            return q.queue[0] if q.queue else None
 
-    def total_size(self):
-        with self.lock:
-            queues = list(self.queues.values())
+    def size(self, stock: str) -> int:
+        q = self._queues.get(stock)
+        return q.qsize() if q is not None else 0
 
+    def total_size(self) -> int:
+        with self._lock:
+            queues = list(self._queues.values())
         return sum(q.qsize() for q in queues)
 
-    def get_all_stock(self):
-        with self.lock:
-            return list(self.queues.keys())
-
-
-notificationQueue = SimpleQueue()
+    def stocks(self) -> list[str]:
+        with self._lock:
+            return list(self._queues.keys())

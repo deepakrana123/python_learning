@@ -1,10 +1,11 @@
-from threading import Thread
+import threading
+
 
 
 class EventStore:
     def __init__(self):
         self.store = {}
-        self.lock = Thread.Lock()
+        self.lock = threading.Lock()
 
     def set(self, stock, event):
         with self.lock:

@@ -8,7 +8,7 @@ QUEUE_THRESHOLD = 3000
 
 def autoscaler(manager, event_queue):
     while True:
-        for stock in manager.active_consumer:
+        for stock in list(manager.active_consumers):
             qsize = event_queue.size(stock)
             workers = manager.active_consumers[stock]
             if qsize > QUEUE_THRESHOLD:

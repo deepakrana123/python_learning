@@ -14,8 +14,9 @@ class Dispatcher:
     def disptach(self, event, after_matched):
         if not after_matched:
             return
-        if len(after_matched) > 100:
+        if len(after_matched) > MAX_NOTIFICATIONS_PER_EVENT:
             after_matched = after_matched[:MAX_NOTIFICATIONS_PER_EVENT]
+
         for rule in after_matched:
             if not self.rate_limiter.allow(rule.user_id):
                 continue
