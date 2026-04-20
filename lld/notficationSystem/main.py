@@ -1,9 +1,9 @@
-from queue.in_memory_queue import InMemoryQueue
-from repository.notification_repo import NotificationRepository
+from lld.notficationSystem.queue.in_memory_queue import InMemoryQueue
+from lld.notficationSystem.repository.notification_repo import NotificationRepository
 from service.notfication_service import NotificationService
-from worker.worker import Worker
-from api.controller import NotificationController
-from domain.models import ChannelType
+from lld.notficationSystem.worker.worker import Worker
+from lld.notficationSystem.api.controller import NotificationController
+from lld.notficationSystem.domain.models import ChannelType
 from Scheduler import Scheduler
 
 

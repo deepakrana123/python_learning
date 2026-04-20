@@ -1,6 +1,6 @@
 # api/controller.py
 
-from domain.models import Notification
+from lld.notficationSystem.domain.models import Notification
 from ..rule_engine.rule_engine import ActionMapper
 from ..rule_engine.rule_engine import Event
 

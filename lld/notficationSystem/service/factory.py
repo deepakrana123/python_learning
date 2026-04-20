@@ -1,4 +1,4 @@
-from domain.models import ChannelType
+from lld.notficationSystem.domain.models import ChannelType
 from python_learning.notficationSystem.service.channelManager import (
     SMSChannel,
     EmailChannel,
