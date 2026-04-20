@@ -36,7 +36,6 @@ def apply_defaults(rule: dict):
     """
     Fill missing triggers based on action
     """
-
     if rule["trigger"] is None:
 
         if rule["action"] == "send_reminder":

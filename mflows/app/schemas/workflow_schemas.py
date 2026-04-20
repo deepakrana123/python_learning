@@ -9,6 +9,10 @@ class WorkflowCreate(BaseModel):
     raw_input: str
 
 
+class DebugParseRequest(BaseModel):
+    raw_input: str
+
+
 class WorkflowResponse(BaseModel):
     id: int
     name: str
