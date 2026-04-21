@@ -1,13 +1,15 @@
+from typing import List, Dict, Any
 from pydantic import BaseModel
-from typing import Dict, Any
 
 
 class EventRequest(BaseModel):
     event_type: str
-    payload: Dict[str, any]
+    payload: Dict[str, Any]
 
 
 class EventResponse(BaseModel):
+    success: bool
     event_type: str
-    matched_workflows: list[int]
-    actions: list[str]
+    matched_count: int
+    matched_workflows: List[int]
+    actions: List[str]
