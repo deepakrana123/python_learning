@@ -3,6 +3,7 @@ from app.db.session import engine
 from app.db.base import Base
 from app.models.workflow import Workflow
 from app.api.workflow_routes import router as workflow_router
+from app.api.event_routes import router as event_router
 
 Base.metadata.create_all(bind=engine)
 
@@ -10,6 +11,7 @@ app = FastAPI(title="FlowOS AI")
 
 
 app.include_router(workflow_router)
+app.include_router(event_router)
 
 
 @app.get("/")

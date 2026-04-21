@@ -6,7 +6,7 @@ from app.schemas.workflow_schemas import (
     WorkflowResponse,
     DebugParseRequest,
 )
-from typing import list
+from typing import List
 from app.services.workflow_service import (
     create_workflow_service,
     get_workflow_service,
@@ -35,7 +35,7 @@ def get_workflow(workflow_id: int, db: Session = Depends(get_db)):
     return get_workflow_service(workflow_id, db)
 
 
-@router.get("/", response_model=list[WorkflowResponse])
+@router.get("/", response_model=List[WorkflowResponse])
 def get_all_worflow(domain: str | None = None, db: Session = Depends(get_db)):
     return list_workflow_service(domain, db)
 

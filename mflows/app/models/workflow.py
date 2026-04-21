@@ -10,4 +10,6 @@ class Workflow(Base):
     domain = Column(String, nullable=False, index=True)
     raw_input = Column(Text, nullable=False)
     parsed_rule_json = Column(Text, nullable=True)
+    status = Column(String, default="active")
+    version = Column(String, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
