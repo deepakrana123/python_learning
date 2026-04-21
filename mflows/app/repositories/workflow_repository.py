@@ -9,14 +9,18 @@ def create_workflow(
         name=name, domain=domain, raw_input=raw_input, parsed_rule_json=parsed_rule_json
     )
     db.add(workflow)
-    db.commit(workflow)
+    db.commit()
     db.refresh(workflow)
     return workflow
 
 
 def get_workflow_by_id(db: Session, workflow_id: int):
-    return db.query(workflow_id).filter(Workflow.id == workflow_id).first()
+    return db.query(Workflow).filter(Workflow.id == workflow_id).first()
 
 
 def list_workflows_by_domain(db: Session, domain: str):
-    return db.query(Workflow).filter(Workflow.domain == domain).all()
+    query = db.query(Workflow)
+    if domain:
+        query = query.filter(Workflow.domain == domain)
+
+    return query.all()

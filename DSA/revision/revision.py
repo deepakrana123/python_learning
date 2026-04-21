@@ -190,4 +190,49 @@ def findAnagrams(s, p):
     return ans
 
 
-print(findAnagrams("cbaebabacd", p="abc"))
+def countZeroSum(arr):
+    # result = 0
+    # for i in range(len(arr)):
+    #     sums = arr[i]
+    #     if arr[i] == 0:
+    #         result += 1
+    #     for j in range(i + 1, len(arr)):
+    #         sums += arr[j]
+    #         if sums == 0:
+    #             result += 1
+
+    # return result
+    # dicts = {0: 1}
+    # result = 0
+    # sums = 0
+    # for i in range(1, len(arr)):
+    #     sums += arr[i]
+    #     if sums in dicts:
+    #         result += dicts[sums]
+    #     dicts[sums] = dicts.get(sums, 0) + 1
+    # return result
+    n = len(arr)
+    subarrays = [arr[i : j + 1] for i in range(n) for j in range(i, n)]
+    count = sum(1 for sub in subarrays if sum(sub) == 0)
+    return count
+
+
+def leadersInArray(arr):
+    # suffix = []
+    # suffix.append(arr[-1])
+    # for i in range(len(arr) - 2, -1, -1):
+    #     if suffix[-1] <= arr[i]:
+    #         suffix.append(arr[i])
+    # return suffix[::-1]
+    result = []
+    n = len(arr)
+    for i in range(n):
+        for j in range(i + 1, n):
+            if arr[i] < arr[j]:
+                break
+        else:
+            result.append(arr[i])
+    return result
+
+
+print(leadersInArray([16, 17, 4, 3, 5, 2]))
