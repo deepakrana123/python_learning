@@ -13,3 +13,4 @@ class EventResponse(BaseModel):
     matched_count: int
     matched_workflows: List[int]
     actions: List[str]
+    execution_results: List[Dict[str]]
