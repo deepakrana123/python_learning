@@ -5,6 +5,9 @@ from app.models.workflow import Workflow
 from app.api.workflow_routes import router as workflow_router
 from app.api.event_routes import router as event_router
 
+from app.services.llm.client import call_llm
+
+print(call_llm("if salary above 50000 approve loan"))
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="FlowOS AI")

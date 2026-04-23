@@ -235,4 +235,133 @@ def leadersInArray(arr):
     return result
 
 
-print(leadersInArray([16, 17, 4, 3, 5, 2]))
+def trap(height):
+    n = len(height)
+    total_water = 0
+    # for i in range(n):
+    #     left_max = 0
+    #     for j in range(i + 1):
+    #         left_max = max(left_max, height[j])
+    #     right_max = 0
+    #     for j in range(i, n):
+    #         right_max = max(right_max, height[j])
+    #     water = min(left_max, right_max) - height[i]
+    #     if water > 0:
+    #         total_water += water
+    # return total_water
+    # if n == 0:
+    #     return 0
+    # left_max = [0] * n
+    # left_max[0] = height[0]
+    # for i in range(1, n):
+    #     left_max[i] = max(left_max[i - 1], height[i])
+    # right_max = [0] * n
+    # right_max[n - 1] = height[n - 1]
+    # for i in range(n - 2, -1, -1):
+    #     right_max[i] = max(right_max[i + 1], height[i])
+
+    # for i in range(n):
+    #     water = min(right_max[i], left_max[i]) - height[i]
+    #     if water > 0:
+    #         total_water += water
+    # return total_water
+    if n == 0:
+        return 0
+    if not height or len(height) < 3:
+        return 0
+    left = 0
+    right = len(height) - 1
+    left_max = height[left]
+    right_max = height[right]
+    total_water = 0
+    while left < right:
+        if left_max < right_max:
+            left += 1
+            left_max = max(left_max, height[left])
+            water = left_max - height[left]
+            if water > 0:
+                total_water += water
+        else:
+            right -= 1
+            right_max = max(right_max, height[right])
+            water = right_max - height[right]
+            if water > 0:
+                total_water += water
+    return total_water
+
+
+def majorityElement(nums):
+    # dicts = {}
+    # for num in nums:
+    #     dicts[num] = dicts.get(num, 0) + 1
+    # for key, value in dicts.items():
+    #     if value > len(nums) // 2:
+    #         return key
+    # return -1
+    count = 0
+    candidate = 0
+    for num in nums:
+        print(f"{num} num {count} count {candidate} candidate is good")
+        if count == 0:
+            count += 1
+            candidate = num
+        elif candidate == num:
+            count += 1
+        else:
+            count -= 1
+    return candidate
+
+
+def search(nums, target):
+    start = 0
+    end = len(nums) - 1
+    while start <= end:
+        mid = start + (end - start) // 2
+        print(f"{start} {end} {mid} ")
+        if nums[mid] == target:
+            return mid
+        if nums[mid] >= nums[start]:
+            if nums[start] <= target < nums[mid]:
+                end = mid - 1
+            else:
+                start = mid + 1
+        else:
+            if nums[mid] < target <= nums[end]:
+                start = mid + 1
+            else:
+                end = mid - 1
+    return -1
+
+
+def findMedianSortedArrays(nums1, nums2):
+    # nums = nums1 + nums2
+    # nums.sort()
+    # n = len(nums)
+    # if n % 2 == 0:
+    #     return (nums[n // 2 - 1] + nums[n // 2]) / 2.0
+    # return nums[n // 2]
+    m = len(nums1)
+    n = len(nums2)
+    i = 0
+    j = 0
+    m1 = -1
+    m2 = -1
+    for count in range((m + n) // 2 + 1):
+        m2 = m1
+        if i != m and j != n:
+            if nums1[i] > nums2[j]:
+                m1 = nums2[j]
+                j += 1
+            else:
+                m1 = nums1[i]
+                i += 1
+        elif i < m:
+            m1 = nums1[i]
+            i += 1
+        else:
+            m1 = nums2[j]
+            j += 1
+    return m1 if (m + n) % 2 == 1 else (m1 + m2) / 2.0
+
+
+print(findMedianSortedArrays([1, 3], nums2=[2]))

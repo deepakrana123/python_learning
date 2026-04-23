@@ -42,6 +42,3 @@ def parse_workflow_text(text: str):
         "rule": rule,
         "validation": validation,
     }
-
-
-print(parse_workflow_text("VIP customer complained twice send reminder after 3 days"))
