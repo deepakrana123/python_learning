@@ -8,4 +8,4 @@ ALLOWED_ACTIONS = [
     "notify_manager",
 ]
 
-REQUIRED_FIELDS = ["trigger", "action"]
+REQUIRED_FIELDS = ["trigger", "action", "conditions", "config"]

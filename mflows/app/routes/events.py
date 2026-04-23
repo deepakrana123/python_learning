@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from app.schemas.event_schema import EventRequest, EventResponse
+from app.schemas.event import EventRequest, EventResponse
 from app.db.session import SessionLocal
 from app.services.execution_service import process_event_service
 

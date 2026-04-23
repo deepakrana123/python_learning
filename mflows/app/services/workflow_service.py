@@ -1,12 +1,12 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
-from app.schemas.workflow_schemas import WorkflowCreate
-from app.repositories.workflow_repository import (
+from app.schemas.workflow import WorkflowCreate
+from app.repositories.workflow_repo import (
     create_workflow,
     get_workflow_by_id,
     list_workflows_by_domain,
 )
-from app.services.parser.orchestrator import parse_workflow_text
+from app.parser.orchestrator import parse_workflow_text
 import json
 
 

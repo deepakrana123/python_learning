@@ -1,7 +1,7 @@
-from app.services.parser.extractors import extract_all
-from app.services.parser.intent_mapper import map_intents
-from app.services.parser.rule_builder import build_final_rule
-from app.services.parser.validator import validate_rule
+from app.parser.extractors import extract_all
+from app.parser.intent_mapper import map_intents
+from app.parser.rule_builder import build_final_rule
+from app.parser.validator import validate_rule
 
 
 def needs_llm(mapped: dict):

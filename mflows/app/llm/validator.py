@@ -1,8 +1,11 @@
-from app.services.llm.schemas import ALLOWED_TRIGGERS, ALLOWED_ACTIONS, REQUIRED_FIELDS
+from app.llm.schemas import ALLOWED_TRIGGERS, ALLOWED_ACTIONS, REQUIRED_FIELDS
 
 
 def validate_workflow_json(data: dict):
     errors = []
+
+    if not isinstance(data, dict):
+        return {"is_valid": False, "errors": ["response must be object"]}
     for field in REQUIRED_FIELDS:
         if field not in data:
             errors.append(f"missing field:{field}")

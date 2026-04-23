@@ -24,3 +24,7 @@ def list_workflows_by_domain(db: Session, domain: str):
         query = query.filter(Workflow.domain == domain)
 
     return query.all()
+
+
+def delete(db: Session, workflow: Workflow):
+    db.delete(workflow)

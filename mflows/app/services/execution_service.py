@@ -1,7 +1,7 @@
 import json
 from sqlalchemy.orm import Session
 from app.models.workflow import Workflow
-from app.services.actions.dispatcher import execute_action
+from app.actions.dispatcher import execute_action
 from app.models.audit_log import AuditLog
 import json
 
@@ -13,7 +13,7 @@ def process_event_service(payload, db):
     execution_results = []
     for workflow in workflows:
         try:
-            rule = json.loads(workflows.parsed_rule_json)
+            rule = json.loads(workflow.parsed_rule_json)
         except:
             continue
 

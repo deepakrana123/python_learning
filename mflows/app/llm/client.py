@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 import time
+from app.llm.prompt_loader import build_prompt
 
 load_dotenv()
 
@@ -26,7 +27,8 @@ def call_llm(user_input: str, task_type: str = "parser"):
 def try_free_model(user_input, task_type):
     start = time.time()
     try:
-        text = fake_call("Free_Model", user_input)
+        prompt = build_prompt("parser_v1.txt", {"user_input": user_input})
+        text = fake_call("Free_Model", prompt)
         return {
             "success": True,
             "provider": "free",
@@ -41,7 +43,6 @@ def try_free_model(user_input, task_type):
 
 
 def try_local_model(user_input, task_type):
-
     return {"success": False, "provider": "local", "error": "disabled"}
 
 
@@ -53,7 +54,9 @@ def try_engineer_model(user_input, task_type):
     return {"success": False, "provider": "engineer", "error": "not configured"}
 
 
-def fake_call(model_name, user_input):
+def fake_call(prompt):
+    print("Prompt sent:")
+    print(prompt)
     return {
         "trigger": "loan_request",
         "action": "approve_loan",

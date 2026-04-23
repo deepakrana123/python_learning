@@ -1,4 +1,4 @@
-from app.services.actions.handlers import (
+from app.actions.handlers import (
     send_reminder,
     approve_loan,
     escalate_ticket,

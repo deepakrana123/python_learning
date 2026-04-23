@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app.db.session import SessionLocal
-from app.schemas.workflow_schemas import (
+from app.schemas.workflow import (
     WorkflowCreate,
     WorkflowResponse,
     DebugParseRequest,
