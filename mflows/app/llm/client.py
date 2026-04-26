@@ -2,19 +2,20 @@ import time
 import json
 
 
+def build_mpt(user_input: str):
+    return WORKFLOW_PARSE_PROMPT.replace("{input}", user_input)
+
+
 def call_llm(user_input: str, task_type: str = "parser"):
     providers = [
         try_free_model,
         try_engineer_model,
         try_paid_model,
     ]
-
     for provider in providers:
         result = provider(user_input, task_type)
-
         if result["success"]:
             return result
-
     return {"success": False, "error": "all providers failed"}
 
 

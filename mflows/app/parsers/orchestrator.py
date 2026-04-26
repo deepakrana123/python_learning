@@ -2,7 +2,7 @@ from app.parsers.extractors import extract_all
 from app.parsers.intent_mapper import map_intents
 from app.parsers.rule_builder import build_final_rule
 from app.parsers.validator import validate_rule
-from app.parsers import metrics
+from app.parsers.metrics import metrics
 from app.parsers.cache import cache_store
 from app.llm.service import parse_workflow_with_llm
 
@@ -27,7 +27,6 @@ def parse_workflow_text(text: str):
         llm_result = parse_workflow_with_llm(text)
         if llm_result["success"]:
             metrics.llm_hits += 1
-
         result = {
             "success": True,
             "source": "llm",
@@ -36,6 +35,8 @@ def parse_workflow_text(text: str):
                 "is_valid": True,
                 "errors": [],
             },
+            "data": llm_result["data"],
+            "score": llm_result["score"],
         }
         cache_store[text] = result
         return result
@@ -50,7 +51,11 @@ def parse_workflow_text(text: str):
             "extracted": extracted,
             "mapped": mapped,
         },
+        "score": 1.0,
+        "data": rule if validation["is_valid"] else None,
+        "error": None if validation["is_valid"] else validation["errors"],
     }
+    print(result, "result")
     if not result["success"]:
         metrics.failures += 1
     else:

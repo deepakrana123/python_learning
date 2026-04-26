@@ -58,4 +58,7 @@ def map_trigger(text: str):
 
 
 def map_intents(text: str):
-    return {"action_result": map_action(text), "trigger_reuslt": map_trigger(text)}
+    return {
+        "action_result": map_action(text),
+        "trigger_result": map_trigger(text),
+    }
