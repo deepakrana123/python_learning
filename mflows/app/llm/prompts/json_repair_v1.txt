@@ -1,7 +1,0 @@
-Fix the following into STRICT valid JSON only.
-
-Do not explain.
-Do not add markdown.
-
-Broken Output:
-{model_output}

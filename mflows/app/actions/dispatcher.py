@@ -14,7 +14,6 @@ ACTION_MAP = {
 
 def execute_action(action_name: str, payload: dict, config: dict):
     handler = ACTION_MAP.get(action_name)
-
     if not handler:
         return {"status": "failed", "action": action_name, "reason": "unknown action"}
 

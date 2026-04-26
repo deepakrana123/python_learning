@@ -1,6 +1,8 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime
+from sqlalchemy import Column, Integer, String, DateTime
 from datetime import datetime
+from sqlalchemy.dialects.postgresql import JSONB
 from app.db.base import Base
+from sqlalchemy.sql import func
 
 
 class Workflow(Base):
@@ -8,7 +10,12 @@ class Workflow(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
     domain = Column(String, nullable=False, index=True)
-    raw_input = Column(Text, nullable=False)
-    parsed_rule_json = Column(Text, nullable=True)
-    status = Column(String, default="active")
-    created_at = Column(DateTime, default=datetime.utcnow)
+    raw_input = Column(String, nullable=False)
+    parsed_rule_json = Column(JSONB, nullable=True)
+    status = Column(String(50), nullable=False, default="active", index=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+    )

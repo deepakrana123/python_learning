@@ -1,17 +1,18 @@
 from fastapi import APIRouter
-from app.schemas.parser_schema import ParseRequest, ParseResponse
+from app.schemas.parser import ParseRequest, ParseResponse
 
-# from app.services.parser.parser import parse_workflow
-from app.parser.metrics import metrics
+from app.parsers.orchestrator import parse_workflow_text
+from app.parsers import metrics
+
 
 router = APIRouter(prefix="/parse", tags=["Parser"])
 
 
 @router.post("/", response_model=ParseResponse)
-def parse_route(payload: ParseRequest):
-    return parse_workflow(payload.raw_input)
+def parse_router(payload: ParseRequest):
+    return parse_workflow_text(payload)
 
 
 @router.get("/metrics")
 def get_metrics():
-    return metrics
+    return metrics.to_dict()

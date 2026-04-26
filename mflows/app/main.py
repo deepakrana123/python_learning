@@ -1,20 +1,23 @@
 from fastapi import FastAPI
-from app.db.session import engine
-from app.db.base import Base
-from app.models.workflow import Workflow
-from app.api.workflows import router as workflow_router
-from app.api.events import router as event_router
+from dotenv import load_dotenv
 
-from app.llm.client import call_llm
+load_dotenv()
 
-print(call_llm("if salary above 50000 approve loan"))
-Base.metadata.create_all(bind=engine)
-
-app = FastAPI(title="FlowOS AI")
+from app.routes.workflows import router as workflow_router
+from app.routes.events import router as event_router
+from app.routes.parsers import router as parser_router
 
 
-app.include_router(workflow_router)
-app.include_router(event_router)
+app = FastAPI(
+    title="FlowOS AI",
+    version="1.0.0",
+    description="AI workflow automation engine",
+)
+
+
+app.include_router(workflow_router, prefix="/api")
+app.include_router(event_router, prefix="/api")
+app.include_router(parser_router, prefix="/api")
 
 
 @app.get("/")

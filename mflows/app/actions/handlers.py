@@ -1,4 +1,4 @@
-def send_reminder(payload):
+def send_reminder(payload, config):
     print("Reminder sent:", payload)
     return {"status": "success", "action": "send_reminder"}
 
@@ -11,6 +11,6 @@ def approve_loan(payload, config):
     return {"status": "success", "action": "approve_loan", "approved_limit": amount}
 
 
-def escalate_ticket(payload):
+def escalate_ticket(payload, config):
     print("Ticket escalated:", payload)
     return {"status": "success", "action": "escalate_ticket"}

@@ -1,352 +1,423 @@
-# Code Review Report
-**Project:** FlowOS AI  
+# Code Review Report — FlowOS AI
+
 **Date:** April 23, 2026  
 **Reviewed By:** Kiro AI  
-**Scope:** Full codebase static analysis
+**Scope:** Full codebase (`app/`, `alembic/`)
 
 ---
 
-## Table of Contents
-1. [Executive Summary](#executive-summary)
-2. [Critical Bugs](#1-critical-bugs)
-3. [High Severity — Validation Issues](#2-high-severity--validation-issues)
-4. [Code Duplication](#3-code-duplication)
-5. [Debug Code in Production](#4-debug-code-in-production)
-6. [Unused & Empty Files](#5-unused--empty-files)
-7. [Other Issues](#6-other-issues)
-8. [Severity Summary Table](#severity-summary-table)
+## Summary
+
+| Category | Count |
+|---|---|
+| Syntax / Runtime Errors | 8 |
+| Code Repetition / Duplication | 9 |
+| Logic Bugs | 6 |
+| Wrong Import Paths | 5 |
+| Missing / Broken References | 4 |
+| Bad Practices | 7 |
 
 ---
 
-## Executive Summary
+## 1. SYNTAX / RUNTIME ERRORS
 
-The codebase has **3 critical bugs** that break core functionality at runtime, **4 high-severity validation issues** that cause silent failures, and significant code duplication across the parsing layer. Several debug `print()` statements are embedded in production paths, and multiple files are entirely unused. Immediate attention is required on the critical bugs before any deployment.
+### 1.1 `app/models/audit_log.py` — Missing comma (SyntaxError, app will not start)
+```python
+# BROKEN — missing comma before nullable=True
+workflow_id = Column(Integer,ForeignKey("workflows.id"),index=True nullable=True)
 
----
+# FIX
+workflow_id = Column(Integer, ForeignKey("workflows.id"), index=True, nullable=True)
+```
 
-## 1. Critical Bugs
-
-> These will cause runtime errors and break core functionality.
-
----
-
-### BUG-01 — Wrong Variable Name in Execution Loop
-**File:** `app/services/execution_service.py`  
-**Severity:** 🔴 Critical  
-
-**Problem:**  
-Inside the workflow loop, the code accesses `workflows.parsed_rule_json` (the query object) instead of `workflow.parsed_rule_json` (the loop variable). This crashes on every incoming event.
-
+### 1.2 `app/llm/client.py` — `fake_call` signature mismatch (TypeError at runtime)
+`fake_call` is defined with one argument (`prompt`) but called with two (`"Free_Model"`, `prompt`).
 ```python
 # BROKEN
-for workflow in workflows:
-    rule = json.loads(workflows.parsed_rule_json)  # ← AttributeError
+text = fake_call("Free_Model", prompt)   # 2 args
+def fake_call(prompt):                   # only 1 param
 
-# FIXED
-for workflow in workflows:
-    rule = json.loads(workflow.parsed_rule_json)
+# FIX — add the missing parameter
+def fake_call(provider: str, prompt: str):
+    ...
+```
+
+### 1.3 `app/llm/client.py` — `fake_call` returns a dict, not a string
+`fake_call` returns a `dict`, but the caller does `json.loads(cleaned)` on the result of `clean_json(llm_result["text"])`, expecting a string.
+```python
+# BROKEN — returns dict, not str
+def fake_call(prompt):
+    return {"trigger": "loan_request", ...}
+
+# FIX — return a JSON string
+def fake_call(provider: str, prompt: str) -> str:
+    return json.dumps({"trigger": "loan_request", ...})
+```
+
+### 1.4 `app/llm/repair.py` — `fake_repair_call` returns a dict, not a string
+Same issue as above. `json.loads(repaired)` will fail because `repaired` is already a dict.
+```python
+# BROKEN
+def fake_repair_call(prompt: str):
+    return {"trigger": "loan_request", ...}   # dict, not str
+
+# FIX
+def fake_repair_call(prompt: str) -> str:
+    return json.dumps({"trigger": "loan_request", ...})
+```
+
+### 1.5 `app/schemas/event.py` — Invalid generic type in `List[Dict[str]]`
+`Dict` requires two type arguments: key type and value type.
+```python
+# BROKEN
+execution_results: List[Dict[str]]
+
+# FIX
+execution_results: List[Dict[str, Any]]
+```
+
+### 1.6 `app/parsers/regex_parser.py` — Regex captures `\d+s` instead of `\d+`
+The `s` is inside the capture group, so `int(m.group(1))` will raise `ValueError` on any match.
+```python
+# BROKEN
+m = re.search(r"(\d+s)\s*times?", text.lower())
+
+# FIX
+m = re.search(r"(\d+)\s*times?", text.lower())
+```
+
+### 1.7 `app/parsers/extractors.py` — `print` statement at module level (side effect on import)
+```python
+# BROKEN — runs on every import
+print(extract_all("Send reminder after 10 days"))
+
+# FIX — remove or guard with __main__
+if __name__ == "__main__":
+    print(extract_all("Send reminder after 10 days"))
+```
+
+### 1.8 `app/schemas/parserpy` — File has no `.py` extension
+The file `app/schemas/parserpy` is missing the `.py` extension. Python cannot import it, so `app/routes/parsers.py` will crash on startup with `ModuleNotFoundError`.
+```
+# FIX — rename the file
+app/schemas/parserpy  →  app/schemas/parser_schema.py
 ```
 
 ---
 
-### BUG-02 — Duplicate Function with Broken Regex
-**File:** `app/services/llm/parser.py`  
-**Severity:** 🔴 Critical  
+## 2. WRONG IMPORT PATHS (ModuleNotFoundError at runtime)
 
-**Problem:**  
-`parse_with_regex()` is defined **twice** in the same file. Python silently uses the second definition, which has an incomplete `re.search()` call — the `raw_text` argument is missing. The first definition becomes dead code.
-
+### 2.1 `app/services/workflow_service.py`
 ```python
-# First definition (correct, but ignored by Python)
-def parse_with_regex(raw_text: str):
-    match = re.search(r"salary above (\d+) approve loan", raw_text)
+# BROKEN — package is app.parsers, not app.parser
+from app.parser.orchestrator import parse_workflow_text
 
-# Second definition (used by Python, broken)
-def parse_with_regex(raw_text: str):
-    match = re.search(r"salary above (\d+)")  # ← missing raw_text argument
+# FIX
+from app.parsers.orchestrator import parse_workflow_text
+```
+
+### 2.2 `app/parsers/orchestrator.py`
+```python
+# BROKEN — all four imports use app.parser instead of app.parsers
+from app.parser.extractors import extract_all
+from app.parser.intent_mapper import map_intents
+from app.parser.rule_builder import build_final_rule
+from app.parser.validator import validate_rule
+
+# FIX
+from app.parsers.extractors import extract_all
+from app.parsers.intent_mapper import map_intents
+from app.parsers.rule_builder import build_final_rule
+from app.parsers.validator import validate_rule
+```
+
+### 2.3 `app/parsers/main_parser.py`
+```python
+# BROKEN
+from app.parser.metrics import metrics
+from app.parser.cache import cache_store
+
+# FIX
+from app.parsers.metrics import metrics
+from app.parsers.cache import cache_store
+```
+
+### 2.4 `app/routes/parsers.py`
+```python
+# BROKEN — wrong schema module name and missing import for parse_workflow
+from app.schemas.parser_schema import ParseRequest, ParseResponse
+from app.parser.metrics import metrics
+# parse_workflow is commented out but still called in the route body
+
+# FIX
+from app.schemas.parser_schema import ParseRequest, ParseResponse
+from app.parsers.metrics import metrics
+from app.parsers.main_parser import parse_workflow   # uncomment and fix
 ```
 
 ---
 
-### BUG-03 — Calling an Undefined Function in Route
-**File:** `app/api/parser_routes.py`  
-**Severity:** 🔴 Critical  
+## 3. CODE REPETITION / DUPLICATION
 
-**Problem:**  
-The import for `parse_workflow` is commented out, but the function is still called in the route handler. Every request to `POST /parse` will throw a `NameError`.
-
+### 3.1 `parse_with_regex` defined twice in `app/parsers/main_parser.py`
+The function is defined at line ~8 and again at line ~60. The second definition silently overwrites the first. The first version also has a bug (`raw_text.lower()` passed to `re.search` but `raw_text` used for the match group).
 ```python
-# Import is commented out
-# from app.services.parser.parser import parse_workflow
-
-@router.post("/", response_model=ParseResponse)
-def parse_route(payload: ParseRequest):
-    return parse_workflow(payload.raw_input)  # ← NameError: parse_workflow is not defined
+# DUPLICATED — remove the first definition, keep only the second (corrected) one
+def parse_with_regex(raw_text: str):   # appears TWICE
 ```
 
----
-
-## 2. High Severity — Validation Issues
-
-> These cause validation to silently pass or fail incorrectly.
-
----
-
-### BUG-04 — Typo Makes Condition Check Dead Code
-**File:** `app/services/llm/validator.py`  
-**Severity:** 🟠 High  
-
-**Problem:**  
-The key `"condititons"` (typo) will never match `"conditions"` in the data. The condition type check is permanently skipped for all inputs.
-
+### 3.2 `get_db()` duplicated across three route files
+`get_db()` is copy-pasted identically in `app/routes/workflows.py`, `app/routes/events.py`, and already exists in `app/db/session.py`.
 ```python
-# BROKEN — typo, never matches
-if "condititons" in data and not isinstance(data["conditions"], dict):
-
-# FIXED
-if "conditions" in data and not isinstance(data["conditions"], dict):
-```
-
----
-
-### BUG-05 — Wrong Key Name in Rule Validator
-**File:** `app/services/parser/validator.py`  
-**Severity:** 🟠 High  
-
-**Problem:**  
-The validator checks for `"condition"` (singular) but the rule object uses `"conditions"` (plural). The check always falls back to the default empty list and never validates actual conditions.
-
-```python
-# BROKEN — key never found
-if not isinstance(rule.get("condition", []), list):
-
-# FIXED
-if not isinstance(rule.get("conditions", []), list):
-```
-
----
-
-### BUG-06 — Allowed Triggers & Actions Defined Twice with Different Values
-**Files:** `app/services/llm/schemas.py` vs `app/services/parser/validator.py`  
-**Severity:** 🟠 High  
-
-**Problem:**  
-Two separate sets of allowed values exist and they do not match. A workflow that passes one validator will fail the other.
-
-| | `llm/schemas.py` | `parser/validator.py` |
-|---|---|---|
-| **Triggers** | loan_request, ticket_created, payment_due | complaint_created, payment_due, payment_missed |
-| **Actions** | approve_loan, reject_loan, send_reminder, escalate_ticket, notify_manager | send_reminder, escalate_case, assign_senior_officer, close_case |
-
-**Fix:** Consolidate into a single constants file and import from it everywhere.
-
----
-
-### BUG-07 — Inconsistent Action Handler Signatures
-**File:** `app/services/actions/handlers.py`  
-**Severity:** 🟠 High  
-
-**Problem:**  
-Handler functions have inconsistent signatures. If the dispatcher calls all handlers the same way, `send_reminder` and `escalate_ticket` will throw a `TypeError`.
-
-```python
-def send_reminder(payload):           # 1 argument
-def approve_loan(payload, config):    # 2 arguments
-def escalate_ticket(payload):         # 1 argument
-```
-
-**Fix:** Standardize all handlers to accept `(payload, config=None)`.
-
----
-
-## 3. Code Duplication
-
-> Same logic repeated in multiple places — a fix in one location won't apply to the other.
-
----
-
-### DUP-01 — `parse_workflow()` Exists in Two Files
-**Files:** `app/services/llm/parser.py` and `app/services/parser/parser.py`  
-**Severity:** 🟡 Medium  
-
-The entire parsing function is copy-pasted between two files. Both contain the same bugs. There is no clear ownership of which one is the "real" parser.
-
----
-
-### DUP-02 — `get_db()` Duplicated Across Route Files
-**Files:** `app/api/event_routes.py` and `app/api/workflow_routes.py`  
-**Severity:** 🟡 Medium  
-
-The database session dependency is defined separately in each route file instead of being imported from `app/db/session.py`.
-
-```python
-# Duplicated in both files — should be imported once
+# DUPLICATED in workflows.py and events.py
 def get_db():
     db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
+
+# FIX — import from the single source of truth
+from app.db.session import get_db
 ```
 
----
+### 3.3 `extract_days`, `extract_repeat_count`, `extract_amount_threshold` duplicated
+These three functions exist in both `app/parsers/regex_parser.py` and `app/parsers/extractors.py` with slightly different implementations. `regex_parser.py` is the inferior copy (has the `\d+s` bug, no `normalize()` helper, narrower regex for amount).
+```
+FIX — delete app/parsers/regex_parser.py and use app/parsers/extractors.py everywhere.
+```
 
-### DUP-03 — Regex Extraction Utilities Duplicated
-**Files:** `app/services/regex_parser.py` and `app/services/parser/extractors.py`  
-**Severity:** 🟡 Medium  
-
-`extract_days()`, `extract_repeat_count()`, and `extract_amount_threshold()` exist in both files. `regex_parser.py` is never imported anywhere — it is dead code.
-
----
-
-### DUP-04 — `map_intents()` Called Twice Consecutively
-**File:** `app/services/parser/orchestrator.py`  
-**Severity:** 🟡 Medium  
-
+### 3.4 `map_intents` called twice in `app/parsers/orchestrator.py`
 ```python
+# DUPLICATED — second call overwrites the first with identical result
 mapped = map_intents(text)
-mapped = map_intents(text)   # ← second call immediately overwrites the first
+mapped = map_intents(text)   # ← remove this line
 ```
 
-The second call is pointless and wastes a computation cycle.
+### 3.5 Trigger/action allow-lists defined in two places
+`ALLOWED_TRIGGERS` and `ALLOWED_ACTIONS` are defined in both `app/llm/schemas.py` and `app/parsers/validator.py` with **different values**, causing inconsistent validation between the LLM layer and the parser layer.
 
----
+| | `app/llm/schemas.py` | `app/parsers/validator.py` |
+|---|---|---|
+| Triggers | `loan_request`, `ticket_created`, `payment_due` | `complaint_created`, `payment_due`, `payment_missed` |
+| Actions | `approve_loan`, `reject_loan`, `send_reminder`, `escalate_ticket`, `notify_manager` | `send_reminder`, `escalate_case`, `assign_senior_officer`, `close_case` |
 
-## 4. Debug Code in Production
+```
+FIX — consolidate into a single app/schemas/constants.py and import from there.
+```
 
-> These execute automatically and should not be in production code.
-
----
-
-### DBG-01 — LLM Call Fires on App Startup
-**File:** `app/main.py`  
-**Severity:** 🟡 Medium  
-
+### 3.6 `import json` duplicated in `app/services/execution_service.py`
 ```python
-print(call_llm("if salary above 50000 approve loan"))  # runs every time the server starts
+import json   # line 1
+...
+import json   # line 6 — duplicate, remove it
 ```
 
-This makes a live LLM call and prints to stdout on every application startup.
+### 3.7 `load_dotenv()` called in both `app/llm/client.py` and `app/main.py`
+Calling it twice is harmless but redundant. It should only be called once at application startup in `main.py`.
 
 ---
 
-### DBG-02 — `print()` at Module Level in Extractors
-**File:** `app/services/parser/extractors.py`  
-**Severity:** 🟡 Medium  
+## 4. LOGIC BUGS
 
-A `print(extract_all(...))` statement exists at the module level. It executes every time the module is imported, not just when the function is called.
+### 4.1 `app/parsers/main_parser.py` — Early return missing after regex success
+When regex parsing succeeds and the result is valid, the function stores the result in cache but then **falls through** to the LLM call instead of returning.
+```python
+# BROKEN — missing return
+if valid["is_valid"]:
+    return {"success": True, "source": "regex", "score": 1.0, "data": parsed}
+metrics["regex_hits"] += 1
+result = { ... }
+cache_store[raw_text] = result
+# ← should return here, but doesn't — falls through to LLM call
+
+# FIX
+cache_store[raw_text] = result
+return result   # add this
+```
+
+### 4.2 `app/llm/validator.py` — Validation checks inside `for field in REQUIRED_FIELDS` loop
+The trigger, action, conditions, and config checks are indented inside the `for` loop, so they run once per required field (4 times), producing duplicate error messages.
+```python
+# BROKEN — indented inside for loop
+for field in REQUIRED_FIELDS:
+    if field not in data:
+        errors.append(f"missing field:{field}")
+    if data.get("trigger") not in ALLOWED_TRIGGERS:   # runs 4 times
+        ...
+
+# FIX — dedent the extra checks out of the loop
+for field in REQUIRED_FIELDS:
+    if field not in data:
+        errors.append(f"missing field:{field}")
+
+if data.get("trigger") not in ALLOWED_TRIGGERS:
+    errors.append("Invalid trigger")
+...
+```
+
+### 4.3 `app/llm/validator.py` — Typo in key name `"condititons"`
+```python
+# BROKEN — typo will never match the actual key "conditions"
+if "condititons" in data and not isinstance(data["conditions"], dict):
+
+# FIX
+if "conditions" in data and not isinstance(data["conditions"], dict):
+```
+
+### 4.4 `app/services/workflow_service.py` — 404 returned as 400
+```python
+# WRONG status code — "not found" should be 404
+raise HTTPException(status_code=400, detail="Workflow not found")
+
+# FIX
+raise HTTPException(status_code=404, detail="Workflow not found")
+```
+
+### 4.5 `app/repositories/workflow_repo.py` — `delete` missing `db.commit()`
+The `delete` function removes the object from the session but never commits, so the deletion is never persisted.
+```python
+# BROKEN
+def delete(db: Session, workflow: Workflow):
+    db.delete(workflow)
+
+# FIX
+def delete(db: Session, workflow: Workflow):
+    db.delete(workflow)
+    db.commit()
+```
+
+### 4.6 `app/services/execution_service.py` — `db.commit()` inside loop, one failure rolls back nothing
+Committing inside the loop means a crash mid-loop leaves some audit logs committed and others not. Use a single commit after the loop, or wrap each iteration in a try/except with rollback.
+```python
+# RISKY — commit per iteration
+for workflow in workflows:
+    ...
+    db.add(log)
+    db.commit()   # ← move outside the loop
+
+# FIX
+    db.add(log)
+# after loop:
+db.commit()
+```
 
 ---
 
-### DBG-03 — `print()` Inside Intent Mapping Loop
-**File:** `app/services/parser/intent_mapper.py`  
-**Severity:** 🟡 Medium  
+## 5. MISSING / BROKEN REFERENCES
 
-A `print(action, phrases)` statement fires inside the mapping logic during normal execution, flooding logs with internal data.
+### 5.1 `app/routes/parsers.py` — `parse_workflow` is called but never imported
+The import is commented out and the function is still used in the route body. The route will raise `NameError` on every request.
+```python
+# BROKEN
+# from app.services.parser.parser import parse_workflow
+...
+return parse_workflow(payload.raw_input)   # NameError
+
+# FIX — uncomment and correct the import path
+from app.parsers.main_parser import parse_workflow
+```
+
+### 5.2 `app/actions/handlers.py` — `send_reminder` and `escalate_ticket` missing `config` parameter
+`dispatcher.py` calls all handlers as `handler(payload, config)`, but `send_reminder` and `escalate_ticket` only accept one argument.
+```python
+# BROKEN — called with 2 args but only accepts 1
+def send_reminder(payload):
+def escalate_ticket(payload):
+
+# FIX
+def send_reminder(payload: dict, config: dict):
+def escalate_ticket(payload: dict, config: dict):
+```
+
+### 5.3 `app/repositories/execution_repo.py` — File is empty
+`execution_service.py` does all DB work inline. If an execution repository is intended, it is missing entirely.
+
+### 5.4 `app/llm/client.py` — `try_free_model` is listed twice in the providers list
+```python
+providers = [try_free_model, try_free_model, try_engineer_model, try_paid_model]
+#                            ^^^^^^^^^^^^^^ duplicate — should be try_local_model
+```
+`try_local_model` is defined but never used. The providers list should be:
+```python
+providers = [try_free_model, try_local_model, try_engineer_model, try_paid_model]
+```
 
 ---
 
-## 5. Unused & Empty Files
+## 6. BAD PRACTICES
 
-> These add noise and confusion to the codebase.
-
-| File | Issue |
-|---|---|
-| `app/services/regex_parser.py` | Never imported or used anywhere |
-| `app/services/parser/cache.py` | Empty dictionary, never read or written |
-| `app/services/parser/metrics.py` | Metrics dict declared but never updated |
-| `app/services/llm/router.py` | Completely empty file |
-| `alembic/versions/5a15a7cd98e9_add_status_column.py` | Duplicate migration name, no schema changes |
-| `alembic/versions/69ac7ff42317_create_workflows_table.py` | Empty migration — no table is actually created |
-| `alembic/versions/3f58052cf840_create_audit_logs_table.py` | Empty migration — no table is actually created |
-
----
-
-## 6. Other Issues
-
----
-
-### OTHER-01 — Bare `except` Clauses Swallow All Errors
-**Files:** `app/services/execution_service.py`, `app/services/llm/parser.py`  
-**Severity:** 🟡 Medium  
-
+### 6.1 Bare `except:` in `execution_service.py`
 ```python
 try:
     rule = json.loads(workflow.parsed_rule_json)
-except:   # ← catches everything including KeyboardInterrupt, SystemExit
+except:   # catches everything including KeyboardInterrupt, SystemExit
+    continue
+
+# FIX
+except (json.JSONDecodeError, TypeError):
     continue
 ```
 
-Silent failures make debugging extremely difficult. Use `except (json.JSONDecodeError, KeyError) as e` and log the error.
-
----
-
-### OTHER-02 — Event Matching Logic is Hardcoded
-**File:** `app/services/execution_service.py`  
-**Severity:** 🟡 Medium  
-
-`is_rule_matched()` contains hardcoded checks for `"vip"` and `"salary_gt"` instead of dynamically evaluating the parsed rule conditions stored in the database. The entire purpose of storing `parsed_rule_json` is bypassed.
-
----
-
-### OTHER-03 — No Database Transaction Rollback
-**Files:** Multiple service files  
-**Severity:** 🟡 Medium  
-
-Multiple `db.add()` / `db.commit()` calls have no corresponding `db.rollback()` on failure. A partial write can leave the database in an inconsistent state.
-
----
-
-### OTHER-04 — Typos in Function and Variable Names
-**File:** `app/services/parser/intent_mapper.py`  
-**Severity:** 🔵 Low  
-
-| Typo | Should Be |
-|---|---|
-| `normailze` | `normalize` |
-| `pharses` | `phrases` |
-
-These don't cause runtime errors but indicate the code was not reviewed carefully.
-
----
-
-### OTHER-05 — Domain Validation is Hardcoded
-**File:** `app/services/workflow_service.py`  
-**Severity:** 🔵 Low  
-
+### 6.2 Bare `except:` in `llm/repair.py`
 ```python
-ALLOWED_DOMAINS = ["support", "loan"]
+except:
+    return {"success": False}
+
+# FIX
+except json.JSONDecodeError:
+    return {"success": False, "error": "invalid json"}
 ```
 
-Hardcoded in the service layer with no corresponding configuration or constant file. Adding a new domain requires a code change.
+### 6.3 `print` statements used for logging throughout
+`handlers.py`, `intent_mapper.py`, `client.py`, and `repair.py` all use `print()` for debug output. Use Python's `logging` module instead so output can be controlled by log level.
+
+### 6.4 `app/parsers/metrics.py` and `app/parsers/cache.py` are mutable global state
+Both are plain module-level dicts. In a multi-worker deployment (e.g., Gunicorn with multiple processes), each worker has its own copy — metrics will be inaccurate and the cache will not be shared. Use Redis or a proper cache/metrics backend.
+
+### 6.5 `app/llm/client.py` — `try_paid_model` and `try_engineer_model` return the same error
+Both stubs return `"provider": "engineer"`, making it impossible to distinguish which provider failed in logs.
+
+### 6.6 `app/parsers/intent_mapper.py` — Typo in function name `normailze`
+```python
+def normailze(text: str) -> str:   # typo
+
+# FIX
+def normalize(text: str) -> str:
+```
+Both `extractors.py` and `intent_mapper.py` define their own `normalize` helper. Consolidate into a shared utility.
+
+### 6.7 `app/models/workflow.py` — `parsed_rule_json` is `JSONB` but treated as a string elsewhere
+The model column is `JSONB` (PostgreSQL native JSON), but `execution_service.py` calls `json.loads(workflow.parsed_rule_json)` and `workflow_service.py` stores `json.dumps(parse_result["rule"])`. SQLAlchemy with JSONB already deserializes the value — calling `json.loads` on it will raise a `TypeError`.
+```python
+# BROKEN — JSONB is already a dict when read back
+rule = json.loads(workflow.parsed_rule_json)
+
+# FIX — use directly
+rule = workflow.parsed_rule_json
+# and when writing, pass the dict directly (no json.dumps)
+parsed_rule_json=parse_result["rule"]
+```
 
 ---
 
-## Severity Summary Table
+## Quick-Fix Priority
 
-| ID | File | Issue | Severity |
-|---|---|---|---|
-| BUG-01 | execution_service.py | `workflows` vs `workflow` typo crashes event processing | 🔴 Critical |
-| BUG-02 | llm/parser.py | Duplicate function with broken regex | 🔴 Critical |
-| BUG-03 | parser_routes.py | Undefined `parse_workflow` called in route | 🔴 Critical |
-| BUG-04 | llm/validator.py | Typo `condititons` — condition check never runs | 🟠 High |
-| BUG-05 | parser/validator.py | Wrong key `condition` vs `conditions` | 🟠 High |
-| BUG-06 | llm/schemas.py + parser/validator.py | Duplicate, mismatched allowed values | 🟠 High |
-| BUG-07 | actions/handlers.py | Inconsistent handler signatures | 🟠 High |
-| DUP-01 | llm/parser.py + parser/parser.py | `parse_workflow()` duplicated | 🟡 Medium |
-| DUP-02 | event_routes.py + workflow_routes.py | `get_db()` duplicated | 🟡 Medium |
-| DUP-03 | regex_parser.py + extractors.py | Extraction utilities duplicated | 🟡 Medium |
-| DUP-04 | parser/orchestrator.py | `map_intents()` called twice | 🟡 Medium |
-| DBG-01 | main.py | LLM call fires on every app startup | 🟡 Medium |
-| DBG-02 | parser/extractors.py | `print()` at module level | 🟡 Medium |
-| DBG-03 | parser/intent_mapper.py | `print()` inside mapping loop | 🟡 Medium |
-| OTHER-01 | execution_service.py + llm/parser.py | Bare `except` swallows all errors | 🟡 Medium |
-| OTHER-02 | execution_service.py | Event matching logic is hardcoded | 🟡 Medium |
-| OTHER-03 | Multiple services | No DB transaction rollback | 🟡 Medium |
-| OTHER-04 | parser/intent_mapper.py | Typos in function/variable names | 🔵 Low |
-| OTHER-05 | workflow_service.py | Hardcoded domain list | 🔵 Low |
-
----
-
-**Total Issues Found: 19**  
-🔴 Critical: 3 &nbsp;|&nbsp; 🟠 High: 4 &nbsp;|&nbsp; 🟡 Medium: 10 &nbsp;|&nbsp; 🔵 Low: 2
+| Priority | File | Issue |
+|---|---|---|
+| 🔴 Critical | `app/models/audit_log.py` | SyntaxError — app won't start |
+| 🔴 Critical | `app/schemas/parserpy` | Missing `.py` extension — import fails |
+| 🔴 Critical | `app/llm/client.py` | `fake_call` wrong signature + wrong return type |
+| 🔴 Critical | All `app.parser.*` imports | Wrong package name — `ModuleNotFoundError` |
+| 🔴 Critical | `app/routes/parsers.py` | `parse_workflow` never imported — `NameError` |
+| 🟠 High | `app/parsers/main_parser.py` | Duplicate `parse_with_regex`, missing `return` after regex hit |
+| 🟠 High | `app/llm/validator.py` | Loop indentation bug + typo `condititons` |
+| 🟠 High | `app/actions/handlers.py` | Missing `config` param on two handlers |
+| 🟠 High | `app/models/workflow.py` | JSONB vs `json.dumps/loads` mismatch |
+| 🟡 Medium | `app/parsers/regex_parser.py` | Duplicate of `extractors.py`, has `\d+s` bug |
+| 🟡 Medium | `app/parsers/orchestrator.py` | `map_intents` called twice |
+| 🟡 Medium | `app/routes/workflows.py` + `events.py` | `get_db` duplicated |
+| 🟡 Medium | `app/llm/schemas.py` + `app/parsers/validator.py` | Conflicting allow-lists |
+| 🟢 Low | `app/parsers/extractors.py` | `print` at module level |
+| 🟢 Low | `app/services/execution_service.py` | Duplicate `import json`, bare `except:` |
+| 🟢 Low | `app/parsers/intent_mapper.py` | Typo `normailze`, debug `print` in loop |
