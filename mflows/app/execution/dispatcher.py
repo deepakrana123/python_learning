@@ -5,7 +5,6 @@ from app.execution.actions import (
     fail_randomly,
 )
 
-
 ACTION_MAP = {
     "send_reminder": send_reminder,
     "escalate_case": escalate_case,
@@ -16,6 +15,7 @@ ACTION_MAP = {
 
 def execute_action(action_name: str, payload: dict, config: dict):
     handler = ACTION_MAP.get(action_name)
+    print(handler, "handler hello")
     if not handler:
         return {"status": "failed", "action": action_name, "reason": "unknown action"}
 

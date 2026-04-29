@@ -15,5 +15,5 @@ def publish_event(body: EventCreate):
         "entity_type": body.entity_type,
         "entity_id": body.entity_id,
     }
-    redis_client.lpush("workflow_events", event)
+    redis_client.lpush("workflow_events", json.dumps(event))
     return {"success": True, "queued": True}
