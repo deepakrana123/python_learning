@@ -1,14 +1,16 @@
-from app.actions.handlers import (
+from app.execution.actions import (
     send_reminder,
-    approve_loan,
-    escalate_ticket,
+    escalate_case,
+    assign_senior_officer,
+    fail_randomly,
 )
 
 
 ACTION_MAP = {
     "send_reminder": send_reminder,
-    "approve_loan": approve_loan,
-    "escalate_ticket": escalate_ticket,
+    "escalate_case": escalate_case,
+    "assign_senior_officer": assign_senior_officer,
+    "fail_randomly": fail_randomly,
 }
 
 

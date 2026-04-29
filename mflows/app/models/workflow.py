@@ -14,8 +14,8 @@ class Workflow(Base):
     parsed_rule_json = Column(JSONB, nullable=True)
     status = Column(String(50), nullable=False, default="active", index=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(
-        DateTime(timezone=True),
-        server_default=func.now(),
-        onupdate=func.now(),
-    )
+    # updated_at = Column(
+    #     DateTime(timezone=True),
+    #     server_default=func.now(),
+    #     onupdate=func.now(),
+    # )

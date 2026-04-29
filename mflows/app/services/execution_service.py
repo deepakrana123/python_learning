@@ -1,6 +1,6 @@
 import json
 from app.models.workflow import Workflow
-from app.actions.dispatcher import execute_action
+from app.execution.dispatcher import execute_action
 from app.repositories import audit_repo
 
 

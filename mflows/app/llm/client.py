@@ -1,21 +1,24 @@
 import time
 import json
+from app.llm.providers.ollama import try_call_ollama
+from app.llm.prompt_loader import build_prompt
+from app.llm.providers.gemini_rest import try_call_gemini_rest
 
 
-def build_mpt(user_input: str):
-    return WORKFLOW_PARSE_PROMPT.replace("{input}", user_input)
-
-
-def call_llm(user_input: str, task_type: str = "parser"):
+def call_llm(user_input: str):
     providers = [
-        try_free_model,
-        try_engineer_model,
-        try_paid_model,
+        try_call_ollama,
+        try_call_gemini_rest,
+        # try_engineer_model,
+        # try_paid_model,
     ]
+    prompt = build_prompt("parser_v1.txt", {"user_input": user_input})
+    errors = []
     for provider in providers:
-        result = provider(user_input, task_type)
+        result = provider(prompt)
         if result["success"]:
             return result
+        errors.append({"provider": result["provider"], "error": result["error"]})
     return {"success": False, "error": "all providers failed"}
 
 

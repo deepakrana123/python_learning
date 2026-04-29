@@ -1,7 +1,10 @@
 import json
-from app.llm.client import call_llm
+from app.llm.llmManager import LLMManager
 from app.llm.validator import validate_workflow_json
 from app.llm.repair import repair_json
+
+
+manager = LLMManager()
 
 
 def clean_json(text: str):
@@ -9,10 +12,11 @@ def clean_json(text: str):
 
 
 def parse_workflow_with_llm(raw_text: str):
-    result = call_llm(raw_text, "parser")
+    result = manager.call(raw_text)
     if not result["success"]:
         return result
     raw_output = result["text"]
+    print(raw_output, "hlo raw_output")
     try:
         parsed = json.loads(clean_json(raw_output))
     except Exception:
@@ -26,6 +30,7 @@ def parse_workflow_with_llm(raw_text: str):
     return {
         "success": True,
         "source": result["provider"],
-        "score": result["score"],
+        "score": result.get("score", 0),
         "data": parsed,
+        "provider": result["provider"],
     }

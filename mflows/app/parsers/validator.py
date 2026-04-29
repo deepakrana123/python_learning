@@ -17,7 +17,6 @@ def validate_rule(rule: dict):
     errors = []
     if not rule.get("trigger"):
         errors.append("trigger is required")
-
     if not rule.get("action"):
         errors.append("action is required")
 
@@ -39,7 +38,6 @@ def validate_rule(rule: dict):
 
     if not isinstance(rule.get("conditions", []), list):
         errors.append("conditions must be list")
-
     return {
         "is_valid": len(errors) == 0,
         "errors": errors,

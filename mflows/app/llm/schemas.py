@@ -1,8 +1,4 @@
-ALLOWED_TRIGGERS = [
-    "loan_request",
-    "ticket_created",
-    "payment_due",
-]
+ALLOWED_TRIGGERS = ["loan_request", "ticket_created", "payment_due", "payment_missed"]
 
 ALLOWED_ACTIONS = [
     "approve_loan",
@@ -10,11 +6,12 @@ ALLOWED_ACTIONS = [
     "send_reminder",
     "escalate_ticket",
     "notify_manager",
+    "escalate_case",
 ]
 
 REQUIRED_FIELDS = [
     "trigger",
     "action",
-    "conditions",
-    "config",
+    # "conditions",
+    # "config",
 ]

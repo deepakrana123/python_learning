@@ -1,4 +1,3 @@
-WORKFLOW_PARSE_PROMPT = """
 You convert workflow automation instructions into strict JSON.
 
 Rules:
@@ -6,47 +5,26 @@ Rules:
 - No markdown
 - No explanation
 - Use exact schema
-
+- If unclear, choose closest valid trigger/action
 
 Allowed triggers:
 payment_due
 payment_missed
 complaint_created
-ticket_created
-loan_request
 
 Allowed actions:
 send_reminder
 escalate_case
 assign_senior_officer
 close_case
-notify_manager
-reject_loan
 
 Schema:
 {
   "trigger": "",
   "action": "",
   "conditions": [],
-  "delay_days": null,
-  "config": {},
-  "entity_refs":{},
-}
-
-entity_refs examples:
-{
-  "loan_id": "LN100",
-  "ticket_id": "TK90",
-  "customer_id": "CU1"
-}
-
-config examples:
-{
-  "retry_max": 3,
-  "timeout_sec": 20,
-  "fallback_provider": "gemini"
+  "delay_days": null
 }
 
 User Input:
 {user_input}
-"""
