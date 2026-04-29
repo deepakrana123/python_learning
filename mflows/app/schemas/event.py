@@ -1,16 +1,8 @@
-from typing import List, Dict, Any
 from pydantic import BaseModel
+from typing import Dict, Any
 
 
-class TriggerRequest(BaseModel):
+class EventCreate(BaseModel):
     event_type: str
-    payload: Dict[str, Any]
-
-
-class TriggerResponse(BaseModel):
-    success: bool
-    event_type: str
-    matched_count: int
-    matched_workflows: List[int]
-    actions: List[str]
-    execution_results: List[Dict[str, Any]]
+    pentity_type: str
+    entity_id: str
