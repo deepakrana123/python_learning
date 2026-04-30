@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 from app.models.workflow import Workflow
+from app.core.logger import logger
 
 
 def create(db: Session, name: str, domain: str, raw_input: str, parsed_rule_json=None):
@@ -8,11 +9,21 @@ def create(db: Session, name: str, domain: str, raw_input: str, parsed_rule_json
     )
     db.add(workflow)
     db.flush()
+    logger.debug(
+        "workflow_repo_flushed",
+        extra={"extra_data": {"workflow_id": workflow.id, "name": name}},
+    )
     return workflow
 
 
 def get_by_id(db: Session, workflow_id: int):
-    return db.query(Workflow).filter(Workflow.id == workflow_id)
+    result = db.query(Workflow).filter(Workflow.id == workflow_id)
+    if not result:
+        logger.warning(
+            "workflow_repo_not_found",
+            extra={"extra_data": {"workflow_id": workflow_id}},
+        )
+    return result
 
 
 def list_by_domain(db: Session, domain: str):
@@ -23,4 +34,8 @@ def list_by_domain(db: Session, domain: str):
 
 
 def delete(db: Session, workflow: Workflow):
+    logger.info(
+        "workflow_repo_deleted",
+        extra={"extra_data": {"workflow_id": workflow.id}},
+    )
     db.delete(workflow)

@@ -1,11 +1,10 @@
 import requests
 import time
 from app.llm.contracts import success_response, fail_response
-
 from app.config.retry_wrapper import with_retry
+from app.core.logger import logger
 
 OLLAMA_URL = "http://localhost:11434/api/generate"
-# OLLAMA_URL = "http://localhost:9999/api/generate"
 
 
 def try_call_ollama(prompt: str):
@@ -18,23 +17,39 @@ def try_call_ollama(prompt: str):
                 timeout=1,
             )
             if res.status_code != 200:
+                logger.warning(
+                    "ollama_http_error",
+                    extra={"extra_data": {"status_code": res.status_code}},
+                )
                 return fail_response("ollama", f"http_{res.status_code}")
+
             data = res.json()
             text = data.get("response", "").strip()
             if not text:
+                logger.warning("ollama_empty_response")
                 return fail_response("ollama", "empty_response")
 
+            latency = int((time.time() - start) * 1000)
+            logger.info(
+                "ollama_call_success",
+                extra={"extra_data": {"latency_ms": latency}},
+            )
             return success_response(
                 provider="ollama",
                 model="qwen2.5:7b",
                 text=data["response"],
-                latency_ms=int((time.time() - start) * 1000),
+                latency_ms=latency,
                 score=0.78,
                 cost=0,
             )
         except requests.Timeout:
+            logger.warning("ollama_timeout")
             return fail_response("ollama", "timeout")
         except Exception as e:
+            logger.error(
+                "ollama_unexpected_error",
+                extra={"extra_data": {"error": str(e)}},
+            )
             return fail_response("ollama", str(e))
 
     return with_retry(__call, retries=1)

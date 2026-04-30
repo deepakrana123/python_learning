@@ -5,6 +5,7 @@ from app.db.session import SessionLocal
 from app.models.event_processing import EventProcessing
 from app.core.redis_client import redis_client
 from app.core.config import PROCESSING_TIMEOUT_SECONDS
+from app.core.logger import logger
 import json
 
 MAIN_QUEUE = "workflow_events"
@@ -29,14 +30,21 @@ def reaper_worker():
                 .all()
             )
             for event in stuck_events:
-                print(f"[REAPER] Recovering stuck event: {event.event_id}")
+                logger.warning(
+                    "reaper_recovering_stuck_event",
+                    extra={"extra_data": {"event_id": event.event_id}},
+                )
                 event.status = "FAILED"
                 event.attempts += 1
                 event.last_error = "Recovered from stuck PROCESSING state"
                 db.commit()
                 redis_client.lpush(MAIN_QUEUE, json.dumps({"event_id": event.event_id}))
+
         except Exception as e:
-            print(f"[REAPER ERROR] {str(e)}")
+            logger.error(
+                "reaper_worker_error",
+                extra={"extra_data": {"error": str(e)}},
+            )
             db.rollback()
 
         finally:

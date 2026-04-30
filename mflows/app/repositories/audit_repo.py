@@ -1,4 +1,5 @@
 from app.models.audit_log import AuditLog
+from app.core.logger import logger
 
 
 def create(
@@ -13,3 +14,14 @@ def create(
         response_payload=response_payload,
     )
     db.add(log)
+    logger.debug(
+        "audit_log_written",
+        extra={
+            "extra_data": {
+                "workflow_id": workflow_id,
+                "action": action,
+                "status": status,
+                "event_type": event_type,
+            }
+        },
+    )

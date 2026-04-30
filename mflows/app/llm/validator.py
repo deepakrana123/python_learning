@@ -3,13 +3,16 @@ from app.llm.schemas import (
     ALLOWED_ACTIONS,
     REQUIRED_FIELDS,
 )
+from app.core.logger import logger
 
 
 def validate_workflow_json(data: dict):
     errors = []
     if not isinstance(data, dict):
         return {"is_valid": False, "errors": ["response must be object"]}
-    print(data, "data")
+
+    logger.debug("llm_validator_input", extra={"extra_data": {"data": data}})
+
     for field in REQUIRED_FIELDS:
         if field not in data:
             errors.append(f"missing field: {field}")
@@ -31,4 +34,11 @@ def validate_workflow_json(data: dict):
     config = data.get("config")
     if config is not None and not isinstance(config, dict):
         errors.append("config must be object")
-    return {"is_valid": len(errors) == 0, "errors": errors}
+
+    result = {"is_valid": len(errors) == 0, "errors": errors}
+    if not result["is_valid"]:
+        logger.warning(
+            "llm_validator_failed",
+            extra={"extra_data": {"errors": errors}},
+        )
+    return result

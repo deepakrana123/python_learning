@@ -3,6 +3,7 @@ import time
 from app.core.redis_client import redis_client
 from app.db.session import SessionLocal
 from app.services.execution_service import process_event_service
+from app.core.logger import logger
 
 
 def start_worker():
@@ -19,7 +20,10 @@ def start_worker():
             process_event_service(event, db)
             db.close()
         except Exception as e:
-            print("worker error:", e)
+            logger.error(
+                "worker_event_processing_error",
+                extra={"extra_data": {"error": str(e)}},
+            )
 
 
 if __name__ == "__main__":

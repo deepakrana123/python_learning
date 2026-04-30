@@ -4,6 +4,7 @@ from app.execution.actions import (
     assign_senior_officer,
     fail_randomly,
 )
+from app.core.logger import logger
 
 ACTION_MAP = {
     "send_reminder": send_reminder,
@@ -15,8 +16,29 @@ ACTION_MAP = {
 
 def execute_action(action_name: str, payload: dict, config: dict):
     handler = ACTION_MAP.get(action_name)
-    print(handler, "handler hello")
+
     if not handler:
+        logger.error(
+            "action_unknown",
+            extra={"extra_data": {"action_name": action_name}},
+        )
         return {"status": "failed", "action": action_name, "reason": "unknown action"}
 
-    return handler(payload, config)
+    logger.info(
+        "action_dispatched",
+        extra={"extra_data": {"action_name": action_name}},
+    )
+    result = handler(payload, config)
+
+    if result.get("status") == "success" or result.get("success"):
+        logger.info(
+            "action_success",
+            extra={"extra_data": {"action_name": action_name, "result": result}},
+        )
+    else:
+        logger.warning(
+            "action_failed",
+            extra={"extra_data": {"action_name": action_name, "result": result}},
+        )
+
+    return result

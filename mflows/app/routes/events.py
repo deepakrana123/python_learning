@@ -6,6 +6,7 @@ from app.schemas.event import EventCreate
 from app.core.redis_client import redis_client
 from app.db.session import SessionLocal
 from app.models.event_processing import EventProcessing
+from app.core.logger import logger
 
 router = APIRouter(prefix="/event", tags=["events"])
 
@@ -25,6 +26,15 @@ def publish_event(body: EventCreate):
         db.add(record)
         db.commit()
         redis_client.lpush("workflow_events", json.dumps(event))
+        logger.info(
+            "event_received",
+            extra={
+                "extra_data": {
+                    "event_id": event_id,
+                    "event_type": event["event_type"],
+                }
+            },
+        )
     except IntegrityError:
         db.rollback()
         return {"status": "duplicate_ignored"}

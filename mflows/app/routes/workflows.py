@@ -8,6 +8,7 @@ from app.schemas.workflow import (
 )
 from typing import List
 from app.services import workflow_service
+from app.core.logger import logger
 
 router = APIRouter(prefix="/workflows")
 
@@ -15,8 +16,13 @@ router = APIRouter(prefix="/workflows")
 @router.post("/", response_model=WorkflowResponse)
 def create_workflow(payload: WorkflowCreate, db: Session = Depends(get_db)):
     try:
-        return workflow_service.create_workflow_service(payload, db)
+        result = workflow_service.create_workflow_service(payload, db)
+        return result
     except ValueError as e:
+        logger.warning(
+            "route_create_workflow_failed",
+            extra={"extra_data": {"error": str(e), "name": payload.name, "domain": payload.domain}},
+        )
         raise HTTPException(status_code=400, detail=str(e))
 
 
@@ -25,6 +31,10 @@ def get_workflow(workflow_id: int, db: Session = Depends(get_db)):
     try:
         return workflow_service.get_workflow_service(workflow_id, db)
     except ValueError as e:
+        logger.warning(
+            "route_get_workflow_not_found",
+            extra={"extra_data": {"workflow_id": workflow_id}},
+        )
         raise HTTPException(status_code=400, detail=str(e))
 
 
