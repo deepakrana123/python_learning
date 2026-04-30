@@ -6,8 +6,6 @@ from app.services.execution_service import process_event_service
 
 
 def start_worker():
-    print("worker started")
-
     while True:
         item = redis_client.brpop("workflow_events", timeout=5)
 
