@@ -3,7 +3,6 @@ version: "3.9"
 services:
   api:
     build: .
-    container_name: workflow_api
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000
     ports:
       - "8000:8000"
@@ -11,46 +10,36 @@ services:
       - .env
     depends_on:
       - redis
-      - redpanda
 
   worker:
     build: .
-    container_name: workflow_worker
-    command: celery -A app.workers.tasks worker --loglevel=info
+    command: python -m app.workers.consumer
     env_file:
       - .env
     depends_on:
       - redis
-    environment:
-      - CELERY_BROKER_URL=redis://redis:6379/0
-
+  
+  retry_worker:
+    build: .
+    command: python -m app.workers.retry_worker
+    env_file:
+      - .env
+    depends_on:
+      - redis
+  
+  reaper_worker:
+    build: .
+    command: python -m app.workers.reaper_worker
+    env_file:
+      - .env
+    depends_on:
+      - redis
+  
   redis:
     image: redis:7
-    ports:
+    ports :
       - "6379:6379"
+      
 
-  redpanda:
-    image: redpandadata/redpanda:latest
-    command:
-      - redpanda
-      - start
-      - --overprovisioned
-      - --smp=1
-      - --memory=1G
-      - --reserve-memory=0M
-      - --node-id=0
-      - --check=false
-      - --kafka-addr=PLAINTEXT://0.0.0.0:9092
-      - --advertise-kafka-addr=PLAINTEXT://redpanda:9092
-    ports:
-      - "9092:9092"
+  
 
-  prometheus:
-    image: prom/prometheus
-    ports:
-      - "9090:9090"
-
-  grafana:
-    image: grafana/grafana
-    ports:
-      - "3000:3000"

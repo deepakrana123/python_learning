@@ -6,7 +6,7 @@ from app.execution.dispatcher import execute_action
 from app.repositories import audit_repo
 from app.repositories.entity_repo import fetch_entity_payload
 from sqlalchemy.sql import func
-from app.core.config import MAX_RETIRES, BASE_DELAY_SECONDS
+from app.core.config import MAX_RETRIES, BASE_DELAY_SECONDS
 from app.core.redis_client import redis_client
 from app.core.logger import logger
 from app.metrics.execution_metrics import execution_metrics
@@ -43,7 +43,9 @@ def process_event_service(event, db):
         matched = []
 
         for workflow in workflows:
-            action = rule.get("action",)
+            action = rule.get(
+                "action",
+            )
             rule = json.loads(workflow.parsed_rule_json)
             if is_rule_matched(rule, event, payload):
                 execution_metrics.total_actions_executed += 1
@@ -120,7 +122,7 @@ def process_event_service(event, db):
         )
         db.commit()
 
-        if attempts <= MAX_RETIRES:
+        if attempts <= MAX_RETRIES:
             delay = BASE_DELAY_SECONDS * (2 ** (attempts - 1))
             retry_at = int(time.time()) + delay
             redis_client.zadd("workflow_retry", {json.dumps(event): retry_at})
