@@ -1,17 +1,15 @@
 import time
-import json
 from sqlalchemy.sql import func
-
 from app.models.workflow import Workflow
 from app.models.event_processing import EventProcessing
 from app.execution.dispatcher import execute_action
-from app.repositories import audit_repo
 from app.repositories.entity_repo import fetch_entity_payload
 from app.core.config import MAX_RETRIES, BASE_DELAY_SECONDS
 from app.core.redis_client import redis_client
 from app.core.logger import logger
 import hashlib
 import json
+from app.repositories import audit_repo
 
 
 def build_execution_key(action, config):
@@ -21,6 +19,8 @@ def build_execution_key(action, config):
 
 def process_event_service(event, db):
     event_id = event["event_id"]
+    executed_workflows = []
+    matched_workflows = []
     executed_keys = set()
     updated = (
         db.query(EventProcessing)
@@ -34,7 +34,6 @@ def process_event_service(event, db):
         )
     )
     db.commit()
-
     if updated == 0:
         logger.warning(
             "event_lost_race",
@@ -43,82 +42,108 @@ def process_event_service(event, db):
         return {"status": "lost_race"}
 
     try:
-
         workflows = (
             db.query(Workflow)
             .filter(Workflow.status == "active")
             .order_by(Workflow.priority.desc())
             .all()
         )
-
         payload = fetch_entity_payload(db, event["entity_type"], event["entity_id"])
-
-        matched = []
-
         for workflow in workflows:
             rule = json.loads(workflow.parsed_rule_json)
             action = rule.get("action")
-            if is_rule_matched(rule, event, payload):
-                key = build_execution_key(action, rule.get("config", {}))
-                if key in executed_keys:
-                    continue
+            config = rule.get("config", {})
+            if not is_rule_matched(rule, event, payload):
+                continue
+            matched_workflows.append(workflow.id)
+            key = build_execution_key(action, config)
 
-                result = execute_action(
-                    action_name=action,
-                    payload=payload,
-                    config=rule.get("config", {}),
-                )
-                executed_keys.add(key)
+            if key in executed_keys:
                 logger.info(
-                    "execution_key_debug",
-                    extra={
-                        "extra_data": {
-                            "action": action,
-                            "config": rule.get("config", {}),
-                            "key": key,
-                        }
-                    },
+                    "duplicate_action_skipped_local",
+                    extra={"extra_data": {"event_id": event_id, "key": key}},
                 )
-                # Audit log
-                # audit_repo.create(
-                #     db=db,
-                #     workflow_id=workflow.id,
-                #     action=action,
-                #     status=result.get("status", "unknown"),
-                #     event_type=event["event_type"],
-                #     request_payload=json.dumps(payload),
-                #     response_payload=json.dumps(result),
-                # )
+                continue
+            redis_key = f"exec:{event_id}:{key}"
+            lock_acquired = redis_client.set(
+                redis_key,
+                1,
+                nx=True,
+                ex=3600,  # TTL = 1 hour
+            )
+            if not lock_acquired:
+                logger.info(
+                    "duplicate_action_skipped_distributed",
+                    extra={"extra_data": {"event_id": event_id, "key": key}},
+                )
+                continue
+            result = execute_action(
+                action_name=action,
+                payload=payload,
+                config=config,
+            )
 
-                matched.append(workflow.id)
+            success = result.get("success") or result.get("status") == "success"
+            executed_keys.add(key)
+            executed_workflows.append(workflow.id)
+            audit_repo.create(
+                db=db,
+                workflow_id=workflow.id,
+                action=action,
+                status="success" if success else "failed",
+                event_type=event["event_type"],
+                request_payload=json.dumps(payload),
+                response_payload=json.dumps(result),
+            )
 
+            # Logging
+            logger.info(
+                "action_executed",
+                extra={
+                    "extra_data": {
+                        "event_id": event_id,
+                        "workflow_id": workflow.id,
+                        "action": action,
+                        "config": config,
+                        "success": success,
+                        "key": key,
+                    }
+                },
+            )
+
+        logger.info(
+            "event_summary",
+            extra={
+                "extra_data": {
+                    "event_id": event_id,
+                    "matched_workflows": matched_workflows,
+                    "executed_workflows": executed_workflows,
+                    "executed_actions": list(executed_keys),
+                    "total_matched": len(matched_workflows),
+                    "total_executed": len(executed_keys),
+                }
+            },
+        )
         db.query(EventProcessing).filter(EventProcessing.event_id == event_id).update(
             {"status": "COMPLETED", "updated_at": func.now()}
         )
         db.commit()
-
         logger.info(
             "event_completed",
             extra={
                 "extra_data": {
                     "event_id": event_id,
-                    "matched_workflows": matched,
+                    "matched_workflows": matched_workflows,
                 }
             },
         )
-
-        return {"success": True, "matched_workflows": matched}
-
     except Exception as e:
-
         row = (
             db.query(EventProcessing)
             .filter(EventProcessing.event_id == event_id)
             .first()
         )
-
         attempts = (row.attempts or 0) + 1
-
         db.query(EventProcessing).filter(EventProcessing.event_id == event_id).update(
             {
                 "status": "FAILED",

@@ -1,6 +1,6 @@
 from pydantic import BaseModel, ConfigDict
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Dict, Any
 
 
 class WorkflowCreate(BaseModel):
@@ -18,6 +18,6 @@ class WorkflowResponse(BaseModel):
     name: str
     domain: str
     raw_input: str
-    parsed_rule_json: str | None = None
+    parsed_rule_json: Optional[Dict[str, Any]] = None
     created_at: datetime | None = None
     model_config = ConfigDict(from_attributes=True)

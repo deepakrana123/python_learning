@@ -21,10 +21,11 @@ class LLMManager:
             provider_name = getattr(provider, "__name__", f"provider_{index}")
             logger.info(
                 "llm_provider_attempt",
-                extra={"extra_data": {"provider": provider_name, "attempt_index": index}},
+                extra={
+                    "extra_data": {"provider": provider_name, "attempt_index": index}
+                },
             )
             result = provider(prompt)
-
             if result["success"]:
                 result["total_latency_ms"] = int((time.time() - start) * 1000)
                 result["fallback_used"] = index > 0

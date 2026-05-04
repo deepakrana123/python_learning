@@ -4,7 +4,7 @@ from app.llm.contracts import success_response, fail_response
 from app.config.retry_wrapper import with_retry
 from app.core.logger import logger
 
-OLLAMA_URL = "http://localhost:11434/api/generate"
+OLLAMA_URL = "http://192.168.40.181:11434/api/generate"
 
 
 def try_call_ollama(prompt: str):
@@ -14,7 +14,7 @@ def try_call_ollama(prompt: str):
             res = requests.post(
                 OLLAMA_URL,
                 json={"model": "qwen2.5:7b", "prompt": prompt, "stream": False},
-                timeout=1,
+                timeout=40,
             )
             if res.status_code != 200:
                 logger.warning(

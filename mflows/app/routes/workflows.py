@@ -17,11 +17,19 @@ router = APIRouter(prefix="/workflows")
 def create_workflow(payload: WorkflowCreate, db: Session = Depends(get_db)):
     try:
         result = workflow_service.create_workflow_service(payload, db)
+        print(result, "result")
         return result
     except ValueError as e:
+        print(e, "E")
         logger.warning(
             "route_create_workflow_failed",
-            extra={"extra_data": {"error": str(e), "name": payload.name, "domain": payload.domain}},
+            extra={
+                "extra_data": {
+                    "error": str(e),
+                    "name": payload.name,
+                    "domain": payload.domain,
+                }
+            },
         )
         raise HTTPException(status_code=400, detail=str(e))
 

@@ -4,7 +4,7 @@ from app.repositories import workflow
 from app.parsers.orchestrator import parse_workflow_text
 from app.core.logger import logger
 
-ALLOWED_DOMAINS = {"support", "loan"}
+ALLOWED_DOMAINS = {"support", "loan", "payments", "hr", "logistics", "ecommerce"}
 
 
 def create_workflow_service(payload: WorkflowCreate, db: Session):

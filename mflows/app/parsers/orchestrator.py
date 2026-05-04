@@ -96,7 +96,9 @@ def parse_workflow_text(text: str):
 
     if text in cache_store:
         parser_metrics.cache_hits += 1
-        logger.debug("parse_cache_hit", extra={"extra_data": {"text_preview": text[:60]}})
+        logger.debug(
+            "parse_cache_hit", extra={"extra_data": {"text_preview": text[:60]}}
+        )
         return cache_store[text]
 
     extracted = extract_all(text)

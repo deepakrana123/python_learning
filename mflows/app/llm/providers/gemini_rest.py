@@ -27,9 +27,7 @@ def try_call_gemini_rest(prompt: str):
                         }
                     },
                 )
-                return fail_response(
-                    {"success": False, "provider": "gemini", "error": response.text}
-                )
+                return fail_response("gemini", response.text)
             data = response.json()
             text = data["candidates"][0]["content"]["parts"][0]["text"]
             latency = int((time.time() - start) * 1000)

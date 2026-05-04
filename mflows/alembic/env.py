@@ -7,6 +7,8 @@ from alembic import context
 
 from app.db.base import Base
 from app.models.workflow import Workflow
+from app.models.event_processing import EventProcessing
+from app.models.audit_log import AuditLog
 
 config = context.config
 
