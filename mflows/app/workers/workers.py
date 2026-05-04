@@ -7,12 +7,12 @@ from app.core.logger import logger
 
 
 def start_worker():
+    print("Polling queue...", flush=True)
+    item = redis_client.brpop("workflow_events", timeout=5)
     while True:
-        item = redis_client.brpop("workflow_events", timeout=5)
-
+        print(item, "item")
         if not item:
             continue
-
         _, raw = item
         try:
             event = json.loads(raw)

@@ -31,3 +31,8 @@ def worker():
         _, event_data = item
         event = json.loads(event_data)
         executor.submit(handle_event, event)
+
+
+if __name__ == "__main__":
+    print("Worker started...", flush=True)
+    worker()

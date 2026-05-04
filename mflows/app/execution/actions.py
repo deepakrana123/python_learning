@@ -5,7 +5,9 @@ from app.core.logger import logger
 
 def send_reminder(payload, config):
     time.sleep(1)
-    logger.info("action_send_reminder_success", extra={"extra_data": {"payload": payload}})
+    logger.info(
+        "action_send_reminder_success", extra={"extra_data": {"payload": payload}}
+    )
     return {
         "success": True,
         "message": "reminder sent",
@@ -16,7 +18,9 @@ def send_reminder(payload, config):
 
 def escalate_case(payload, config):
     time.sleep(1)
-    logger.info("action_escalate_case_success", extra={"extra_data": {"payload": payload}})
+    logger.info(
+        "action_escalate_case_success", extra={"extra_data": {"payload": payload}}
+    )
     return {
         "success": True,
         "message": "case escalated",
@@ -26,7 +30,10 @@ def escalate_case(payload, config):
 
 
 def assign_senior_officer(payload, config):
-    logger.info("action_assign_senior_officer_success", extra={"extra_data": {"payload": payload}})
+    logger.info(
+        "action_assign_senior_officer_success",
+        extra={"extra_data": {"payload": payload}},
+    )
     return {"success": True, "officer_id": "EMP101", "status": "success"}
 
 
