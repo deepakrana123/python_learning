@@ -54,7 +54,9 @@ def with_retry(fn, retries=3, base_delay=1, max_delay=8):
 
     logger.error(
         "retry_all_attempts_exhausted",
-        extra={"extra_data": {"retries": retries, "last_error": last_result.get("error")}},
+        extra={
+            "extra_data": {"retries": retries, "last_error": last_result.get("error")}
+        },
     )
     last_result["retries_used"] = retries
     return last_result

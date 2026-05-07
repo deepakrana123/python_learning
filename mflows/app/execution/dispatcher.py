@@ -15,6 +15,7 @@ ACTION_MAP = {
 
 
 def execute_action(action_name: str, payload: dict, config: dict):
+
     handler = ACTION_MAP.get(action_name)
     if not handler:
         logger.error(
