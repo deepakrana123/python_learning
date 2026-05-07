@@ -9,6 +9,7 @@ from app.schemas.workflow import (
 from typing import List
 from app.services import workflow_service
 from app.core.logger import logger
+from app.metrics.parser_metrics import parser_metrics
 
 router = APIRouter(prefix="/workflows")
 
@@ -54,3 +55,8 @@ def get_all_worflow(domain: str | None = None, db: Session = Depends(get_db)):
 @router.post("/debug-parse")
 def debug_parse(payload: DebugParseRequest):
     return workflow_service.debug_parse_service(payload.raw_input)
+
+
+@router.post("/metrics")
+def metric_return():
+    return parser_metrics.to_dict()

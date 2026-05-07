@@ -4,7 +4,6 @@ from app.llm.validator import validate_workflow_json
 from app.llm.repair import repair_json
 from app.core.logger import logger
 
-
 manager = LLMManager()
 
 
@@ -22,8 +21,9 @@ def parse_workflow_with_llm(raw_text: str):
         return result
 
     raw_output = result["text"]
-    logger.debug("llm_raw_output", extra={"extra_data": {"output_preview": raw_output[:100]}})
-
+    logger.debug(
+        "llm_raw_output", extra={"extra_data": {"output_preview": raw_output[:100]}}
+    )
     try:
         parsed = json.loads(clean_json(raw_output))
     except Exception as e:
@@ -37,7 +37,6 @@ def parse_workflow_with_llm(raw_text: str):
             return {"success": False, "error": "invalid json"}
         parsed = repaired["data"]
         logger.info("llm_json_repaired_successfully")
-
     valid = validate_workflow_json(parsed)
     if not valid["is_valid"]:
         logger.error(

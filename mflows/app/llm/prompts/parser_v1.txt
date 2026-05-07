@@ -6,24 +6,46 @@ Rules:
 - No explanation
 - Use exact schema
 - If unclear, choose closest valid trigger/action
+- Conditions must be a list of simple strings
+- Do NOT invent new triggers or actions outside the allowed lists
 
 Allowed triggers:
 payment_due
 payment_missed
 complaint_created
+ticket_created
+loan_requested
+delivery_failed
 
 Allowed actions:
 send_reminder
 escalate_case
 assign_senior_officer
 close_case
+notify_manager
+reject_loan
 
 Schema:
 {
   "trigger": "",
   "action": "",
   "conditions": [],
-  "delay_days": null
+  "delay_days": null,
+  "config": {},
+  "entity_refs": {}
+}
+
+config examples:
+{
+  "retry_max": 3,
+  "timeout_sec": 20
+}
+
+entity_refs examples:
+{
+  "loan_id": "LN100",
+  "ticket_id": "TK90",
+  "customer_id": "CU1"
 }
 
 User Input:

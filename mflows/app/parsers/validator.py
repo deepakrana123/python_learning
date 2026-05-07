@@ -1,7 +1,10 @@
 ALLOWED_TRIGGERS = {
-    "complaint_created",
+    "loan_requested",
     "payment_due",
     "payment_missed",
+    "ticket_created",
+    "complaint_created",
+    "delivery_failed",
 }
 
 
@@ -10,6 +13,8 @@ ALLOWED_ACTIONS = {
     "escalate_case",
     "assign_senior_officer",
     "close_case",
+    "reject_loan",
+    "notify_manager",
 }
 
 

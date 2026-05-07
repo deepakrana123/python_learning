@@ -13,7 +13,8 @@ payment_due
 payment_missed
 complaint_created
 ticket_created
-loan_request
+loan_requested
+delivery_failed
 
 Allowed actions:
 send_reminder
@@ -23,6 +24,13 @@ close_case
 notify_manager
 reject_loan
 
+Rules:
+- ALWAYS return valid JSON
+- DO NOT invent new fields
+- If trigger missing → infer best possible from allowed list
+- If action missing → infer best possible from allowed list
+- Conditions must be simple strings
+
 Schema:
 {
   "trigger": "",
@@ -30,7 +38,7 @@ Schema:
   "conditions": [],
   "delay_days": null,
   "config": {},
-  "entity_refs":{},
+  "entity_refs": {}
 }
 
 entity_refs examples:
