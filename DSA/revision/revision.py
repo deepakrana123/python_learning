@@ -340,28 +340,506 @@ def findMedianSortedArrays(nums1, nums2):
     # if n % 2 == 0:
     #     return (nums[n // 2 - 1] + nums[n // 2]) / 2.0
     # return nums[n // 2]
+    # m = len(nums1)
+    # n = len(nums2)
+    # i = 0
+    # j = 0
+    # m1 = -1
+    # m2 = -1
+    # for count in range((m + n) // 2 + 1):
+    #     m2 = m1
+    #     if i != m and j != n:
+    #         if nums1[i] > nums2[j]:
+    #             m1 = nums2[j]
+    #             j += 1
+    #         else:
+    #             m1 = nums1[i]
+    #             i += 1
+    #     elif i < m:
+    #         m1 = nums1[i]
+    #         i += 1
+    #     else:
+    #         m1 = nums2[j]
+    #         j += 1
+    # return m1 if (m + n) % 2 == 1 else (m1 + m2) / 2.0
+    if len(nums1) > len(nums2):
+        nums1, nums2 = nums2, nums1
     m = len(nums1)
     n = len(nums2)
-    i = 0
-    j = 0
-    m1 = -1
-    m2 = -1
-    for count in range((m + n) // 2 + 1):
-        m2 = m1
-        if i != m and j != n:
-            if nums1[i] > nums2[j]:
-                m1 = nums2[j]
-                j += 1
+    left, right = 0, m
+    while left <= right:
+        i = (left + right) // 2
+        j = (m + n + 1) // 2 - i
+        left1 = nums1[i - 1] if i > 0 else float("-inf")
+        right1 = nums1[i] if i < m else float("inf")
+        left2 = nums2[j - 1] if j > 0 else float("-inf")
+        right2 = nums2[j] if j < n else float("inf")
+        if left1 <= right2 and right1 <= left2:
+            if (m + n) % 2 == 0:
+                return (max(left1, left2) + min(right1, right2)) / 2.0
             else:
-                m1 = nums1[i]
-                i += 1
-        elif i < m:
-            m1 = nums1[i]
-            i += 1
+                # Odd: max of left side
+                return max(left1, left2)
+        elif left1 > right2:
+            # i too large, move left
+            right = i - 1
         else:
-            m1 = nums2[j]
-            j += 1
-    return m1 if (m + n) % 2 == 1 else (m1 + m2) / 2.0
+            # i too small, move right
+            left = i + 1
+    return 0.0
 
 
-print(findMedianSortedArrays([1, 3], nums2=[2]))
+def allFunctions(arr):
+    n = len(arr)
+    ngE = [-1] * len(arr)
+    stack = []
+    for i in range(n):
+        while stack and arr[stack[-1]] < arr[i]:
+            idx = stack.pop()
+            ngE[idx] = arr[i]
+        stack.append(i)
+    ngL = [-1] * len(arr)
+    stack = []
+    for i in range(n - 1, -1, -1):
+        while stack and arr[stack[-1]] < arr[i]:
+            idx = stack.pop()
+            ngL[idx] = arr[i]
+        stack.append(i)
+    nsL = [-1] * len(arr)
+    stack = []
+    for i in range(n - 1, -1, -1):
+        while stack and arr[stack[-1]] > arr[i]:
+            idx = stack.pop()
+            nsL[idx] = arr[i]
+        stack.append(i)
+    nsR = [-1] * len(arr)
+    stack = []
+    for i in range(n):
+        while stack and arr[stack[-1]] > arr[i]:
+            idx = stack.pop()
+            nsR[idx] = arr[i]
+        stack.append(i)
+
+
+import heapq
+from collections import deque
+
+
+def sildingWindowMaximum(arr, k):
+    heap = []
+    result = []
+    for i in range(len(arr) - k + 1):
+        result.append(max(arr[i : i + k]))
+    print(result, "o(n)*o(k)")
+    result = []
+    for i in range(k):
+        heapq.heappush(heap, (-arr[i], i))
+    result.append(-1 * heap[0][0])
+    for i in range(k, len(arr)):
+        heapq.heappush(heap, (-arr[i], i))
+        print(heap)
+        while heap[0][1] <= i - k:
+            heapq.heappop(heap)
+        result.append(-1 * heap[0][0])
+    print(result)
+    n = len(arr)
+    result = []
+    dq = deque()
+    for i in range(0, k):
+        while dq and arr[i] >= arr[dq[-1]]:
+            dq.pop()
+        dq.append(i)
+    for i in range(k, len(arr)):
+        result.append(arr[dq[0]])
+        while dq and dq[0] <= i - k:
+            dq.popleft()
+        while dq and arr[i] >= arr[dq[-1]]:
+            dq.pop()
+        dq.append(i)
+    result.append(arr[dq[0]])
+    print(result)
+
+
+# print(sildingWindowMaximum([1, 3, 2, 1, 7, 3], k=3))
+
+
+def rotate(arr):
+    for i in range(len(arr)):
+        for j in range(i + 1, len(arr[0])):
+            arr[i][j], arr[j][i] = arr[j][i], arr[i][j]
+        arr[i] = arr[i][::-1]
+    return arr
+
+
+class StockSpanner:
+
+    def __init__(self):
+        # self.price = []
+        self.stack = []
+
+    def next(self, price: int) -> int:
+        # self.price.append(price)
+        # span = 1
+        # print(self.stack, self.price)
+        # while self.stack and self.price[self.stack[-1]] <= price:
+        #     self.stack.pop()
+        # if self.stack:
+        #     span = len(self.price) - 1 - self.stack[-1]
+        # else:
+        #     span = len(self.price)
+        # self.stack.append(len(self.price) - 1)
+        # return span
+        span = 1
+        while self.stack and self.stack[-1][0] <= price:
+            span += self.stack[-1][1]
+            self.stack.pop()
+        self.stack.append((price, span))
+        return span
+
+
+def largestRectangleArea(arr):
+    n = len(arr)
+    nsL = [-1] * len(arr)
+    stack = []
+    for i in range(n):
+        while stack and arr[stack[-1]] >= arr[i]:
+            stack.pop()
+        nsL[i] = stack[-1] if stack else -1
+        stack.append(i)
+    nsR = [n] * len(arr)
+    stack = []
+    for i in range(n - 1, -1, -1):
+        while stack and arr[stack[-1]] >= arr[i]:
+            stack.pop()
+        nsR[i] = stack[-1] if stack else n
+        stack.append(i)
+    maxs = 0
+    for i in range(n):
+        area = arr[i] * (nsR[i] - nsL[i] - 1)
+        maxs = max(maxs, area)
+    return maxs
+
+
+from collections import deque
+
+
+def reverseQueue(queue: deque) -> deque:
+    stack = []
+    while queue:
+        stack.push(queue.popleft())
+    while stack:
+        queue.append(stack.pop())
+    return queue
+
+
+class MinStack:
+    def __init__(self):
+        self.stack = []
+        self.min_stack = []
+
+    def push(self, val: int) -> None:
+        self.stack.append(val)
+        if not self.min_stack and self.min_stack[-1] >= val:
+            self.min_stack.append(val)
+
+    def pop(self) -> None:
+        val = self.stack.pop()
+        if val == self.min_stack[-1]:
+            self.min_stack.pop()
+
+    def top(self) -> int:
+        return self.stack[-1]
+
+    def getMin(self) -> int:
+        return self.min_stack[-1]
+
+
+class MinStackSingleStack:
+    def __init__(self):
+        self.stack = []
+        self.curr_min = float("inf")
+
+    def push(self, val: int) -> None:
+        if self.curr_min >= val:
+            self.stack.append(self.curr_min)
+            self.curr_min = val
+        self.stack.append(val)
+
+    def top(self) -> int:
+        return self.stack[-1]
+
+    def getMin(self) -> int:
+        return self.curr_min
+
+    def pop(self):
+        if not self.stack:
+            return
+        val = self.stack.pop()
+        if val == self.curr_min:
+            self.curr_min = self.stack.pop()
+
+
+class Node:
+    def __init__(self, val):
+        self.value = val
+        self.next = None
+
+
+class Queue:
+    def __init__(self):
+        self.front = None
+        self.rear = None
+        self.size = 0
+
+    def enqueue(self, value):
+        new_node = Node(value)
+        if self.is_empty():
+            self.front = new_node
+            self.rear = new_node
+        else:
+            self.rear.next = new_node
+            self.rear = new_node
+        self.size += 1
+
+    def dequeue(self):
+        if self.is_empty():
+            return None
+        value = self.front.value
+        self.front = self.front.next
+        if self.front is None:
+            self.rear = None
+        self.size -= 1
+        return value
+
+    def peek(self):
+        if self.is_empty():
+            return None
+        return self.front.value
+
+    def is_empty(self):
+        return self.front is None
+
+    def get_size(self):
+        return self.size
+
+
+class DequeImplementation:
+    @staticmethod
+    def show_operations():
+        dq = deque()
+        dq.append(1)
+        dq.appendleft(2)
+        dq.append(3)
+        print(dq)
+
+        right = dq.pop()
+        left = dq.popleft()
+
+        print(dq)
+
+        print(dq[0])
+        print(dq[-1])
+
+        dq = deque([1, 2, 3, 4, 5])
+        dq.rotate(2)
+        dq.rotate(-1)
+
+
+def compare_performance():
+    import time
+    from collections import deque
+
+    # List as queue - SLOW!
+    start = time.time()
+    lst = []
+    for i in range(10000):
+        lst.append(i)
+    for i in range(10000):
+        lst.pop(0)  # O(n) each time!
+    print(f"List: {time.time() - start:.4f} seconds")
+
+    # Deque as queue - FAST!
+    start = time.time()
+    dq = deque()
+    for i in range(10000):
+        dq.append(i)
+    for i in range(10000):
+        dq.popleft()  # O(1) each time!
+    print(f"Deque: {time.time() - start:.4f} seconds")
+
+
+def nextGreaterElementRight(arr):
+    n = len(arr)
+    ngE = [n] * len(arr)
+    stack = []
+    for i in range(n):
+        while stack and arr[stack[-1]] < arr[i]:
+            idx = stack.pop()
+            ngE[idx] = i
+        stack.append(i)
+    print(ngE)
+
+
+def removeKDigits(num, k):
+    stack = []
+
+    for digit in num:
+        while k > 0 and stack and stack[-1] > digit:
+            stack.pop()
+            k -= 1
+        stack.append(digit)
+    if k > 0:
+        stack = stack[:-k]
+    result = "".join(stack).lstrip("0")
+    return result if result else "0"
+
+
+def asteroidCollision(arr):
+    stack = []
+    for asteroid in arr:
+        survives = True
+        while stack and stack[-1] > 0 and asteroid < 0:
+            if stack[-1] + asteroid == 0:
+                stack.pop()
+                survives = False
+                break
+            elif stack[-1] < -asteroid:
+                stack.pop()
+            else:
+                survives = False
+                break
+        if survives:
+            stack.append(asteroid)
+    return stack
+
+
+from typing import Optional
+
+
+class ListNode:
+    def __init__(self, val=0, next=None):
+        self.val = val
+        self.next = next
+
+
+def create_linked_list(arr):
+    if not arr:
+        return None
+
+    head = ListNode(arr[0])
+    current = head
+    for val in arr[1:]:
+        current.next = ListNode(val)
+        current = current.next
+    return head
+
+
+class Solution:
+    def reverseList(self, head: Optional[ListNode]) -> Optional[ListNode]:
+        head = create_linked_list(head)
+        arr = []
+        while head is not None:
+            arr.append(head.val)
+            head = head.next
+        arr = arr[::-1]
+        newHead = ListNode(arr[1])
+        for val in arr[1:]:
+            newHead.next = ListNode(val)
+            newHead = newHead.next
+        print(arr)
+        prev = None
+        current = head
+        while current:
+            next_temp = current.next
+            current.next = prev
+            prev = current
+            current = next_temp
+        return prev
+
+    def find_middle(self, head: Optional[ListNode]) -> Optional[ListNode]:
+        slow = fast = head
+        while fast and fast.next:
+            slow = slow.next
+            fast = fast.next.next
+        return slow
+
+    def hasCycle(self, head: Optional[ListNode]) -> bool:
+        slow = fast = head
+        while fast and fast.next:
+            slow = slow.next
+            fast = fast.next.nxt
+            if slow == fast:
+                return True
+        return False
+
+    def detectCycle(self, head: Optional[ListNode]) -> Optional[ListNode]:
+        slow = fast = head
+        while fast and fast.next:
+            slow = slow.next
+            fast = fast.next.nxt
+            if slow == fast:
+                slow = head
+                while slow != fast:
+                    slow = slow.next
+                    fast = fast.next
+                return slow
+        return None
+
+    def getNthNode(self, head: Optional[ListNode], N: int) -> Optional[ListNode]:
+        current = head
+        for i in range(N):
+            if not current:
+                return None
+            current = current.next
+        return current
+
+    def findNthFromEnd(self, head: Optional[ListNode], N: int) -> Optional[ListNode]:
+        fast = slow = head
+        for i in range(N):
+            if not fast:
+                return None
+            fast = fast.next
+        if not fast:
+            return head.next
+        while fast:
+            slow = slow.next
+            fast = fast.next
+        slow.next = slow.next.next
+        return head
+    
+    def addTwoNumbers(self,head1: Optional[ListNode],head2: Optional[ListNode])->: Optional[ListNode]:
+        addHead=ListNode(None)
+        current=addHead
+        rem=0
+        while not head1  and  not head2 and rem:
+            sum1=head1.val+head2.val+rem
+            rem=sum1//10
+            digit=sum1%10
+            current.next=ListNode(digit)
+            current = current.next
+            head1=head1.next  if head1 else None
+            head2=head2.next if head1 else None
+        return addHead.next
+    def mergeTwoLists(self, list1: Optional[ListNode], list2: Optional[ListNode]) -> Optional[ListNode]:
+        mergeList=ListNode(None)
+        current=mergeList
+        while list1 and list2:
+            if list1.val>list2.val:
+                current.next=list2
+                list2=list2.next if list2 else None
+            elif list1.val<=list2.val:
+                current.next=list1
+                list1=list1.next if list1 else None
+            current=current.next
+        if list1:
+            current.next=list1
+        if list2:
+            current.next=list2
+        return mergeList.next
+
+
+
+
+
+abc = Solution()
+print(abc.reverseList([1, 2, 3, 4, 5]))
