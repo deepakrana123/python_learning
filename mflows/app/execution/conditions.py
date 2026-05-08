@@ -29,8 +29,6 @@ def _parse_condition_string(cond: str):
     op_str = match.group(1)
     field = cond[: match.start()].strip()
     raw_value = cond[match.end() :].strip()
-
-    # Coerce value to int/float if possible
     try:
         value = int(raw_value)
     except ValueError:
@@ -53,8 +51,6 @@ def is_rule_matched(rule: dict, event: dict, data: dict) -> bool:
     conditions = rule.get("conditions", [])
 
     for cond in conditions:
-        # Support both string format ("amount>5000") and
-        # dict format ({"field": "amount", "operator": ">", "value": 5000})
         if isinstance(cond, dict):
             field = cond["field"]
             op_str = cond["operator"]
@@ -69,7 +65,6 @@ def is_rule_matched(rule: dict, event: dict, data: dict) -> bool:
         elif isinstance(cond, str):
             parsed = _parse_condition_string(cond)
             if parsed is None:
-                # Unparseable condition — skip it, don't block execution
                 continue
             field, fn, expected = parsed
             actual = data.get(field)
@@ -79,7 +74,6 @@ def is_rule_matched(rule: dict, event: dict, data: dict) -> bool:
                 if not fn(actual, expected):
                     return False
             except TypeError:
-                # Type mismatch between actual and expected (e.g. str vs int)
                 return False
 
     return True

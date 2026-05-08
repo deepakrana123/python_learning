@@ -17,3 +17,11 @@ def build_action_dedupe_key(event: dict, action: str) -> str:
         sort_keys=True,
     )
     return hashlib.md5(raw.encode()).hexdigest()
+
+
+def is_duplicate_execution():
+    pass
+
+
+def acquire_distributed_lock():
+    pass
