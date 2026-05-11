@@ -20,7 +20,7 @@ def handle_retry(db, event: dict, error):
     )
 
     if should_retry(attempts):
-        handle_retry_event(event=event, attempts=attempts)
+        handle_retry_event(event=event, attempts=attempts, error=str(error))
         mark_retry_scheduled(db=db, event_id=event_id)
     else:
         handle_dlq_event(

@@ -1,8 +1,7 @@
 import json
-import time
 from app.core.redis_client import redis_client
 from app.db.session import SessionLocal
-from app.services.execution_service import process_event_service
+from app.execution.runtime_processor import runtime_processor
 from app.core.logger import logger
 
 
@@ -17,7 +16,7 @@ def start_worker():
         try:
             event = json.loads(raw)
             db = SessionLocal()
-            process_event_service(event, db)
+            runtime_processor(event, db)
             db.close()
         except Exception as e:
             logger.error(

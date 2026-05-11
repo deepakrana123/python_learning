@@ -4,6 +4,7 @@ from app.db.session import SessionLocal
 from app.services.execution_service import process_event_service
 from app.core.logger import logger
 from concurrent.futures import ThreadPoolExecutor
+from app.execution.runtime_processor import runtime_processor
 
 QUEUE = "workflow_events"
 MAX_WORKERS = 5
@@ -12,7 +13,7 @@ MAX_WORKERS = 5
 def handle_event(event):
     db = SessionLocal()
     try:
-        process_event_service(event, db)
+        runtime_processor(event=event, db=db)
     except Exception as e:
         logger.error(
             "consumer_worker_error",

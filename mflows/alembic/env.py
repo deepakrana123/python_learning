@@ -9,6 +9,8 @@ from app.db.base import Base
 from app.models.workflow import Workflow
 from app.models.event_processing import EventProcessing
 from app.models.audit_log import AuditLog
+from app.models.execution_step import ExecutionStep
+from app.models.workflow_execution import WorkflowExecution
 
 config = context.config
 

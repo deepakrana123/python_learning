@@ -4,7 +4,7 @@ from app.models.event_processing import EventProcessing
 from app.execution.dispatcher import execute_action
 from app.execution.matcher import get_matching_workflows
 from app.execution.dedupe import build_workflow_execution_key, build_action_dedupe_key
-from app.execution.retry import handle_retry
+from app.execution.retry_handler import handle_retry
 from app.core.redis_client import redis_client
 from app.core.logger import logger
 from app.repositories import audit_repo
@@ -108,9 +108,9 @@ def process_event_service(event: dict, db):
                 )
 
         # Mark event complete
-        db.query(EventProcessing).filter(
-            EventProcessing.event_id == event_id
-        ).update({"status": "COMPLETED", "updated_at": func.now()})
+        db.query(EventProcessing).filter(EventProcessing.event_id == event_id).update(
+            {"status": "COMPLETED", "updated_at": func.now()}
+        )
         db.commit()
 
         logger.info(
