@@ -14,7 +14,9 @@ from app.execution.runtime.execution_state_manager import validate_workflow_tran
 from app.core.logger import logger
 
 
-def create_workflow_execution(db, workflow_id: int, event_id: str, event_type: str = None, entity_id: str = None):
+def create_workflow_execution(
+    db, workflow_id: int, event_id: str, event_type: str = None, entity_id: str = None
+):
     execution = WorkflowExecution(
         workflow_id=workflow_id,
         event_id=event_id,

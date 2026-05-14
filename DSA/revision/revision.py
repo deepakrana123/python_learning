@@ -806,40 +806,398 @@ class Solution:
             fast = fast.next
         slow.next = slow.next.next
         return head
-    
-    def addTwoNumbers(self,head1: Optional[ListNode],head2: Optional[ListNode])->: Optional[ListNode]:
-        addHead=ListNode(None)
-        current=addHead
-        rem=0
-        while not head1  and  not head2 and rem:
-            sum1=head1.val+head2.val+rem
-            rem=sum1//10
-            digit=sum1%10
-            current.next=ListNode(digit)
+
+    def addTwoNumbers(
+        self, head1: Optional[ListNode], head2: Optional[ListNode]
+    ) -> Optional[ListNode]:
+        addHead = ListNode(None)
+        current = addHead
+        rem = 0
+        while not head1 and not head2 and rem:
+            sum1 = head1.val + head2.val + rem
+            rem = sum1 // 10
+            digit = sum1 % 10
+            current.next = ListNode(digit)
             current = current.next
-            head1=head1.next  if head1 else None
-            head2=head2.next if head1 else None
+            head1 = head1.next if head1 else None
+            head2 = head2.next if head1 else None
         return addHead.next
-    def mergeTwoLists(self, list1: Optional[ListNode], list2: Optional[ListNode]) -> Optional[ListNode]:
-        mergeList=ListNode(None)
-        current=mergeList
+
+    def mergeTwoLists(
+        self, list1: Optional[ListNode], list2: Optional[ListNode]
+    ) -> Optional[ListNode]:
+        mergeList = ListNode(None)
+        current = mergeList
         while list1 and list2:
-            if list1.val>list2.val:
-                current.next=list2
-                list2=list2.next if list2 else None
-            elif list1.val<=list2.val:
-                current.next=list1
-                list1=list1.next if list1 else None
-            current=current.next
+            if list1.val > list2.val:
+                current.next = list2
+                list2 = list2.next if list2 else None
+            elif list1.val <= list2.val:
+                current.next = list1
+                list1 = list1.next if list1 else None
+            current = current.next
         if list1:
-            current.next=list1
+            current.next = list1
         if list2:
-            current.next=list2
+            current.next = list2
         return mergeList.next
 
 
+class AllStackFunc:
+    def __init__(self, arr):
+        self.arr = arr
+        self.n = len(self.arr)
+        self.ngl = [-1] * self.n
+        self.ngr = [-1] * self.n
+        self.nsl = [-1] * self.n
+        self.nsR = [self.n] * self.n
+
+    def greaterToRight(self):
+        stack = []
+        for i in range(self.n):
+            while stack and self.arr[stack[-1]] >= self.arr[i]:
+                idx = stack.pop()
+                self.ngr[idx] = i
+            stack.append(i)
+
+    def greaterToLeft(self):
+        stack = []
+        for i in range(self.n - 1, -1, -1):
+            while stack and self.arr[stack[-1]] >= self.arr[i]:
+                idx = stack.pop()
+                self.ngl[idx] = i
+            stack.append(i)
+
+    def smallerToLeft(self):
+        stack = []
+        for i in range(self.n - 1, -1, -1):
+            while stack and self.arr[stack[-1]] <= self.arr[i]:
+                idx = stack.pop()
+                self.nsl[idx] = i
+            stack.append(i)
+
+    def smallerToRight(self):
+        stack = []
+        for i in range(self.n):
+            while stack and self.arr[stack[-1]] <= self.arr[i]:
+                idx = stack.pop()
+                self.nsR[idx] = i
+            stack.append(i)
 
 
+def max_in_k(arr, k):
+    deque = []
+    result = []
+    for i in range(len(arr)):
+        while deque and deque[0] <= i - k:
+            deque.pop()
+        while deque and arr[deque[-1]] <= arr[i]:
+            deque.pop()
+        deque.append(i)
 
-abc = Solution()
-print(abc.reverseList([1, 2, 3, 4, 5]))
+        if i >= k - 1:
+            result.append(arr[deque[0]])
+    return deque
+
+
+def productSelf(arr):
+    # product = [1] * len(arr)
+    # for i in range(len(arr)):
+    #     for j in range(len(arr)):
+    #         if i != j:
+    #             product[i] = product[i] * arr[j]
+
+    # return product
+    # rightProduct = [1] * len(arr)
+    # leftProduct = [1] * len(arr)
+    # for i in range(1, len(arr)):
+    #     rightProduct[i] = arr[i - 1] * rightProduct[i - 1]
+    # for i in range(len(arr) - 2, -1, -1):
+    #     leftProduct[i] = arr[i + 1] * leftProduct[i + 1]
+    # result = [1] * len(arr)
+    # for i in range(len(arr)):
+    #     result[i] = rightProduct[i] * leftProduct[i]
+    # return result
+    zeros = 0
+    idx = -1
+    prod = 1
+    for i in range(len(arr)):
+        if arr[i] == 0:
+            zeros += 1
+            idx = i
+        else:
+            prod *= arr[i]
+    res = [0] * len(arr)
+    if zeros == 0:
+        for i in range(len(arr)):
+            res[i] = prod // arr[i]
+    elif zeros == 1:
+        res[idx] = prod
+
+    return res
+
+
+import heapq
+
+
+def findKthLargest(nums, k):
+    heap = []
+    for num in nums:
+        heapq.heappush(heap, -num)
+    value = -1
+    while k > 0:
+        value = heapq.heappop(heap)
+        k -= 1
+    return -value
+
+
+def findKthSmallest(nums, k):
+    heap = []
+    # for num in nums:
+    #     heapq.heappush(heap, num)
+    # value = -1
+    # while k > 0:
+    #     value = heapq.heappop(heap)
+    #     k -= 1
+    # return value
+    for i in range(len(nums)):
+        for j in range(len(nums[0])):
+            heapq.heappush(heap, -nums[i][j])
+            if len(heap) > k:
+                break
+    return -heap[0]
+
+
+def kthSmallestMatrix(mat, k):
+    heap = []
+    for i in range(min(k, len(mat[0]))):
+        heap.heappush(heap, (mat[i][0], i, 0))
+    for _ in range(k):
+        val, i, j = heapq.heappop(heap)
+        if j + 1 < len(mat[0]):
+            heapq.heappush(heap, (mat[i][j + 1], i, j + 1))
+    return val
+
+
+def connectNRopes(arr):
+    result = 0
+    heap = []
+    for value in arr:
+        heapq.heappush(heap, value)
+    while heap and len(heap) > 1:
+        a, b = heapq.heappop(heap), heapq.heappop(heap)
+        result += a + b
+        heapq.heappush(heap, a + b)
+    return result
+
+
+def smashLargestStone(arr):
+    heap = []
+    result = 0
+    for num in arr:
+        heapq.heappush(heap, -num)
+    while heap and len(heap) > 1:
+        a, b = heapq.heappop(heap), heapq.heappop(heap)
+        value = -1 * a - -1 * b
+        result += value
+        if value != 0:
+            heapq.heappush(heap, -(value))
+    return -1 * heap[0]
+
+
+def minimumOperations(nums):
+    # heap = []
+    # count = 0
+    # for num in nums:
+    #     if num > 0:
+    #         heapq.heappush(heap, num)
+    # while heap:
+    #     smallest = heapq.heappop()
+    #     if smallest == 0:
+    #         continue
+    #     count += 1
+    #     newHeap = []
+    #     while heap:
+    #         val = heapq.heappop()
+    #         if val - smallest > 0:
+    #             heapq.heappush(newHeap, val - smallest)
+    #     heap = newHeap
+    # return count
+    unique_positive = {num for num in nums if num > 0}
+    return len(unique_positive)
+
+
+def topKFrequent(nums, k):
+    dicts = {}
+    for num in nums:
+        dicts[num] = dicts.get(num, 0) + 1
+    heap = []
+    for key, values in dicts.items():
+        heapq.heappush(heap, (-values, key))
+    result = []
+    while k > 0 and heap:
+        value, key = heapq.heappop(heap)
+        result.append(key)
+        k -= 1
+    return result
+
+
+import math
+
+
+def kClosest(points, k):
+    heap = []
+    result = []
+    for point in points:
+        x1, y1 = point
+        values = math.sqrt(x1 * x1 + y1 * y1)
+        heapq.heappush(heap, (values, [x1, y1]))
+        if len(heap) > k:
+            heap.heappop(heap)
+    return [point for dist, point in heap]
+    # while k > 0 and heap:
+    #     value, point = heapq.heappop(heap)
+    #     result.append(point)
+    #     k -= 1
+    # return result
+
+
+def activitySelection(finish, start):
+    heap = []
+    ans = 0
+    for i in range(len(finish)):
+        heapq.heappush(heap, (finish[i], start[i]))
+    finishtime = -1
+    while heap:
+        activity = heapq.heappop(heap)
+        if activity[1] >= finishtime:
+            finishtime = activity[0]
+            ans += 1
+    return ans
+
+
+def fractionalKnapsack(val, wt, capacity):
+    n = len(val)
+    items = [[val[i], wt[i]] for i in range(n)]
+    heap = []
+    for value in items:
+        val, wt = value
+        heapq.heappush(heap, (val / wt, wt, val))
+    res = 0.0
+    currentCapacity = capacity
+    while capacity > 0 and heap:
+        ratio, wt, val = heapq.heappop(heap)
+        if currentCapacity >= wt:
+            res += val
+            currentCapacity -= wt
+        else:
+            res += ratio * currentCapacity
+            break
+    return res
+
+
+def numRescueBoats(people, limit):
+    # n = len(people)
+    # heap = []
+    # result = []
+    # for p in people:
+    #     heapq.heappush(heap, p)
+    # while heap:
+    #     heaviest = heapq.heappop(heap)
+    #     if heaviest and heap[0] + heaviest <= limit:
+    #         heapq.heappop()
+    #     boats += 1
+    # return boats
+    people.sort()
+    start, end = 0, len(people) - 1
+    boats = 0
+    while start <= end:
+        if people[end] + people[start] <= limit:
+            start += 1
+        end -= 1
+        boats += 1
+    return boats
+
+
+def minPlatform(arr, dep):
+    n = len(arr)
+    res = 0
+    arr.sort()
+    dep.sort()
+    cnt = 1
+    i = 0
+    j = 0
+    while i < n and j < n:
+        if arr[i] <= dep[j]:
+            i += 1
+            cnt += 1
+        else:
+            cnt -= 1
+            j += 1
+        result = max(cnt, result)
+    return result
+
+
+def maxOccupancy(entries, exit):
+    events = []
+
+    for i in range(len(entries)):
+        events.append((entries[i], +1))
+        events.append((exit[i], -1))
+    events.sort()
+    current = 0
+    max_people = 0
+    for time, change in events:
+        current += change
+        max_people = max(max_people, current)
+    return max_people
+
+
+def minMeetingRooms(intervals):
+    events = []
+    for start, end in intervals:
+        events.append((start, +1))
+        events.append((end, -1))
+    events.sort()
+    max_poeple = 0
+    current = 0
+    for time, change in events:
+        current += change
+        max_people = max(max_people, current)
+    return max_people
+
+
+def carPooling(trips, capacity):
+    events = []
+    for p, start, end in trips:
+        events.append((start, p))
+        events.append((end, -p))
+    current = 0
+    for time, p in events:
+        current += p
+        if current > capacity:
+            return False
+    return True
+
+
+def getSkyline(buildings):
+    events = []
+    for l, r, h in buildings:
+        events.append((l, -h))
+        events.append((r, h))
+    events.sort()
+    heap = [0]
+    prev_heights = 0
+    result = []
+    for x, h in events:
+        if h < 0:
+            heapq.heappush(heap, h)
+        else:
+            heap.remove(-h)
+            heapq.heapify(heap)
+        current_height = -heap[0]  # Max height
+
+        if current_height != prev_height:
+            result.append([x, current_height])
+            prev_height = current_height
+    return result

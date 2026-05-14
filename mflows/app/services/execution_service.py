@@ -82,7 +82,6 @@ def process_event_service(event: dict, db):
             if success:
                 executed_keys.add(action_key)
                 executed_workflows.append(workflow.id)
-
                 audit_repo.create(
                     db=db,
                     workflow_id=workflow.id,

@@ -1,7 +1,6 @@
 import json
 from app.core.redis_client import redis_client
 from app.db.session import SessionLocal
-from app.services.execution_service import process_event_service
 from app.core.logger import logger
 from concurrent.futures import ThreadPoolExecutor
 from app.execution.runtime_processor import runtime_processor
@@ -15,6 +14,7 @@ def handle_event(event):
     try:
         runtime_processor(event=event, db=db)
     except Exception as e:
+        print(e, "e")
         logger.error(
             "consumer_worker_error",
             extra={"extra_data": {"error": str(e), "event": event}},

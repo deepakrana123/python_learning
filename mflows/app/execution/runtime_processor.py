@@ -10,7 +10,7 @@ from app.execution.runtime.workflow_execution_service import (
 )
 
 from app.execution.runtime.step_execution_service import (
-    create_execution_step,
+    create_step_execution,
     mark_step_running,
     mark_step_completed,
     mark_step_failed,
@@ -57,7 +57,6 @@ def runtime_processor(db, event: dict):
         step = None
 
         try:
-
             if is_duplicate_execution(event, workflow):
                 logger.info(
                     "duplicate_workflow_execution_skipped",
@@ -69,11 +68,12 @@ def runtime_processor(db, event: dict):
                     },
                 )
                 continue
-
             workflow_execution = create_workflow_execution(
                 db=db,
-                workflow=workflow,
-                event=event,
+                workflow_id=workflow.id,
+                event_id=event["event_id"],
+                event_type=event["event_type"],
+                entity_id=event["entity_id"],
             )
 
             mark_workflow_running(
@@ -86,17 +86,17 @@ def runtime_processor(db, event: dict):
             action = rule.get("action")
 
             config = rule.get("config", {})
-
-            step = create_execution_step(
+            print(action, config, rule, "hihihi")
+            step = create_step_execution(
                 db=db,
-                workflow_execution=workflow_execution,
+                workflow_execution_id=workflow_execution.id,
                 step_name=action,
                 input_payload=payload,
             )
 
             mark_step_running(
                 db=db,
-                step=step,
+                step_execution=step,
             )
 
             result = execute_action(
@@ -108,29 +108,23 @@ def runtime_processor(db, event: dict):
             success = result.get("success") is True or result.get("status") == "success"
 
             if success:
-
                 mark_step_completed(
                     db=db,
-                    step=step,
-                    output=result,
+                    step_execution=step,
+                    output_payload=result,
                 )
-
                 mark_workflow_completed(
                     db=db,
                     workflow_execution=workflow_execution,
-                    output=result,
                 )
 
             else:
-
                 workflow_failed = True
-
                 mark_step_failed(
                     db=db,
-                    step=step,
+                    step_execution=step,
                     error=result,
                 )
-
                 mark_workflow_failed(
                     db=db,
                     workflow_execution=workflow_execution,
@@ -138,9 +132,7 @@ def runtime_processor(db, event: dict):
                 )
 
         except Exception as e:
-
             workflow_failed = True
-
             logger.exception(
                 "runtime_processor_workflow_failed",
                 extra={
@@ -167,7 +159,6 @@ def runtime_processor(db, event: dict):
                 )
 
     if workflow_failed:
-
         handle_retry(
             db=db,
             event=event,

@@ -1,21 +1,28 @@
-from sqlalchemy import Column, String, Integer, DateTime, Text
-from datetime import datetime
-from sqlalchemy.dialects.postgresql import JSONB
-from app.db.base import Base
+from sqlalchemy import Column, String, DateTime
 from sqlalchemy.sql import func
+
+from app.db.base import Base
 
 
 class EventProcessing(Base):
     __tablename__ = "event_processing"
 
     event_id = Column(String, primary_key=True, index=True)
+
+    event_type = Column(String(100), nullable=False, index=True)
+
+    entity_type = Column(String(100), nullable=False, index=True)
+
+    entity_id = Column(String(100), nullable=False, index=True)
+
     status = Column(String(50), nullable=False, index=True)
-    workflow_id = Column(String, nullable=True, index=True)
-    attempts = Column(Integer, default=0, nullable=False)
-    last_error = Column(Text, nullable=True)
+
     created_at = Column(
-        DateTime(timezone=True), server_default=func.now(), nullable=False
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
     )
+
     updated_at = Column(
         DateTime(timezone=True),
         server_default=func.now(),
@@ -24,4 +31,9 @@ class EventProcessing(Base):
     )
 
     def __repr__(self):
-        return f"<EventProcessing(event_id={self.event_id}, status={self.status}, attempts={self.attempts})>"
+        return (
+            f"<EventProcessing("
+            f"event_id={self.event_id}, "
+            f"status={self.status}"
+            f")>"
+        )

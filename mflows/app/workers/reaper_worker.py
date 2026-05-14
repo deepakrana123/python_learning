@@ -2,7 +2,7 @@ import time
 import json
 from datetime import datetime, timedelta, timezone
 from app.db.session import SessionLocal
-from app.models.event_processing import EventProcessing
+from app.models.workflow_execution import WorkflowExecution
 from app.core.redis_client import redis_client
 from app.core.config import PROCESSING_TIMEOUT_SECONDS
 from app.core.logger import logger
@@ -20,10 +20,10 @@ def start_reaper():
             )
 
             stuck_events = (
-                db.query(EventProcessing)
+                db.query(WorkflowExecution)
                 .filter(
-                    EventProcessing.status == "PROCESSING",
-                    EventProcessing.updated_at < timeout_threshold,
+                    WorkflowExecution.status == "PROCESSING",
+                    WorkflowExecution.updated_at < timeout_threshold,
                 )
                 .limit(BATCH_SIZE)
                 .all()
@@ -58,7 +58,12 @@ def start_reaper():
 
                 logger.info(
                     "reaper_event_requeued",
-                    extra={"extra_data": {"event_id": event.event_id, "attempts": event.attempts}},
+                    extra={
+                        "extra_data": {
+                            "event_id": event.event_id,
+                            "attempts": event.attempts,
+                        }
+                    },
                 )
 
         except Exception as e:

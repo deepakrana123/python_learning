@@ -21,13 +21,13 @@ def create_step_execution(
     db,
     workflow_execution_id: int,
     step_name: str,
-    step_type: str = "action",
+    # step_type: str = "action",
     input_payload: dict = None,
 ):
     step = ExecutionStep(
         workflow_execution_id=workflow_execution_id,
         step_name=step_name,
-        step_type=step_type,
+        # step_type=step_type,
         status=STEP_STATUS_PENDING,
         input_payload=input_payload,
     )
@@ -67,7 +67,7 @@ def update_step_status(
         step_execution.output_payload = output_payload
 
     if error:
-        step_execution.last_error = error
+        step_execution.last_error = str(error)
 
     db.commit()
     db.refresh(step_execution)
