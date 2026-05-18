@@ -6,7 +6,12 @@ from app.schemas.event import EventCreate
 from app.core.redis_client import redis_client
 from app.db.session import SessionLocal
 from app.models.event_processing import EventProcessing
+from app.models.workflow_execution import WorkflowExecution
 from app.core.logger import logger
+from app.execution.runtime.workflow_execution_service import (
+    mark_workflow_running,
+    mark_workflow_paused,
+)
 
 router = APIRouter(prefix="/event", tags=["events"])
 
@@ -22,7 +27,13 @@ def publish_event(body: EventCreate):
     }
     try:
         db = SessionLocal()
-        record = EventProcessing(event_id=event["event_id"], status="RECEIVED")
+        record = EventProcessing(
+            event_id=event["event_id"],
+            event_type=event["event_type"],
+            entity_type=event["entity_type"],
+            entity_id=event["entity_id"],
+            status="RECEIVED",
+        )
         db.add(record)
         db.commit()
         redis_client.lpush("workflow_events", json.dumps(event))
@@ -45,3 +56,73 @@ def publish_event(body: EventCreate):
     finally:
         db.close()
     return {"success": True, "queued": True}
+
+
+@router.post("/{workflow_execution_id}/pause")
+def pause_execution(
+    workflow_execution_id: int,
+):
+    db = SessionLocal()
+
+    try:
+
+        execution = (
+            db.query(WorkflowExecution)
+            .filter(WorkflowExecution.id == workflow_execution_id)
+            .first()
+        )
+
+        if not execution:
+            return {
+                "success": False,
+                "message": "workflow execution not found",
+            }
+
+        mark_workflow_paused(
+            db=db,
+            workflow_execution=execution,
+        )
+
+        return {
+            "success": True,
+            "workflow_execution_id": execution.id,
+            "status": execution.status,
+        }
+
+    finally:
+        db.close()
+
+
+@router.post("/{workflow_execution_id}/resume")
+def resume_execution(
+    workflow_execution_id: int,
+):
+    db = SessionLocal()
+
+    try:
+
+        execution = (
+            db.query(WorkflowExecution)
+            .filter(WorkflowExecution.id == workflow_execution_id)
+            .first()
+        )
+
+        if not execution:
+            return {
+                "success": False,
+                "message": "workflow execution not found",
+            }
+
+        mark_workflow_running(
+            db=db,
+            workflow_execution=execution,
+        )
+
+        return {
+            "success": True,
+            "workflow_execution_id": execution.id,
+            "status": execution.status,
+        }
+
+    finally:
+        db.close()

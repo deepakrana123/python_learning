@@ -49,15 +49,17 @@ def runtime_processor(db, event: dict):
         },
     )
 
-    workflow_failed = False
-
     for workflow in matched_workflows:
 
         workflow_execution = None
         step = None
 
         try:
-            if is_duplicate_execution(event, workflow):
+
+            if is_duplicate_execution(
+                event_id=event["event_id"], workflow_id=workflow.id
+            ):
+
                 logger.info(
                     "duplicate_workflow_execution_skipped",
                     extra={
@@ -67,7 +69,9 @@ def runtime_processor(db, event: dict):
                         }
                     },
                 )
+
                 continue
+
             workflow_execution = create_workflow_execution(
                 db=db,
                 workflow_id=workflow.id,
@@ -86,7 +90,7 @@ def runtime_processor(db, event: dict):
             action = rule.get("action")
 
             config = rule.get("config", {})
-            print(action, config, rule, "hihihi")
+
             step = create_step_execution(
                 db=db,
                 workflow_execution_id=workflow_execution.id,
@@ -108,31 +112,42 @@ def runtime_processor(db, event: dict):
             success = result.get("success") is True or result.get("status") == "success"
 
             if success:
+
                 mark_step_completed(
                     db=db,
                     step_execution=step,
                     output_payload=result,
                 )
+
                 mark_workflow_completed(
                     db=db,
                     workflow_execution=workflow_execution,
                 )
 
             else:
-                workflow_failed = True
+
                 mark_step_failed(
                     db=db,
                     step_execution=step,
-                    error=result,
+                    error=str(result),
                 )
+
                 mark_workflow_failed(
                     db=db,
                     workflow_execution=workflow_execution,
                     error=str(result),
                 )
 
+                handle_retry(
+                    db=db,
+                    workflow_execution=workflow_execution,
+                    step_execution=step,
+                    error=str(result),
+                )
+                continue
+
         except Exception as e:
-            workflow_failed = True
+
             logger.exception(
                 "runtime_processor_workflow_failed",
                 extra={
@@ -145,25 +160,27 @@ def runtime_processor(db, event: dict):
             )
 
             if step:
+
                 mark_step_failed(
                     db=db,
-                    step=step,
+                    step_execution=step,
                     error=str(e),
                 )
 
             if workflow_execution:
+
                 mark_workflow_failed(
                     db=db,
                     workflow_execution=workflow_execution,
                     error=str(e),
                 )
 
-    if workflow_failed:
-        handle_retry(
-            db=db,
-            event=event,
-            error=Exception("one_or_more_workflows_failed"),
-        )
+                handle_retry(
+                    db=db,
+                    workflow_execution=workflow_execution,
+                    step_execution=step,
+                    error=str(e),
+                )
 
     logger.info(
         "runtime_processor_completed",

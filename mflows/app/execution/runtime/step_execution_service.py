@@ -45,7 +45,15 @@ def update_step_status(
     output_payload: dict = None,
     error: str = None,
 ):
+    db.refresh(step_execution)
+
     current_status = step_execution.status
+
+    if current_status == new_status:
+        return step_execution
+
+    if current_status in FINAL_STEP_STATES and current_status != new_status:
+        return step_execution
     valid = validate_step_transition(
         current_status=current_status,
         new_status=new_status,

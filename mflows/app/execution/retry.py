@@ -6,23 +6,41 @@ from app.core.logger import logger
 from app.execution.retry_policy import calculate_delay
 
 
-def handle_retry_event(event, attempts, error):
+def handle_retry_event(
+    workflow_execution,
+    step_execution,
+    attempts,
+    error,
+):
+
     delay = calculate_delay(attempts)
     retry_at = int(time.time()) + delay
     retry_payload = {
-        **event,
+        "workflow_execution_id": workflow_execution.id,
+        "workflow_id": workflow_execution.workflow_id,
+        "step_execution_id": step_execution.id,
+        "failed_step": step_execution.step_name,
+        "event_id": workflow_execution.event_id,
+        "event_type": workflow_execution.event_type,
+        "entity_id": workflow_execution.entity_id,
         "attempt": attempts,
+        "retry_at": retry_at,
     }
+
     redis_client.zadd(
         REDIS_RETRY_QUEUE,
         {json.dumps(retry_payload): retry_at},
     )
 
     logger.warning(
-        "event_retry_scheduled",
+        "workflow_retry_scheduled",
         extra={
             "extra_data": {
-                "event_id": event["event_id"],
+                "workflow_execution_id": workflow_execution.id,
+                "workflow_id": workflow_execution.workflow_id,
+                "step_execution_id": step_execution.id,
+                "failed_step": step_execution.step_name,
+                "event_id": workflow_execution.event_id,
                 "attempt": attempts,
                 "retry_in_seconds": delay,
                 "error": str(error),
@@ -31,21 +49,40 @@ def handle_retry_event(event, attempts, error):
     )
 
 
-def handle_dlq_event(event, attempts, error):
+def handle_dlq_event(
+    workflow_execution,
+    step_execution,
+    attempts,
+    error,
+):
+
     dlq_payload = {
-        "event": event,
+        "workflow_execution_id": workflow_execution.id,
+        "workflow_id": workflow_execution.workflow_id,
+        "step_execution_id": step_execution.id,
+        "failed_step": step_execution.step_name,
+        "event_id": workflow_execution.event_id,
+        "event_type": workflow_execution.event_type,
+        "entity_id": workflow_execution.entity_id,
         "attempts": attempts,
         "error": str(error),
         "failed_at": int(time.time()),
     }
 
-    redis_client.lpush(REDIS_DLQ, json.dumps(dlq_payload))
+    redis_client.lpush(
+        REDIS_DLQ,
+        json.dumps(dlq_payload),
+    )
 
     logger.error(
-        "event_pushed_to_dlq",
+        "workflow_pushed_to_dlq",
         extra={
             "extra_data": {
-                "event_id": event["event_id"],
+                "workflow_execution_id": workflow_execution.id,
+                "workflow_id": workflow_execution.workflow_id,
+                "step_execution_id": step_execution.id,
+                "failed_step": step_execution.step_name,
+                "event_id": workflow_execution.event_id,
                 "attempts": attempts,
                 "error": str(error),
             }

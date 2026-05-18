@@ -38,18 +38,11 @@ def start_reaper():
                 event.attempts = (event.attempts or 0) + 1
                 event.last_error = "Recovered from stuck PROCESSING state"
 
-            # Commit DB changes BEFORE writing to Redis
-            # If we crash after commit but before Redis write, the reaper
-            # will pick it up again on next cycle (safe — idempotent)
             db.commit()
 
-            # Now push to Redis retry queue
             for event in stuck_events:
                 retry_payload = {
                     "event_id": event.event_id,
-                    # NOTE: full event payload (entity_type, entity_id, event_type)
-                    # requires raw_payload column on EventProcessing.
-                    # Until that column exists, the consumer must re-fetch from DB.
                     "attempt": event.attempts,
                     "source": "reaper",
                 }

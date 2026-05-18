@@ -8,25 +8,14 @@ class EventProcessing(Base):
     __tablename__ = "event_processing"
 
     event_id = Column(String, primary_key=True, index=True)
-
     event_type = Column(String(100), nullable=False, index=True)
-
     entity_type = Column(String(100), nullable=False, index=True)
-
     entity_id = Column(String(100), nullable=False, index=True)
-
     status = Column(String(50), nullable=False, index=True)
 
     created_at = Column(
         DateTime(timezone=True),
         server_default=func.now(),
-        nullable=False,
-    )
-
-    updated_at = Column(
-        DateTime(timezone=True),
-        server_default=func.now(),
-        onupdate=func.now(),
         nullable=False,
     )
 

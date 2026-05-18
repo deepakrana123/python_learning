@@ -31,10 +31,16 @@ def create_workflow_execution(
 
 
 def update_workflow_status(db, workflow_execution, new_status: str, error: str = None):
-    current_status = workflow_execution.status
 
     # Guard: already in a terminal state — skip silently, do not raise
-    if current_status in FINAL_WORKFLOW_STATES:
+    db.refresh(workflow_execution)
+
+    current_status = workflow_execution.status
+
+    if current_status == new_status:
+        return workflow_execution
+
+    if current_status in FINAL_WORKFLOW_STATES and current_status != new_status:
         logger.warning(
             "workflow_transition_skipped_terminal",
             extra={
