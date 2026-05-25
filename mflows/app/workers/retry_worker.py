@@ -1,50 +1,3 @@
-# import json
-# import time
-# from app.core.redis_client import redis_client
-# from app.core.logger import logger
-
-# RETRY_QUEUE = "workflow_retry"
-# MAIN_QUEUE = "workflow_events"
-
-
-# def start_retry_worker():
-#     while True:
-#         try:
-#             now = int(time.time())
-#             due_events = redis_client.zrangebyscore(RETRY_QUEUE, 0, now)
-
-#             if due_events:
-#                 pipeline = redis_client.pipeline()
-#                 for raw_event in due_events:
-#                     pipeline.zrem(RETRY_QUEUE, raw_event)
-#                 removed_counts = pipeline.execute()
-
-#                 for raw_event, removed in zip(due_events, removed_counts):
-#                     if removed == 0:
-#                         continue
-
-#                     retry_data = json.loads(raw_event)
-#                     redis_client.lpush(MAIN_QUEUE, json.dumps(retry_data))
-
-#                     logger.info(
-#                         "event_requeued",
-#                         extra={"extra_data": {"event_id": retry_data.get("event_id")}},
-#                     )
-
-#             time.sleep(1)
-
-#         except Exception as e:
-#             logger.error(
-#                 "retry_worker_error",
-#                 extra={"extra_data": {"error": str(e)}},
-#             )
-#             time.sleep(1)
-
-
-# if __name__ == "__main__":
-#     start_retry_worker()
-
-
 import json
 import time
 from app.db.session import SessionLocal
@@ -67,6 +20,13 @@ def start_retry_worker():
             retries = redis_client.zrangebyscore(REDIS_RETRY_QUEUE, 0, now)
             for retry_item in retries:
                 payload = json.loads(retry_item)
+                removed = redis_client.zrem(
+                    REDIS_RETRY_QUEUE,
+                    retry_item,
+                )
+
+                if removed == 0:
+                    continue
                 workflow_execution = (
                     db.query(WorkflowExecution)
                     .filter(WorkflowExecution.id == payload["workflow_execution_id"])
@@ -78,7 +38,7 @@ def start_retry_worker():
                     .first()
                 )
 
-                if not workflow_execution:
+                if not workflow_execution or not step_execution:
                     logger.error(
                         "retry_execution_missing_entities",
                         extra={"extra_data": payload},
@@ -88,6 +48,11 @@ def start_retry_worker():
                         retry_item,
                     )
 
+                    continue
+                if workflow_execution.status == "COMPLETED":
+                    continue
+
+                if step_execution.status == "COMPLETED":
                     continue
                 execute_retry(
                     db=db,

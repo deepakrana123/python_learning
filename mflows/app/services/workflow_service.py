@@ -4,39 +4,110 @@ from app.repositories import workflow
 from app.parsers.orchestrator import parse_workflow_text
 from app.core.logger import logger
 
-ALLOWED_DOMAINS = {"support", "loan", "payments", "hr", "logistics", "ecommerce"}
+# ALLOWED_DOMAINS = {"support", "loan", "payments", "hr", "logistics", "ecommerce"}
 
 
-def create_workflow_service(payload: WorkflowCreate, db: Session):
+# def create_workflow_service(payload: WorkflowCreate, db: Session):
+#     if payload.domain not in ALLOWED_DOMAINS:
+#         logger.warning(
+#             "workflow_invalid_domain",
+#             extra={"extra_data": {"domain": payload.domain}},
+#         )
+#         raise ValueError("Invalid domain")
+
+#     parse_result = parse_workflow_text(payload.raw_input)
+
+#     if not parse_result["validation"]["is_valid"]:
+#         logger.warning(
+#             "workflow_parse_invalid",
+#             extra={
+#                 "extra_data": {
+#                     "errors": parse_result["validation"]["errors"],
+#                     "raw_input": payload.raw_input[:100],
+#                 }
+#             },
+#         )
+#         raise ValueError("Workflow text is invalid")
+
+#     workflows = workflow.create(
+#         db=db,
+#         name=payload.name,
+#         domain=payload.domain,
+#         raw_input=payload.raw_input,
+#         parsed_rule_json=parse_result.get("data", {}),
+#     )
+#     db.commit()
+#     db.refresh(workflows)
+#     logger.info(
+#         "workflow_created",
+#         extra={
+#             "extra_data": {
+#                 "workflow_id": workflows.id,
+#                 "name": workflows.name,
+#                 "domain": workflows.domain,
+#                 "parse_source": parse_result.get("source"),
+#             }
+#         },
+#     )
+#     return workflows
+
+ALLOWED_DOMAINS = {
+    "support",
+    "loan",
+    "payments",
+    "hr",
+    "logistics",
+    "ecommerce",
+}
+
+
+def create_workflow_service(
+    payload: WorkflowCreate,
+    db: Session,
+):
+
     if payload.domain not in ALLOWED_DOMAINS:
+
         logger.warning(
             "workflow_invalid_domain",
             extra={"extra_data": {"domain": payload.domain}},
         )
+
         raise ValueError("Invalid domain")
 
-    parse_result = parse_workflow_text(payload.raw_input)
+    parse_result = parse_dag_workflow(payload.raw_input)
+
     if not parse_result["validation"]["is_valid"]:
+
         logger.warning(
             "workflow_parse_invalid",
             extra={
                 "extra_data": {
                     "errors": parse_result["validation"]["errors"],
-                    "raw_input": payload.raw_input[:100],
+                    "raw_input": (payload.raw_input[:100]),
                 }
             },
         )
+
         raise ValueError("Workflow text is invalid")
+
+    parsed_rule_json = {
+        "version": "v2",
+        "steps": parse_result["steps"],
+    }
 
     workflows = workflow.create(
         db=db,
         name=payload.name,
         domain=payload.domain,
         raw_input=payload.raw_input,
-        parsed_rule_json=parse_result.get("data", {}),
+        parsed_rule_json=parsed_rule_json,
     )
+
     db.commit()
+
     db.refresh(workflows)
+
     logger.info(
         "workflow_created",
         extra={
@@ -44,10 +115,12 @@ def create_workflow_service(payload: WorkflowCreate, db: Session):
                 "workflow_id": workflows.id,
                 "name": workflows.name,
                 "domain": workflows.domain,
-                "parse_source": parse_result.get("source"),
+                "workflow_version": "v2",
+                "step_count": len(parse_result["steps"]),
             }
         },
     )
+
     return workflows
 
 

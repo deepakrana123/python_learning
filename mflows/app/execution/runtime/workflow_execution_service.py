@@ -40,17 +40,19 @@ def update_workflow_status(db, workflow_execution, new_status: str, error: str =
     if current_status == new_status:
         return workflow_execution
 
-    if current_status in FINAL_WORKFLOW_STATES and current_status != new_status:
-        logger.warning(
-            "workflow_transition_skipped_terminal",
+    if current_status == new_status:
+        logger.info(
+            "workflow_transition_skipped_same_state",
             extra={
                 "extra_data": {
                     "workflow_execution_id": workflow_execution.id,
-                    "current_status": current_status,
-                    "attempted_status": new_status,
+                    "status": current_status,
                 }
             },
         )
+        return workflow_execution
+
+    if current_status in FINAL_WORKFLOW_STATES and current_status != new_status:
         return workflow_execution
 
     valid = validate_workflow_transition(

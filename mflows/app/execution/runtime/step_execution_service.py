@@ -13,6 +13,7 @@ from app.execution.runtime.constants import (
     FINAL_STEP_STATES,
 )
 
+from app.core.logger import logger
 
 from app.execution.runtime.execution_state_manager import validate_step_transition
 
@@ -50,6 +51,15 @@ def update_step_status(
     current_status = step_execution.status
 
     if current_status == new_status:
+        logger.info(
+            "step",
+            extra={
+                "extra_data": {
+                    "workflow_execution_id": step_execution.id,
+                    "status": current_status,
+                }
+            },
+        )
         return step_execution
 
     if current_status in FINAL_STEP_STATES and current_status != new_status:

@@ -16,15 +16,12 @@ def handle_retry_event(
     delay = calculate_delay(attempts)
     retry_at = int(time.time()) + delay
     retry_payload = {
+        "version": 1,
         "workflow_execution_id": workflow_execution.id,
-        "workflow_id": workflow_execution.workflow_id,
         "step_execution_id": step_execution.id,
-        "failed_step": step_execution.step_name,
-        "event_id": workflow_execution.event_id,
-        "event_type": workflow_execution.event_type,
-        "entity_id": workflow_execution.entity_id,
         "attempt": attempts,
         "retry_at": retry_at,
+        "correlation_id": workflow_execution.event_id,
     }
 
     redis_client.zadd(
@@ -36,14 +33,14 @@ def handle_retry_event(
         "workflow_retry_scheduled",
         extra={
             "extra_data": {
+                "version": 1,
                 "workflow_execution_id": workflow_execution.id,
                 "workflow_id": workflow_execution.workflow_id,
                 "step_execution_id": step_execution.id,
-                "failed_step": step_execution.step_name,
-                "event_id": workflow_execution.event_id,
                 "attempt": attempts,
                 "retry_in_seconds": delay,
                 "error": str(error),
+                "correlation_id": workflow_execution.event_id,
             }
         },
     )
@@ -57,16 +54,12 @@ def handle_dlq_event(
 ):
 
     dlq_payload = {
-        "workflow_execution_id": workflow_execution.id,
-        "workflow_id": workflow_execution.workflow_id,
-        "step_execution_id": step_execution.id,
-        "failed_step": step_execution.step_name,
-        "event_id": workflow_execution.event_id,
-        "event_type": workflow_execution.event_type,
-        "entity_id": workflow_execution.entity_id,
-        "attempts": attempts,
-        "error": str(error),
         "failed_at": int(time.time()),
+        "version": 1,
+        "workflow_execution_id": workflow_execution.id,
+        "step_execution_id": step_execution.id,
+        "attempt": attempts,
+        "correlation_id": workflow_execution.event_id,
     }
 
     redis_client.lpush(
@@ -81,10 +74,9 @@ def handle_dlq_event(
                 "workflow_execution_id": workflow_execution.id,
                 "workflow_id": workflow_execution.workflow_id,
                 "step_execution_id": step_execution.id,
-                "failed_step": step_execution.step_name,
-                "event_id": workflow_execution.event_id,
                 "attempts": attempts,
                 "error": str(error),
+                "correlation_id": workflow_execution.event_id,
             }
         },
     )

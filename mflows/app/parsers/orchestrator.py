@@ -174,69 +174,6 @@ def build_standard_response(
     }
 
 
-# def parse_workflow_text(text: str):
-#     parser_metrics.total_requests += 1
-#     if text in cache_store:
-#         parser_metrics.cache_hits += 1
-#         return cache_store[text]
-
-#     extracted = extract_all(text)
-#     mapped = map_intents(text)
-
-#     source = "rules"
-#     score = 1.0
-
-#     base_rule = build_final_rule(extracted=extracted, mapped=mapped)
-
-#     if base_rule.get("trigger") is None:
-#         base_rule["trigger"] = infer_trigger_from_action(base_rule.get("action"))
-
-#     if base_rule.get("trigger") is None or base_rule.get("action") is None:
-#         if mapped["action_result"]["action"] and mapped["trigger_result"]["trigger"]:
-#             return
-#         logger.info("llm_patch_triggered")
-
-#         llm_result = parse_workflow_with_llm(text)
-
-#         if llm_result["success"]:
-#             parser_metrics.llm_hits += 1
-#             patch = llm_result.get("data", {})
-#             base_rule = merge_patch(base_rule, patch)
-
-#             source = "llm_patch"
-#             score = llm_result.get("score", 0)
-#         else:
-#             parser_metrics.failures += 1
-#             parser_metrics.fallback_used += 1
-#             logger.warning("llm_patch_failed")
-
-#     final_rule = enrich_rule(base_rule, extracted)
-
-#     final_rule = canonicalize(final_rule)
-
-#     validation = validate_rule(final_rule)
-
-#     result = build_standard_response(
-#         success=validation["is_valid"],
-#         source=source,
-#         rule=final_rule,
-#         validation=validation,
-#         score=score,
-#         extracted=extracted,
-#         mapped=mapped,
-#     )
-
-#     if not result["success"]:
-#         parser_metrics.failures += 1
-#         logger.warning("parse_validation_failed")
-#     else:
-#         parser_metrics.regex_hits += 1
-#         logger.info("parse_success")
-
-#     cache_store[text] = result
-#     return result
-
-
 def parse_workflow_text(text: str):
     parser_metrics.total_requests += 1
     if text in cache_store:
@@ -254,7 +191,6 @@ def parse_workflow_text(text: str):
         base_rule["trigger"] = infer_trigger_from_action(base_rule.get("action"))
 
     needs_patch = base_rule.get("trigger") is None or base_rule.get("action") is None
-
     if needs_patch:
         logger.info("llm_patch_triggered")
 
