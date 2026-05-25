@@ -5,38 +5,24 @@ from app.repositories.entity_repo import fetch_entity_payload
 from app.execution.runtime.workflow_execution_service import (
     create_workflow_execution,
     mark_workflow_running,
-    mark_workflow_completed,
-    mark_workflow_failed,
 )
 
-from app.execution.runtime.step_execution_service import (
-    create_step_execution,
-    mark_step_running,
-    mark_step_completed,
-    mark_step_failed,
+# from app.execution.runtime. import run_dag_execution
+from app.execution.runtime.workflow_finalizer import (
+    finalize_workflow_execution,
 )
 
-from app.execution.dispatcher import execute_action
-from app.execution.retry_handler import handle_retry
 from app.execution.dedupe import is_duplicate_execution
-
 from app.core.logger import logger
 
 
 def runtime_processor(db, event: dict):
-
     workflows = load_active_workflows(db)
 
-    payload = fetch_entity_payload(
-        db,
-        event["entity_type"],
-        event["entity_id"],
-    )
+    payload = fetch_entity_payload(db, event["entity_type"], event["entity_id"])
 
     matched_workflows = get_matching_workflows(
-        workflows=workflows,
-        event=event,
-        payload=payload,
+        workflows=workflows, event=event, payload=payload
     )
 
     logger.info(
@@ -50,16 +36,10 @@ def runtime_processor(db, event: dict):
     )
 
     for workflow in matched_workflows:
-
-        workflow_execution = None
-        step = None
-
         try:
-
             if is_duplicate_execution(
                 event_id=event["event_id"], workflow_id=workflow.id
             ):
-
                 logger.info(
                     "duplicate_workflow_execution_skipped",
                     extra={
@@ -69,9 +49,7 @@ def runtime_processor(db, event: dict):
                         }
                     },
                 )
-
                 continue
-
             workflow_execution = create_workflow_execution(
                 db=db,
                 workflow_id=workflow.id,
@@ -79,77 +57,23 @@ def runtime_processor(db, event: dict):
                 event_type=event["event_type"],
                 entity_id=event["entity_id"],
             )
+            mark_workflow_running(db=db, workflow_execution=workflow_execution)
+            dag = workflow.parsed_rule_json
+            run_dag_execution(
+                db=db,
+                workflow_execution=workflow_execution,
+                dag=dag,
+                payload=payload,
+            )
 
-            mark_workflow_running(
+            finalize_workflow_execution(
                 db=db,
                 workflow_execution=workflow_execution,
             )
 
-            rule = workflow.parsed_rule_json
-
-            action = rule.get("action")
-
-            config = rule.get("config", {})
-
-            step = create_step_execution(
-                db=db,
-                workflow_execution_id=workflow_execution.id,
-                step_name=action,
-                input_payload=payload,
-            )
-
-            mark_step_running(
-                db=db,
-                step_execution=step,
-            )
-
-            result = execute_action(
-                action_name=action,
-                payload=payload,
-                config=config,
-            )
-
-            success = result.get("success") is True or result.get("status") == "success"
-
-            if success:
-
-                mark_step_completed(
-                    db=db,
-                    step_execution=step,
-                    output_payload=result,
-                )
-
-                mark_workflow_completed(
-                    db=db,
-                    workflow_execution=workflow_execution,
-                )
-
-            else:
-
-                mark_step_failed(
-                    db=db,
-                    step_execution=step,
-                    error=str(result),
-                )
-
-                mark_workflow_failed(
-                    db=db,
-                    workflow_execution=workflow_execution,
-                    error=str(result),
-                )
-
-                handle_retry(
-                    db=db,
-                    workflow_execution=workflow_execution,
-                    step_execution=step,
-                    error=str(result),
-                )
-                continue
-
         except Exception as e:
-
             logger.exception(
-                "runtime_processor_workflow_failed",
+                "runtime_processor_failed",
                 extra={
                     "extra_data": {
                         "event_id": event["event_id"],
@@ -158,30 +82,6 @@ def runtime_processor(db, event: dict):
                     }
                 },
             )
-
-            if step:
-
-                mark_step_failed(
-                    db=db,
-                    step_execution=step,
-                    error=str(e),
-                )
-
-            if workflow_execution:
-
-                mark_workflow_failed(
-                    db=db,
-                    workflow_execution=workflow_execution,
-                    error=str(e),
-                )
-
-                handle_retry(
-                    db=db,
-                    workflow_execution=workflow_execution,
-                    step_execution=step,
-                    error=str(e),
-                )
-
     logger.info(
         "runtime_processor_completed",
         extra={
