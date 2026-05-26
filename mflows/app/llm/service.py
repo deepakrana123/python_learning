@@ -2,6 +2,7 @@ import json
 from app.llm.llmManager import LLMManager
 from app.llm.validator import validate_workflow_json
 from app.llm.repair import repair_json
+from app.llm.prompt_loader import build_prompt
 from app.core.logger import logger
 
 manager = LLMManager()
@@ -61,3 +62,43 @@ def parse_workflow_with_llm(raw_text: str):
         "data": parsed,
         "provider": result["provider"],
     }
+
+
+def repair_dsl_with_llm(raw_dsl: str) -> dict:
+    """
+    PART 3 — LLM DSL repair.
+    Only called for structurally malformed DSL (broken indentation,
+    corrupted depends syntax, incomplete formatting).
+    NOT called for semantic failures (missing action, invalid trigger).
+
+    Returns:
+        { "success": True, "repaired_text": "..." }
+        { "success": False, "error": "..." }
+    """
+    logger.info(
+        "llm_repair_started",
+        extra={"extra_data": {"input_length": len(raw_dsl)}},
+    )
+
+    repair_prompt = build_prompt("repair_v1.txt", {"model_output": raw_dsl})
+    result = manager.call(repair_prompt)
+
+    if not result["success"]:
+        logger.warning(
+            "llm_repair_failed",
+            extra={"extra_data": {"error": result.get("error")}},
+        )
+        return {"success": False, "error": result.get("error", "all providers failed")}
+
+    repaired_text = result.get("text", "").strip()
+
+    if not repaired_text:
+        logger.warning("llm_repair_failed", extra={"extra_data": {"reason": "empty_response"}})
+        return {"success": False, "error": "llm_returned_empty_repair"}
+
+    logger.info(
+        "llm_repair_started",  # reuse key — indicates repair completed
+        extra={"extra_data": {"repaired_length": len(repaired_text)}},
+    )
+
+    return {"success": True, "repaired_text": repaired_text}

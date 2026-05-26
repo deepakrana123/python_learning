@@ -12,6 +12,9 @@ API_KEY = os.getenv("GEMINI_API_KEY")
 MODEL = os.getenv("GEMINI_MODEL")
 url = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL}:generateContent?key={API_KEY}"
 
+# Part 5 — configurable timeout, default tight for repair path
+GEMINI_TIMEOUT_SECONDS = int(os.getenv("GEMINI_TIMEOUT_SECONDS", "5"))
+
 
 def try_call_gemini_rest(prompt: str):
 
@@ -19,18 +22,24 @@ def try_call_gemini_rest(prompt: str):
         start = time.time()
         try:
             payload = {"contents": [{"parts": [{"text": prompt}]}]}
-            response = requests.post(url=url, json=payload, timeout=8)
+            response = requests.post(url=url, json=payload, timeout=GEMINI_TIMEOUT_SECONDS)
             if response.status_code != 200:
+                error_body = response.text[:300]
+                # Surface API key errors explicitly for provider health tracking
+                if response.status_code in (401, 403) or "api key" in error_body.lower():
+                    error_msg = f"API_KEY_INVALID: {error_body}"
+                else:
+                    error_msg = error_body
                 logger.warning(
                     "gemini_http_error",
                     extra={
                         "extra_data": {
                             "status_code": response.status_code,
-                            "response_body": response.text[:200],
+                            "response_body": error_body,
                         }
                     },
                 )
-                return fail_response("gemini", response.text)
+                return fail_response("gemini", error_msg)
             data = response.json()
             text = data["candidates"][0]["content"]["parts"][0]["text"]
 

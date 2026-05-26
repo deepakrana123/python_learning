@@ -2,7 +2,9 @@ from app.models.execution_step import ExecutionStep
 from sqlalchemy.sql import func
 
 
-def mark_failed(db, step_execution: str, attempts: int, error: str):
+# FIX: type hint was wrong — step_execution is an ExecutionStep object, not str
+# OLD: def mark_failed(db, step_execution: str, attempts: int, error: str):
+def mark_failed(db, step_execution, attempts: int, error: str):
     db.query(ExecutionStep).filter(ExecutionStep.id == step_execution.id).update(
         {
             "status": "FAILED",

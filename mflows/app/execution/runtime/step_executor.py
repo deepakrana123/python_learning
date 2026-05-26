@@ -56,6 +56,10 @@ def execute_workflow_step(db, workflow_execution, step_definition, payload):
         )
 
         if step_execution:
-            mark_step_failed(db=db, step_execution=step_execution, error=str(e))
-            handle_retry(db=db, step_execution=step_execution, error=str(e))
+            # FIX: only call mark_step_failed if not already in a terminal state
+            # prevents double mark_step_failed + double handle_retry if handle_retry threw
+            # OLD: called unconditionally — caused double retry queue entry
+            if step_execution.status not in ("FAILED", "RETRY_SCHEDULED", "DLQ", "COMPLETED"):
+                mark_step_failed(db=db, step_execution=step_execution, error=str(e))
+                handle_retry(db=db, step_execution=step_execution, error=str(e))
         return {"success": False, "error": str(e)}

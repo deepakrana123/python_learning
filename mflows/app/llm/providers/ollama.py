@@ -1,5 +1,6 @@
 import requests
 import time
+import os
 from app.llm.contracts import success_response, fail_response
 from app.config.retry_wrapper import with_retry
 from app.core.logger import logger
@@ -7,6 +8,9 @@ from app.llm.repair import repair_json
 from app.llm.validator import score_response
 
 OLLAMA_URL = "http://host.docker.internal:11434/api/generate"
+
+# Part 5 — configurable timeout, default tight for repair path
+OLLAMA_TIMEOUT_SECONDS = int(os.getenv("OLLAMA_TIMEOUT_SECONDS", "5"))
 
 
 def try_call_ollama(prompt: str):
@@ -16,7 +20,7 @@ def try_call_ollama(prompt: str):
             res = requests.post(
                 OLLAMA_URL,
                 json={"model": "qwen2.5:7b", "prompt": prompt, "stream": False},
-                timeout=40,
+                timeout=OLLAMA_TIMEOUT_SECONDS,
             )
             if res.status_code != 200:
                 logger.warning(

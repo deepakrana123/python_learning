@@ -7,7 +7,8 @@ from app.execution.runtime.workflow_execution_service import (
     mark_workflow_running,
 )
 
-# from app.execution.runtime. import run_dag_execution
+# from app.execution.runtime. import run_dag_execution  # OLD: incomplete import path
+from app.execution.runtime.dag_executor import run_dag_execution
 from app.execution.runtime.workflow_finalizer import (
     finalize_workflow_execution,
 )
@@ -36,6 +37,7 @@ def runtime_processor(db, event: dict):
     )
 
     for workflow in matched_workflows:
+        workflow_execution = None  # FIX: defined before try so except block can reference it
         try:
             if is_duplicate_execution(
                 event_id=event["event_id"], workflow_id=workflow.id
@@ -82,6 +84,10 @@ def runtime_processor(db, event: dict):
                     }
                 },
             )
+            # FIX: finalize workflow on exception so it doesn't stay RUNNING forever
+            # OLD: only logged, workflow stayed RUNNING until reaper recovered it
+            if workflow_execution:
+                finalize_workflow_execution(db=db, workflow_execution=workflow_execution)
     logger.info(
         "runtime_processor_completed",
         extra={

@@ -16,6 +16,29 @@ def finalize_workflow_execution(db, workflow_execution):
 
     statuses = [step.status for step in steps]
 
+    # FIX: DLQ is permanent failure — must mark workflow FAILED
+    # OLD: DLQ was not checked — workflow could complete even with DLQ steps
+    if any(status == "DLQ" for status in statuses):
+        mark_workflow_failed(
+            db=db,
+            workflow_execution=workflow_execution,
+            error="one_or_more_steps_moved_to_dlq",
+        )
+        return
+
+    # FIX: RETRY_SCHEDULED means execution is still in progress — do not finalize yet
+    # OLD: not checked — workflow could be finalized while a step was pending retry
+    if any(status == "RETRY_SCHEDULED" for status in statuses):
+        logger.info(
+            "workflow_finalization_deferred_retry_pending",
+            extra={
+                "extra_data": {
+                    "workflow_execution_id": workflow_execution.id,
+                }
+            },
+        )
+        return
+
     if all(status == "COMPLETED" for status in statuses):
         mark_workflow_completed(db=db, workflow_execution=workflow_execution)
         return

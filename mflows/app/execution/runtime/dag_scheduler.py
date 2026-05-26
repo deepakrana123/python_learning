@@ -1,6 +1,9 @@
 from app.models.execution_step import ExecutionStep
 
 
+# NOTE: unlock_blocked_steps is a DB-based unblock path for future resume/replay support.
+# Not called by dag_executor yet — dag_executor uses get_ready_steps (in-memory) for sequential execution.
+# Wire this in when implementing DAG resume from BLOCKED state.
 def unlock_blocked_steps(db, workflow_execution_id):
     all_steps = (
         db.query(ExecutionStep)
@@ -14,14 +17,19 @@ def unlock_blocked_steps(db, workflow_execution_id):
             continue
         deps = step.depends_on or []
 
+        # FIX: typo "COMPELETED" → "COMPLETED" — blocked steps never unblocked before this fix
+        # OLD: step_map[d].status == "COMPELETED"
         all_completed = all(
-            step_map[d].status == "COMPELETED" for d in deps if d in step_map
+            step_map[d].status == "COMPLETED" for d in deps if d in step_map
         )
         if all_completed:
             step.status = "PENDING"
     db.commit()
 
 
+# NOTE: get_runnable_steps is a DB-based query for PENDING steps.
+# Not called by dag_executor yet — dag_executor uses get_ready_steps (in-memory).
+# Wire this in when implementing DB-persisted DAG resumption.
 def get_runnable_steps(db, workflow_execution_id):
 
     return (
