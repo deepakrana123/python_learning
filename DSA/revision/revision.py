@@ -1201,3 +1201,162 @@ def getSkyline(buildings):
             result.append([x, current_height])
             prev_height = current_height
     return result
+
+
+def jobSequencing(deadline, profit):
+    n = len(deadline)
+    # cnt = 0
+    # totalProfit = 0
+    # jobs = [(profit[i], deadline[i]) for i in range(n)]
+    # jobs.sort(key=lambda x: x[0], reverse=True)
+    # slot = [0] * n
+    # for i in range(n):
+    #     start = min(n, jobs[i][1]) - 1
+    #     for j in range(start, -1, -1):
+    #         if slot[0] == 0:
+    #             slot[j] = 1
+    #             cnt += 1
+    #             totalProfit += jobs[j][0]
+    #             break
+    # return [cnt, totalProfit]
+    ans = [0, 0]
+    jobs = [(deadline[i], profit[i]) for i in range(n)]
+    jobs.sort()
+    pq = []
+    for job in jobs:
+        # if job[0] > len(pq):
+        #     heapq.heappush(pq, job[1])
+        # elif pq and pq[0] < job[1]:
+        #     heapq.heappop(pq)
+        #     heapq.heappush(pq, job[1])
+        if job[0] > len(pq):
+            heapq.heappush(pq, job[1])
+        elif pq and pq[0] < job[1]:
+            heapq.heappop(pq)
+            heapq.heappush(pq, job[1])
+    while pq:
+        ans[1] += heapq.heappop(pq)
+        ans[0] += 1
+    return ans
+
+
+def numberOfSpecialChars(word):
+    # dicts = {}
+    # count = 0
+    # for w in word:
+    #     if w == w.upper() and w.lower() in dicts:
+    #         count += 1
+    #     dicts[w] = dicts.get(w, 0) + 1
+    # return count
+    dictsSmall = {}
+    dictsBig = {}
+    for i in range(len(word)):
+        w = word[i]
+        if w == w.upper():
+            dictsBig[w] = i
+        else:
+            dictsSmall[w] = i
+    count = 0
+    for key in dictsSmall.keys():
+        if key.upper() in dictsBig and dictsBig[key.upper()] > dictsSmall[key]:
+            count += 1
+    return count
+
+
+class DoublyLinkedList:
+    def __init__(self, key, val, prev, next):
+        self.key = key
+        self.val = val
+        self.prev = prev
+        self.next = next
+
+
+class LRUCache:
+    def __init__(self, capacity):
+        self.capacity = capacity
+        self.size = 0
+        self.cache = {}
+        self.head = Node(0, 0)
+        self.tail = Node(0, 0)
+        self.head.next = self.tail
+        self.tail.prev = self.head
+
+    def get(self, key: int):
+        if key not in self.cache:
+            return -1
+        node = self.cache[key]
+        self._move_to_front(node)
+        return node.val
+
+    def _add_to_front(self, node):
+        node.prev = self.head
+        node.next = self.head.next
+        self.head.next.prev = node
+        self.head.next = node
+
+    def _remove_node(self, node):
+        node.prev.next = node.next
+        node.next.prev = node.prev
+
+    def _move_to_front(self, node):
+        self._remove_node(node)
+        self._add_to_front(node)
+
+    def put(self, key, value):
+        if key in self.cache:
+            node = self.cache[key]
+            node.val = value
+            self._move_to_front(node)
+
+        node = Node(key, value)
+        self.cache[key] = node
+        self._add_to_front(node)
+        self.size += 1
+        if self.size > self.capacity:
+            lru = self.tail.prev
+            self._remove_node(lru)
+            del self.cache[lru.key]
+            self.size -= 1
+
+
+class LFUCache:
+    def __init__(self, capacity):
+        self.capacity = capacity
+        self.size = 0
+        self.cache = {}
+        self.head = Node(0, 0)
+        self.tail = Node(0, 0)
+        self.head.next = self.tail
+        self.tail.prev = self.head
+        self.freqToList = {}
+        self.heap = []
+
+    def get(self, key: int):
+        if key not in self.cache:
+            return -1
+        node = self.cache[key]
+        self._move_to_front(node)
+        self.freqToList[key] = self.freqToList.get(key, 0) + 1
+        heapq.heappush(self.heap, (key, self.freqToList[key]))
+        return node.val
+
+    def _add_to_front(self, node):
+        node.prev = self.head
+        node.next = self.head.next
+        self.head.next.prev = node
+        self.head.next = node
+
+    def _remove_node(self, node):
+        node.prev.next = node.next
+        node.next.prev = node.prev
+
+    def _move_to_front(self, node):
+        self._remove_node(node)
+        self._add_to_front(node)
+
+    def put(self, key, value):
+        if key in self.cache:
+            node = self.cache[key]
+            node.val = value
+            self.freqToList[key] += 1
+            heapq.heappush(self.heap, (key, self.freqToList[key]))
