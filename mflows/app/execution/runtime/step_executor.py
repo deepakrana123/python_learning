@@ -7,6 +7,7 @@ from app.execution.runtime.step_execution_service import (
 
 from app.execution.dispatcher import execute_action
 from app.execution.retry_handler import handle_retry
+from app.repositories.step_retry_history_repo import record_retry_history
 from app.core.logger import logger
 
 
@@ -15,13 +16,15 @@ def execute_workflow_step(db, workflow_execution, step_definition, payload):
     step_execution = None
 
     try:
-        rule = step_definition["rule"]
-        action = rule.get("action")
-        config = rule.get("config", {})
+        # FIX C4: DAG steps from dsl_parser have shape {"id", "trigger", "action", "depends_on"}
+        # OLD: step_definition["rule"] — "rule" key doesn't exist, caused KeyError on every step
+        action = step_definition.get("action")
+        config = step_definition.get("config", {})
+        step_id = step_definition.get("id", "unknown")
         step_execution = create_step_execution(
             db=db,
             workflow_execution_id=workflow_execution.id,
-            step_name=action,
+            step_name=action or step_id,
             input_payload=payload,
         )
 
@@ -40,7 +43,17 @@ def execute_workflow_step(db, workflow_execution, step_definition, payload):
 
         mark_step_failed(db=db, step_execution=step_execution, error=str(result))
 
-        handle_retry(db=db, step_execution=step_execution, error=str(result))
+        retry_result = handle_retry(db=db, step_execution=step_execution, error=str(result))
+
+        # Write retry history
+        record_retry_history(
+            db=db,
+            step_execution=step_execution,
+            attempt_number=retry_result.get("attempts", 1),
+            trigger="retry" if retry_result.get("retry_scheduled") else "dlq",
+            status_at_attempt=step_execution.status,
+            error=str(result),
+        )
 
         return {"success": False, "result": result}
 
@@ -56,10 +69,15 @@ def execute_workflow_step(db, workflow_execution, step_definition, payload):
         )
 
         if step_execution:
-            # FIX: only call mark_step_failed if not already in a terminal state
-            # prevents double mark_step_failed + double handle_retry if handle_retry threw
-            # OLD: called unconditionally — caused double retry queue entry
             if step_execution.status not in ("FAILED", "RETRY_SCHEDULED", "DLQ", "COMPLETED"):
                 mark_step_failed(db=db, step_execution=step_execution, error=str(e))
-                handle_retry(db=db, step_execution=step_execution, error=str(e))
+                retry_result = handle_retry(db=db, step_execution=step_execution, error=str(e))
+                record_retry_history(
+                    db=db,
+                    step_execution=step_execution,
+                    attempt_number=retry_result.get("attempts", 1),
+                    trigger="retry" if retry_result.get("retry_scheduled") else "dlq",
+                    status_at_attempt=step_execution.status,
+                    error=str(e),
+                )
         return {"success": False, "error": str(e)}

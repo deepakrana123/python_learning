@@ -17,7 +17,9 @@ def create(db: Session, name: str, domain: str, raw_input: str, parsed_rule_json
 
 
 def get_by_id(db: Session, workflow_id: int):
-    result = db.query(Workflow).filter(Workflow.id == workflow_id)
+    # FIX M4: was missing .first() — returned Query object, not Workflow instance
+    # Query is always truthy so the "not found" log never fired
+    result = db.query(Workflow).filter(Workflow.id == workflow_id).first()
     if not result:
         logger.warning(
             "workflow_repo_not_found",

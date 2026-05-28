@@ -2,8 +2,8 @@ from app.models.execution_step import ExecutionStep
 from app.execution.runtime.workflow_execution_service import (
     mark_workflow_completed,
     mark_workflow_failed,
+    mark_workflow_waiting_approval,
 )
-
 from app.core.logger import logger
 
 
@@ -53,9 +53,9 @@ def finalize_workflow_execution(db, workflow_execution):
         return
 
     if any(status == "WAITING" for status in statuses):
-        workflow_execution.status = "WAITING_APPROVAL"
-        db.commit()
-
+        # FIX M6: was directly assigning workflow_execution.status — bypassed state machine
+        # OLD: workflow_execution.status = "WAITING_APPROVAL" + db.commit()
+        mark_workflow_waiting_approval(db=db, workflow_execution=workflow_execution)
         return
 
     logger.info(

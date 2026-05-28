@@ -1,7 +1,5 @@
 from sqlalchemy.sql import func
 from app.models.execution_step import ExecutionStep
-
-
 from app.execution.runtime.constants import (
     STEP_STATUS_PENDING,
     STEP_STATUS_RUNNING,

@@ -15,6 +15,8 @@ from app.execution.runtime.workflow_execution_service import (
 
 router = APIRouter(prefix="/execute", tags=["execute"])
 
+WORKFLOW_EVENTS_QUEUE = "workflow_events"
+
 
 @router.post("/")
 def publish_event(body: ExecuteWorkflow):
@@ -22,21 +24,47 @@ def publish_event(body: ExecuteWorkflow):
     try:
         workflow = db.query(Workflow).filter(Workflow.id == body.workflow_id).first()
         if not workflow:
-            raise HTTPException(status_code=404, detail="worflow not found")
-        workflow_run = WorkflowRun(workflow_id=workflow.id, entity_id=body.entity_id)
+            raise HTTPException(status_code=404, detail="workflow not found")
+
+        # Duplicate execution guard — block if already PENDING or RUNNING
+        existing = (
+            db.query(WorkflowExecution)
+            .filter(
+                WorkflowExecution.workflow_id == body.workflow_id,
+                WorkflowExecution.status.in_(["PENDING", "RUNNING"]),
+            )
+            .first()
+        )
+        if existing:
+            return {
+                "success": False,
+                "message": "workflow already has an active execution",
+                "workflow_execution_id": existing.id,
+            }
+
+        workflow_run = WorkflowRun(
+            workflow_id=workflow.id,
+            entity_id=body.entity_id,
+            event_type=getattr(body, "event_type", None),
+            status="QUEUED",
+        )
         db.add(workflow_run)
         db.commit()
         db.refresh(workflow_run)
 
         workflow_execution = WorkflowExecution(
-            workflow_id=workflow.id, workflow_run_id=workflow.id, status="PENDING"
+            workflow_id=workflow.id,
+            # FIX C2: was workflow.id — must be workflow_run.id
+            workflow_run_id=workflow_run.id,
+            entity_id=body.entity_id,
+            status="PENDING",
         )
         db.add(workflow_execution)
         db.commit()
         db.refresh(workflow_execution)
 
         workflow_event = {"workflow_execution_id": workflow_execution.id}
-        redis_client.lpush("workflow_events", json.dumps(workflow_event))
+        redis_client.lpush(WORKFLOW_EVENTS_QUEUE, json.dumps(workflow_event))
 
         logger.info(
             "workflow_execution_queued",
@@ -57,7 +85,9 @@ def publish_event(body: ExecuteWorkflow):
 
     except IntegrityError:
         db.rollback()
-        return {"success": False, "message": "duplicate execution ignore"}
+        return {"success": False, "message": "duplicate execution ignored"}
+    except HTTPException:
+        raise
     except Exception:
         db.rollback()
         raise
@@ -66,13 +96,9 @@ def publish_event(body: ExecuteWorkflow):
 
 
 @router.post("/{workflow_execution_id}/pause")
-def pause_execution(
-    workflow_execution_id: int,
-):
+def pause_execution(workflow_execution_id: int):
     db = SessionLocal()
-
     try:
-
         execution = (
             db.query(WorkflowExecution)
             .filter(WorkflowExecution.id == workflow_execution_id)
@@ -80,15 +106,16 @@ def pause_execution(
         )
 
         if not execution:
-            return {
-                "success": False,
-                "message": "workflow execution not found",
-            }
+            raise HTTPException(status_code=404, detail="workflow execution not found")
 
-        mark_workflow_paused(
-            db=db,
-            workflow_execution=execution,
-        )
+        # FIX H4: validate state before pausing — only RUNNING can be paused
+        if execution.status != "RUNNING":
+            raise HTTPException(
+                status_code=409,
+                detail=f"cannot pause execution in status '{execution.status}' — must be RUNNING",
+            )
+
+        mark_workflow_paused(db=db, workflow_execution=execution)
 
         return {
             "success": True,
@@ -101,13 +128,9 @@ def pause_execution(
 
 
 @router.post("/{workflow_execution_id}/resume")
-def resume_execution(
-    workflow_execution_id: int,
-):
+def resume_execution(workflow_execution_id: int):
     db = SessionLocal()
-
     try:
-
         execution = (
             db.query(WorkflowExecution)
             .filter(WorkflowExecution.id == workflow_execution_id)
@@ -115,14 +138,25 @@ def resume_execution(
         )
 
         if not execution:
-            return {
-                "success": False,
-                "message": "workflow execution not found",
-            }
+            raise HTTPException(status_code=404, detail="workflow execution not found")
 
-        mark_workflow_running(
-            db=db,
-            workflow_execution=execution,
+        # Only PAUSED executions can be resumed
+        if execution.status != "PAUSED":
+            raise HTTPException(
+                status_code=409,
+                detail=f"cannot resume execution in status '{execution.status}' — must be PAUSED",
+            )
+
+        mark_workflow_running(db=db, workflow_execution=execution)
+
+        # FIX H5: re-push to Redis so a worker picks it up
+        # OLD: only updated DB status — no worker ever processed the resumed execution
+        workflow_event = {"workflow_execution_id": execution.id}
+        redis_client.lpush(WORKFLOW_EVENTS_QUEUE, json.dumps(workflow_event))
+
+        logger.info(
+            "workflow_execution_resumed",
+            extra={"extra_data": {"workflow_execution_id": execution.id}},
         )
 
         return {

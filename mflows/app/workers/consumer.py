@@ -9,15 +9,24 @@ QUEUE = "workflow_events"
 MAX_WORKERS = 5
 
 
-def handle_event(event):
+def handle_event(payload: dict):
     db = SessionLocal()
     try:
-        runtime_processor(event=event, db=db)
+        # FIX C5: was passing full event dict — runtime_processor now takes workflow_execution_id int
+        workflow_execution_id = payload.get("workflow_execution_id")
+        if not workflow_execution_id:
+            logger.error(
+                "consumer_missing_workflow_execution_id",
+                extra={"extra_data": {"payload": payload}},
+            )
+            return
+
+        runtime_processor(db=db, workflow_execution_id=workflow_execution_id)
+
     except Exception as e:
-        print(e, "e")
         logger.error(
             "consumer_worker_error",
-            extra={"extra_data": {"error": str(e), "event": event}},
+            extra={"extra_data": {"error": str(e), "payload": payload}},
         )
     finally:
         db.close()
@@ -25,13 +34,14 @@ def handle_event(event):
 
 def worker():
     executor = ThreadPoolExecutor(max_workers=MAX_WORKERS)
+    logger.info("consumer_worker_started")
     while True:
         item = redis_client.brpop(QUEUE, timeout=5)
         if not item:
             continue
         _, event_data = item
-        event = json.loads(event_data)
-        executor.submit(handle_event, event)
+        payload = json.loads(event_data)
+        executor.submit(handle_event, payload)
 
 
 if __name__ == "__main__":

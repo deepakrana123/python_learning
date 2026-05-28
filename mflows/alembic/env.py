@@ -12,6 +12,7 @@ from app.models.audit_log import AuditLog
 from app.models.execution_step import ExecutionStep
 from app.models.workflow_execution import WorkflowExecution
 from app.models.workflow_run import WorkflowRun
+from app.models.step_retry_history import StepRetryHistory
 
 config = context.config
 
