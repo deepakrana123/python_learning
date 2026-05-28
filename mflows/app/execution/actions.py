@@ -62,3 +62,8 @@ def escalate_ticket(payload, config):
         "action_escalate_ticket_success", extra={"extra_data": {"payload": payload}}
     )
     return {"status": "success", "action": "escalate_ticket"}
+
+
+def validate_payment_handler(payload, config):
+    logger.info("validate_payment_handler", extra={"extra_data": {"payload": payload}})
+    return {"status": "success", "action": "validate_payment"}

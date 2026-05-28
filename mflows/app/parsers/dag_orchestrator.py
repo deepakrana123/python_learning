@@ -1,42 +1,3 @@
-"""
-PART 6 — DAG Parser Orchestrator
-
-Flow:
-    parse_dsl(text)
-        → if parse fails + repairable → llm_repair_dsl(text)
-        → if parse fails + not repairable → hard fail
-        → validate_dag(steps)
-        → if validation fails → hard fail (no LLM repair for semantic errors)
-        → return strict contract response
-
-PART 3 — LLM repair rules:
-    LLM repair triggers ONLY for:
-        - malformed structure
-        - broken indentation
-        - corrupted dependency syntax
-        - incomplete workflow formatting
-
-    LLM repair does NOT trigger for:
-        - missing action
-        - missing trigger
-        - semantic validation failures
-        - unsupported grammar (no arrow)
-
-PART 6 — Response contract:
-    VALID:
-        {
-            "success": True,
-            "steps": [...],
-            "validation": {"is_valid": True, "errors": []}
-        }
-    INVALID:
-        {
-            "success": False,
-            "steps": [],
-            "validation": {"is_valid": False, "errors": [...]}
-        }
-"""
-
 from app.parsers.dsl_parser import parse_dsl
 from app.parsers.dag_validator import validate_dag
 from app.parsers.cache import cache_store
@@ -139,7 +100,9 @@ def parse_dag_workflow(text: str) -> dict:
                 "llm_repair_failed",
                 extra={"extra_data": {"reason": "repaired_text_still_invalid"}},
             )
-            result = _hard_fail(parse_result["errors"] + ["llm_repair_produced_invalid_dsl"])
+            result = _hard_fail(
+                parse_result["errors"] + ["llm_repair_produced_invalid_dsl"]
+            )
             cache_store[text] = result
             return result
 
@@ -149,10 +112,8 @@ def parse_dag_workflow(text: str) -> dict:
         source = "deterministic"
 
     steps = parse_result["steps"]
-
-    # Step 3 — strict DAG validation
-    # Semantic failures (missing action, invalid trigger) are HARD FAILS — no LLM retry
     validation = validate_dag(steps)
+    print(validation, "validation")
 
     if not validation["is_valid"]:
         parser_metrics.failures += 1

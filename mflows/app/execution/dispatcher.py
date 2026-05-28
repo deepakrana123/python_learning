@@ -3,6 +3,7 @@ from app.execution.actions import (
     escalate_case,
     assign_senior_officer,
     fail_randomly,
+    validate_payment_handler,
 )
 from app.core.logger import logger
 
@@ -11,6 +12,7 @@ ACTION_MAP = {
     "escalate_case": escalate_case,
     "assign_senior_officer": assign_senior_officer,
     "fail_randomly": fail_randomly,
+    "validate_payment": validate_payment_handler,
 }
 
 

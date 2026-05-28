@@ -11,6 +11,7 @@ from app.models.event_processing import EventProcessing
 from app.models.audit_log import AuditLog
 from app.models.execution_step import ExecutionStep
 from app.models.workflow_execution import WorkflowExecution
+from app.models.workflow_run import WorkflowRun
 
 config = context.config
 

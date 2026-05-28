@@ -14,6 +14,7 @@ ALLOWED_ACTIONS = [
     "close_case",
     "reject_loan",
     "notify_manager",
+    "validate_payment",
 ]
 
 REQUIRED_FIELDS = [

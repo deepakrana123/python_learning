@@ -7,19 +7,30 @@ from app.core.logger import logger
 
 def start_worker():
     print("Polling queue...", flush=True)
-    item = redis_client.brpop("workflow_events", timeout=5)
+    logger.info("workflow_worker_started")
     while True:
-        if not item:
-            continue
-        _, raw = item
         try:
+            item = redis_client.brpop("workflow_events", timeout=5)
+            if not item:
+                continue
+            _, raw = item
             event = json.loads(raw)
+            logger.info(
+                "workflow_event_received",
+                extra={
+                    "extra_data": {
+                        "event": event,
+                    }
+                },
+            )
             db = SessionLocal()
-            runtime_processor(event, db)
-            db.close()
+            try:
+                runtime_processor(event, db)
+            finally:
+                db.close()
         except Exception as e:
             logger.error(
-                "worker_event_processing_error",
+                "workflow_worker_processing_failed",
                 extra={"extra_data": {"error": str(e)}},
             )
 

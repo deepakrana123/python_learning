@@ -1,11 +1,11 @@
 import json
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from sqlalchemy.exc import IntegrityError
-import uuid
-from app.schemas.event import EventCreate
+from app.schemas.execute import ExecuteWorkflow
 from app.core.redis_client import redis_client
 from app.db.session import SessionLocal
-from app.models.event_processing import EventProcessing
+from app.models.workflow import Workflow
+from app.models.workflow_run import WorkflowRun
 from app.models.workflow_execution import WorkflowExecution
 from app.core.logger import logger
 from app.execution.runtime.workflow_execution_service import (
@@ -13,49 +13,56 @@ from app.execution.runtime.workflow_execution_service import (
     mark_workflow_paused,
 )
 
-router = APIRouter(prefix="/event", tags=["events"])
+router = APIRouter(prefix="/execute", tags=["execute"])
 
 
-@router.post("/publish")
-def publish_event(body: EventCreate):
-    event_id = str(uuid.uuid4())
-    event = {
-        "event_id": event_id,
-        "event_type": body.event_type,
-        "entity_type": body.entity_type,
-        "entity_id": body.entity_id,
-    }
+@router.post("/")
+def publish_event(body: ExecuteWorkflow):
+    db = SessionLocal()
     try:
-        db = SessionLocal()
-        record = EventProcessing(
-            event_id=event["event_id"],
-            event_type=event["event_type"],
-            entity_type=event["entity_type"],
-            entity_id=event["entity_id"],
-            status="RECEIVED",
-        )
-        db.add(record)
+        workflow = db.query(Workflow).filter(Workflow.id == body.workflow_id).first()
+        if not workflow:
+            raise HTTPException(status_code=404, detail="worflow not found")
+        workflow_run = WorkflowRun(workflow_id=workflow.id, entity_id=body.entity_id)
+        db.add(workflow_run)
         db.commit()
-        redis_client.lpush("workflow_events", json.dumps(event))
+        db.refresh(workflow_run)
+
+        workflow_execution = WorkflowExecution(
+            workflow_id=workflow.id, workflow_run_id=workflow.id, status="PENDING"
+        )
+        db.add(workflow_execution)
+        db.commit()
+        db.refresh(workflow_execution)
+
+        workflow_event = {"workflow_execution_id": workflow_execution.id}
+        redis_client.lpush("workflow_events", json.dumps(workflow_event))
+
         logger.info(
-            "event_received",
+            "workflow_execution_queued",
             extra={
                 "extra_data": {
-                    "event_id": event_id,
-                    "event_type": event["event_type"],
+                    "workflow_run_id": workflow_run.id,
+                    "workflow_execution_id": workflow_execution.id,
+                    "workflow_id": workflow.id,
                 }
             },
         )
+        return {
+            "success": True,
+            "queued": True,
+            "workflow_run_id": workflow_run.id,
+            "workflow_execution_id": workflow_execution.id,
+        }
+
     except IntegrityError:
         db.rollback()
-        return {"status": "duplicate_ignored"}
-    except Exception as e:
+        return {"success": False, "message": "duplicate execution ignore"}
+    except Exception:
         db.rollback()
-        db.query(EventProcessing).filter(EventProcessing.event_id == event_id).delete()
-        raise e
+        raise
     finally:
         db.close()
-    return {"success": True, "queued": True}
 
 
 @router.post("/{workflow_execution_id}/pause")

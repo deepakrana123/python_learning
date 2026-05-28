@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-from app.routes.events import router as event_router
+from app.routes.execute import router as execute_router
 from app.routes.workflows import router as workflow_router
 
 app = FastAPI(
@@ -15,7 +15,7 @@ app = FastAPI(
 
 
 app.include_router(workflow_router, prefix="/api")
-app.include_router(event_router, prefix="/api")
+app.include_router(execute_order, prefix="/api")
 
 
 @app.get("/")

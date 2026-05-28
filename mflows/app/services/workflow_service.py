@@ -3,6 +3,8 @@ from app.schemas.workflow import WorkflowCreate
 from app.repositories import workflow
 from app.parsers.orchestrator import parse_workflow_text
 from app.core.logger import logger
+from app.parsers.dag_orchestrator import parse_dag_workflow
+from app.parsers.dsl_normalizer import normalize_multiline_dsl
 
 # ALLOWED_DOMAINS = {"support", "loan", "payments", "hr", "logistics", "ecommerce"}
 
@@ -74,8 +76,10 @@ def create_workflow_service(
         )
 
         raise ValueError("Invalid domain")
-
-    parse_result = parse_dag_workflow(payload.raw_input)
+    parse = normalize_multiline_dsl(payload.raw_input)
+    print(parse, "[parse]")
+    parse_result = parse_dag_workflow(parse)
+    print(parse_result, "parse_result")
 
     if not parse_result["validation"]["is_valid"]:
 
