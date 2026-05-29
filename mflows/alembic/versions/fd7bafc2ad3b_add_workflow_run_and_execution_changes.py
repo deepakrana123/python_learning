@@ -1,8 +1,8 @@
-"""cleanup_event_processing_table
+"""add workflow run and execution changes
 
-Revision ID: 93c583a1d67b
+Revision ID: fd7bafc2ad3b
 Revises: 
-Create Date: 2026-05-14 13:02:15.013839
+Create Date: 2026-05-28 21:08:47.507193
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision: str = '93c583a1d67b'
+revision: str = 'fd7bafc2ad3b'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -35,19 +35,6 @@ def upgrade() -> None:
     op.create_index(op.f('ix_event_processing_event_id'), 'event_processing', ['event_id'], unique=False)
     op.create_index(op.f('ix_event_processing_event_type'), 'event_processing', ['event_type'], unique=False)
     op.create_index(op.f('ix_event_processing_status'), 'event_processing', ['status'], unique=False)
-    op.create_table('workflows',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('name', sa.String(), nullable=False),
-    sa.Column('domain', sa.String(), nullable=False),
-    sa.Column('raw_input', sa.String(), nullable=False),
-    sa.Column('parsed_rule_json', postgresql.JSONB(astext_type=sa.Text()), nullable=True),
-    sa.Column('status', sa.String(), nullable=True),
-    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
-    sa.Column('priority', sa.Integer(), nullable=True),
-    sa.PrimaryKeyConstraint('id')
-    )
-    op.create_index(op.f('ix_workflows_domain'), 'workflows', ['domain'], unique=False)
-    op.create_index(op.f('ix_workflows_id'), 'workflows', ['id'], unique=False)
     op.create_table('audit_logs',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('workflow_id', sa.Integer(), nullable=True),
@@ -64,12 +51,28 @@ def upgrade() -> None:
     op.create_index(op.f('ix_audit_logs_id'), 'audit_logs', ['id'], unique=False)
     op.create_index(op.f('ix_audit_logs_status'), 'audit_logs', ['status'], unique=False)
     op.create_index(op.f('ix_audit_logs_workflow_id'), 'audit_logs', ['workflow_id'], unique=False)
+    op.create_table('workflow_runs',
+    sa.Column('id', sa.BigInteger(), nullable=False),
+    sa.Column('workflow_id', sa.BigInteger(), nullable=False),
+    sa.Column('entity_id', sa.String(length=255), nullable=True),
+    sa.Column('event_type', sa.String(length=100), nullable=True),
+    sa.Column('status', sa.String(length=30), nullable=False),
+    sa.Column('started_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+    sa.Column('finished_at', sa.DateTime(timezone=True), nullable=True),
+    sa.Column('error_text', sa.Text(), nullable=True),
+    sa.ForeignKeyConstraint(['workflow_id'], ['workflows.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_index(op.f('ix_workflow_runs_entity_id'), 'workflow_runs', ['entity_id'], unique=False)
+    op.create_index(op.f('ix_workflow_runs_event_type'), 'workflow_runs', ['event_type'], unique=False)
+    op.create_index(op.f('ix_workflow_runs_id'), 'workflow_runs', ['id'], unique=False)
+    op.create_index(op.f('ix_workflow_runs_status'), 'workflow_runs', ['status'], unique=False)
+    op.create_index(op.f('ix_workflow_runs_workflow_id'), 'workflow_runs', ['workflow_id'], unique=False)
     op.create_table('workflow_executions',
     sa.Column('id', sa.BigInteger(), nullable=False),
     sa.Column('workflow_id', sa.BigInteger(), nullable=False),
-    sa.Column('event_id', sa.String(length=255), nullable=False),
-    sa.Column('event_type', sa.String(length=100), nullable=True),
-    sa.Column('entity_id', sa.String(length=100), nullable=True),
+    sa.Column('workflow_run_id', sa.BigInteger(), nullable=True),
+    sa.Column('entity_id', sa.String(length=255), nullable=True),
     sa.Column('status', sa.String(length=50), nullable=False),
     sa.Column('attempts', sa.Integer(), nullable=False),
     sa.Column('last_error', sa.Text(), nullable=True),
@@ -78,18 +81,22 @@ def upgrade() -> None:
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.ForeignKeyConstraint(['workflow_id'], ['workflows.id'], ),
+    sa.ForeignKeyConstraint(['workflow_run_id'], ['workflow_runs.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index(op.f('ix_workflow_executions_event_id'), 'workflow_executions', ['event_id'], unique=False)
     op.create_index(op.f('ix_workflow_executions_id'), 'workflow_executions', ['id'], unique=False)
     op.create_index(op.f('ix_workflow_executions_status'), 'workflow_executions', ['status'], unique=False)
     op.create_index(op.f('ix_workflow_executions_workflow_id'), 'workflow_executions', ['workflow_id'], unique=False)
+    op.create_index(op.f('ix_workflow_executions_workflow_run_id'), 'workflow_executions', ['workflow_run_id'], unique=False)
     op.create_table('execution_steps',
     sa.Column('id', sa.BigInteger(), nullable=False),
     sa.Column('workflow_execution_id', sa.BigInteger(), nullable=False),
+    sa.Column('step_id', sa.String(), nullable=False),
+    sa.Column('depends_on', postgresql.JSONB(astext_type=sa.Text()), nullable=True),
     sa.Column('step_name', sa.String(length=255), nullable=False),
     sa.Column('step_type', sa.String(length=50), nullable=False),
     sa.Column('status', sa.String(length=50), nullable=False),
+    sa.Column('attempts', sa.Integer(), nullable=False),
     sa.Column('input_payload', postgresql.JSONB(astext_type=sa.Text()), nullable=True),
     sa.Column('output_payload', postgresql.JSONB(astext_type=sa.Text()), nullable=True),
     sa.Column('last_error', sa.Text(), nullable=True),
@@ -103,29 +110,68 @@ def upgrade() -> None:
     op.create_index(op.f('ix_execution_steps_id'), 'execution_steps', ['id'], unique=False)
     op.create_index(op.f('ix_execution_steps_status'), 'execution_steps', ['status'], unique=False)
     op.create_index(op.f('ix_execution_steps_workflow_execution_id'), 'execution_steps', ['workflow_execution_id'], unique=False)
+    op.create_table('step_retry_history',
+    sa.Column('id', sa.BigInteger(), nullable=False),
+    sa.Column('step_execution_id', sa.BigInteger(), nullable=False),
+    sa.Column('workflow_execution_id', sa.BigInteger(), nullable=False),
+    sa.Column('attempt_number', sa.Integer(), nullable=False),
+    sa.Column('trigger', sa.String(length=50), nullable=False),
+    sa.Column('status_at_attempt', sa.String(length=50), nullable=False),
+    sa.Column('error', sa.Text(), nullable=True),
+    sa.Column('duration_ms', sa.Integer(), nullable=True),
+    sa.Column('result_payload', postgresql.JSONB(astext_type=sa.Text()), nullable=True),
+    sa.Column('retry_scheduled_at', sa.DateTime(timezone=True), nullable=True),
+    sa.Column('retry_executed_at', sa.DateTime(timezone=True), nullable=True),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.ForeignKeyConstraint(['step_execution_id'], ['execution_steps.id'], ),
+    sa.ForeignKeyConstraint(['workflow_execution_id'], ['workflow_executions.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_index(op.f('ix_step_retry_history_created_at'), 'step_retry_history', ['created_at'], unique=False)
+    op.create_index(op.f('ix_step_retry_history_id'), 'step_retry_history', ['id'], unique=False)
+    op.create_index(op.f('ix_step_retry_history_step_execution_id'), 'step_retry_history', ['step_execution_id'], unique=False)
+    op.create_index(op.f('ix_step_retry_history_trigger'), 'step_retry_history', ['trigger'], unique=False)
+    op.create_index(op.f('ix_step_retry_history_workflow_execution_id'), 'step_retry_history', ['workflow_execution_id'], unique=False)
+    op.alter_column('workflows', 'status',
+               existing_type=sa.VARCHAR(),
+               nullable=False)
+    op.create_index(op.f('ix_workflows_status'), 'workflows', ['status'], unique=False)
     # ### end Alembic commands ###
 
 
 def downgrade() -> None:
     """Downgrade schema."""
     # ### commands auto generated by Alembic - please adjust! ###
+    op.drop_index(op.f('ix_workflows_status'), table_name='workflows')
+    op.alter_column('workflows', 'status',
+               existing_type=sa.VARCHAR(),
+               nullable=True)
+    op.drop_index(op.f('ix_step_retry_history_workflow_execution_id'), table_name='step_retry_history')
+    op.drop_index(op.f('ix_step_retry_history_trigger'), table_name='step_retry_history')
+    op.drop_index(op.f('ix_step_retry_history_step_execution_id'), table_name='step_retry_history')
+    op.drop_index(op.f('ix_step_retry_history_id'), table_name='step_retry_history')
+    op.drop_index(op.f('ix_step_retry_history_created_at'), table_name='step_retry_history')
+    op.drop_table('step_retry_history')
     op.drop_index(op.f('ix_execution_steps_workflow_execution_id'), table_name='execution_steps')
     op.drop_index(op.f('ix_execution_steps_status'), table_name='execution_steps')
     op.drop_index(op.f('ix_execution_steps_id'), table_name='execution_steps')
     op.drop_table('execution_steps')
+    op.drop_index(op.f('ix_workflow_executions_workflow_run_id'), table_name='workflow_executions')
     op.drop_index(op.f('ix_workflow_executions_workflow_id'), table_name='workflow_executions')
     op.drop_index(op.f('ix_workflow_executions_status'), table_name='workflow_executions')
     op.drop_index(op.f('ix_workflow_executions_id'), table_name='workflow_executions')
-    op.drop_index(op.f('ix_workflow_executions_event_id'), table_name='workflow_executions')
     op.drop_table('workflow_executions')
+    op.drop_index(op.f('ix_workflow_runs_workflow_id'), table_name='workflow_runs')
+    op.drop_index(op.f('ix_workflow_runs_status'), table_name='workflow_runs')
+    op.drop_index(op.f('ix_workflow_runs_id'), table_name='workflow_runs')
+    op.drop_index(op.f('ix_workflow_runs_event_type'), table_name='workflow_runs')
+    op.drop_index(op.f('ix_workflow_runs_entity_id'), table_name='workflow_runs')
+    op.drop_table('workflow_runs')
     op.drop_index(op.f('ix_audit_logs_workflow_id'), table_name='audit_logs')
     op.drop_index(op.f('ix_audit_logs_status'), table_name='audit_logs')
     op.drop_index(op.f('ix_audit_logs_id'), table_name='audit_logs')
     op.drop_index(op.f('ix_audit_logs_event_type'), table_name='audit_logs')
     op.drop_table('audit_logs')
-    op.drop_index(op.f('ix_workflows_id'), table_name='workflows')
-    op.drop_index(op.f('ix_workflows_domain'), table_name='workflows')
-    op.drop_table('workflows')
     op.drop_index(op.f('ix_event_processing_status'), table_name='event_processing')
     op.drop_index(op.f('ix_event_processing_event_type'), table_name='event_processing')
     op.drop_index(op.f('ix_event_processing_event_id'), table_name='event_processing')
