@@ -17,6 +17,7 @@ def initialize_dag_steps(db, workflow_execution, workflow_steps, payload):
             depends_on=depends_on,
             status=initial_status,
         )
+        print(step, "step")
 
         created_steps.append(step)
         return created_steps

@@ -20,13 +20,14 @@ def create_step_execution(
     db,
     workflow_execution_id: int,
     step_name: str,
-    # step_type: str = "action",
+    step_id: int,
     input_payload: dict = None,
 ):
+    print(workflow_execution_id, step_name, step_id, input_payload, "hl;o how are you")
     step = ExecutionStep(
         workflow_execution_id=workflow_execution_id,
         step_name=step_name,
-        # step_type=step_type,
+        step_id=step_id,
         status=STEP_STATUS_PENDING,
         input_payload=input_payload,
     )

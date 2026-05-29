@@ -18,13 +18,16 @@ def execute_workflow_step(db, workflow_execution, step_definition, payload):
     try:
         # FIX C4: DAG steps from dsl_parser have shape {"id", "trigger", "action", "depends_on"}
         # OLD: step_definition["rule"] — "rule" key doesn't exist, caused KeyError on every step
+        print(step_definition, "step_definition")
         action = step_definition.get("action")
         config = step_definition.get("config", {})
         step_id = step_definition.get("id", "unknown")
+        print(step_id, "step_id")
         step_execution = create_step_execution(
             db=db,
             workflow_execution_id=workflow_execution.id,
             step_name=action or step_id,
+            step_id=step_id,
             input_payload=payload,
         )
 
@@ -33,7 +36,7 @@ def execute_workflow_step(db, workflow_execution, step_definition, payload):
         result = execute_action(action_name=action, payload=payload, config=config)
 
         success = result.get("success") is True or result.get("status") == "success"
-
+        print(success, "succes", result)
         if success:
             mark_step_completed(
                 db=db, step_execution=step_execution, output_payload=result
@@ -43,7 +46,9 @@ def execute_workflow_step(db, workflow_execution, step_definition, payload):
 
         mark_step_failed(db=db, step_execution=step_execution, error=str(result))
 
-        retry_result = handle_retry(db=db, step_execution=step_execution, error=str(result))
+        retry_result = handle_retry(
+            db=db, step_execution=step_execution, error=str(result)
+        )
 
         # Write retry history
         record_retry_history(
@@ -69,9 +74,16 @@ def execute_workflow_step(db, workflow_execution, step_definition, payload):
         )
 
         if step_execution:
-            if step_execution.status not in ("FAILED", "RETRY_SCHEDULED", "DLQ", "COMPLETED"):
+            if step_execution.status not in (
+                "FAILED",
+                "RETRY_SCHEDULED",
+                "DLQ",
+                "COMPLETED",
+            ):
                 mark_step_failed(db=db, step_execution=step_execution, error=str(e))
-                retry_result = handle_retry(db=db, step_execution=step_execution, error=str(e))
+                retry_result = handle_retry(
+                    db=db, step_execution=step_execution, error=str(e)
+                )
                 record_retry_history(
                     db=db,
                     step_execution=step_execution,
