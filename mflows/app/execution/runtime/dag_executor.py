@@ -1,6 +1,7 @@
 from app.execution.runtime.dag_scheduler import get_ready_steps
-# from app.execution.runtime.step_runner import execute_workflow_step  # OLD: wrong module name — file is step_executor.py
 from app.execution.runtime.step_executor import execute_workflow_step
+from app.execution.runtime.parallel_step_executor import execute_parallel_steps
+
 from app.core.logger import logger
 
 
@@ -11,46 +12,66 @@ def run_dag_execution(
     payload,
 ):
     steps = dag.get("steps", [])
+
     completed_steps = set()
     failed_steps = set()
 
     while True:
         ready_steps = get_ready_steps(
-            dag_steps=steps, completed_steps=completed_steps, failed_steps=failed_steps
+            dag_steps=steps,
+            completed_steps=completed_steps,
+            failed_steps=failed_steps,
         )
+
         if not ready_steps:
             break
 
-        for step in ready_steps:
-            result = execute_workflow_step(
-                db=db,
-                workflow_execution=workflow_execution,
-                step_definition=step,
+        # Sequential path
+        if len(ready_steps) == 1:
+            step = ready_steps[0]
+
+            results = [
+                {
+                    "step_id": step["id"],
+                    "result": execute_workflow_step(
+                        db=db,
+                        workflow_execution=workflow_execution,
+                        step_definition=step,
+                        payload=payload,
+                    ),
+                }
+            ]
+
+        # Parallel path
+        else:
+            results = execute_parallel_steps(
+                workflow_execution_id=workflow_execution.id,
+                ready_steps=ready_steps,
                 payload=payload,
             )
 
+        workflow_failed = False
+
+        for item in results:
+            step_id = item["step_id"]
+            result = item["result"]
+
             if result["success"]:
-                completed_steps.add(step["id"])
+                completed_steps.add(step_id)
+
             else:
-                failed_steps.add(step["id"])
+                failed_steps.add(step_id)
+                workflow_failed = True
 
                 logger.warning(
                     "dag_step_failed",
                     extra={
                         "extra_data": {
                             "workflow_execution_id": workflow_execution.id,
-                            "step_id": step["id"],
+                            "step_id": step_id,
                         }
                     },
                 )
 
-                # FIX: use break instead of return so while loop exits cleanly
-                # and finalize_workflow_execution is always called by runtime_processor
-                # OLD: return  — skipped finalizer for remaining ready steps in same iteration
-                break
-
-        else:
-            # inner for loop completed without break — continue while loop
-            continue
-        # inner for loop hit break (step failed) — exit while loop too
-        break
+        if workflow_failed:
+            break
