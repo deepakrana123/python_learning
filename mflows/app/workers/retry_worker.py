@@ -8,6 +8,8 @@ from app.models.workflow_execution import WorkflowExecution
 from app.models.execution_step import ExecutionStep
 from app.execution.runtime.retry_executor import execute_retry
 from app.repositories.step_retry_history_repo import record_retry_history
+from app.services import trace_service
+from app.core.tracing import build_log_context
 from app.core.logger import logger
 
 POLL_INTERVAL = 5
@@ -21,8 +23,7 @@ def start_retry_worker():
             due_items = redis_client.zrangebyscore(REDIS_RETRY_QUEUE, 0, now)
 
             if due_items:
-                # FIX H3: atomic pipeline — zrem all due items before processing
-                # OLD: zrangebyscore then individual zrem — two workers could claim same item
+                # Atomic pipeline — claim all due items before processing
                 pipeline = redis_client.pipeline()
                 for item in due_items:
                     pipeline.zrem(REDIS_RETRY_QUEUE, item)
@@ -30,8 +31,7 @@ def start_retry_worker():
 
                 for retry_item, removed in zip(due_items, removed_counts):
                     if removed == 0:
-                        # Another worker already claimed this item
-                        continue
+                        continue  # another worker claimed this
 
                     payload = json.loads(retry_item)
 
@@ -59,6 +59,27 @@ def start_retry_worker():
                     if step_execution.status in ("COMPLETED", "DLQ"):
                         continue
 
+                    attempt = payload.get("attempt", 1)
+
+                    # Emit RETRY_STARTED trace event
+                    trace_service.record_retry_started(
+                        db=db,
+                        workflow_execution=workflow_execution,
+                        step_execution=step_execution,
+                        attempt=attempt,
+                    )
+
+                    logger.info(
+                        "retry_started",
+                        extra={
+                            "extra_data": build_log_context(
+                                workflow_execution=workflow_execution,
+                                execution_step=step_execution,
+                                extra={"attempt": attempt},
+                            )
+                        },
+                    )
+
                     retry_executed_at = datetime.now(timezone.utc)
 
                     execute_retry(
@@ -67,11 +88,34 @@ def start_retry_worker():
                         step_execution=step_execution,
                     )
 
-                    # Write retry execution history
+                    # Refresh to get latest status after execute_retry
+                    db.refresh(step_execution)
+                    retry_succeeded = step_execution.status == "COMPLETED"
+
+                    # Emit RETRY_COMPLETED trace event
+                    trace_service.record_retry_completed(
+                        db=db,
+                        workflow_execution=workflow_execution,
+                        step_execution=step_execution,
+                        attempt=attempt,
+                        success=retry_succeeded,
+                    )
+
+                    logger.info(
+                        "retry_completed",
+                        extra={
+                            "extra_data": build_log_context(
+                                workflow_execution=workflow_execution,
+                                execution_step=step_execution,
+                                extra={"attempt": attempt, "success": retry_succeeded},
+                            )
+                        },
+                    )
+
                     record_retry_history(
                         db=db,
                         step_execution=step_execution,
-                        attempt_number=payload.get("attempt", 1),
+                        attempt_number=attempt,
                         trigger="retry",
                         status_at_attempt=step_execution.status,
                         error=None,

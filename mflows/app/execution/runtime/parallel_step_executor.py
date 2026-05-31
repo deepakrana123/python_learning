@@ -10,7 +10,7 @@ def execute_single_step(workflow_execution_id, step_definition, payload):
     try:
         workflow_execution = (
             db.query(WorkflowExecution)
-            .filter(WorkflowExecution.id == workflow_execution.id)
+            .filter(WorkflowExecution.id == workflow_execution_id)
             .first()
         )
         result = execute_workflow_step(

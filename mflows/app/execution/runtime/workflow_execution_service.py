@@ -1,5 +1,6 @@
 from sqlalchemy.sql import func
 from app.models.workflow_execution import WorkflowExecution
+from app.core.tracing import generate_trace_id
 
 from app.execution.runtime.constants import (
     WORKFLOW_STATUS_PENDING,
@@ -15,13 +16,20 @@ from app.core.logger import logger
 
 
 def create_workflow_execution(
-    db, workflow_id: int, workflow_run_id: int, entity_id: str = None
+    db, workflow_id: int, workflow_run_id: int, entity_id: str = None,
+    correlation_id: str = None,
 ):
+    # Generate trace_id once — stays constant for entire workflow lifecycle
+    trace_id = generate_trace_id()
+
     execution = WorkflowExecution(
         workflow_id=workflow_id,
         workflow_run_id=workflow_run_id,
         entity_id=entity_id,
         status=WORKFLOW_STATUS_PENDING,
+        trace_id=trace_id,
+        # correlation_id defaults to trace_id if no external correlation provided
+        correlation_id=correlation_id or trace_id,
     )
     db.add(execution)
     db.commit()

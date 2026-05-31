@@ -14,6 +14,7 @@ from app.models.audit_log import AuditLog
 from app.models.execution_step import ExecutionStep
 from app.models.step_retry_history import StepRetryHistory
 from app.models.workflowRetryHistory import WorkflowRetryHistory
+from app.models.trace_event import TraceEvent
 
 config = context.config
 

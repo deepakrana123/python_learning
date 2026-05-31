@@ -7,6 +7,8 @@ from app.models.execution_step import ExecutionStep
 from app.core.redis_client import redis_client
 from app.core.config import PROCESSING_TIMEOUT_SECONDS
 from app.repositories.step_retry_history_repo import record_retry_history
+from app.services import trace_service
+from app.core.tracing import build_log_context
 from app.core.logger import logger
 
 BATCH_SIZE = 50
@@ -21,8 +23,6 @@ def start_reaper():
                 seconds=PROCESSING_TIMEOUT_SECONDS
             )
 
-            # FIX H1: was filtering status == "PROCESSING" — that status never exists
-            # WorkflowExecution uses RUNNING, not PROCESSING
             stuck_executions = (
                 db.query(WorkflowExecution)
                 .filter(
@@ -34,27 +34,34 @@ def start_reaper():
             )
 
             for execution in stuck_executions:
-                # FIX H2: was accessing execution.event_id — WorkflowExecution has no event_id
-                # Use execution.id (WorkflowExecution primary key)
+                stuck_since = str(execution.updated_at)
+
                 logger.warning(
-                    "reaper_recovering_stuck_execution",
+                    "reaper_detected_stuck_execution",
                     extra={
-                        "extra_data": {
-                            "workflow_execution_id": execution.id,
-                            "workflow_id": execution.workflow_id,
-                            "stuck_since": str(execution.updated_at),
-                        }
+                        "extra_data": build_log_context(
+                            workflow_execution=execution,
+                            extra={"stuck_since": stuck_since},
+                        )
                     },
                 )
-                execution.status = "FAILED"
+
+                execution.status  = "FAILED"
                 execution.attempts = (execution.attempts or 0) + 1
                 execution.last_error = "timeout_recovery: stuck in RUNNING state"
 
-            # Commit DB first — before any Redis writes
+            # Commit DB state before Redis writes
             db.commit()
 
             for execution in stuck_executions:
-                # Write timeout recovery to step retry history for all RUNNING steps
+                # Emit REAPER_RECOVERED trace event
+                trace_service.record_reaper_recovered(
+                    db=db,
+                    workflow_execution=execution,
+                    stuck_since=str(execution.updated_at),
+                )
+
+                # Fail all RUNNING steps under this execution
                 running_steps = (
                     db.query(ExecutionStep)
                     .filter(
@@ -63,8 +70,9 @@ def start_reaper():
                     )
                     .all()
                 )
+
                 for step in running_steps:
-                    step.status = "FAILED"
+                    step.status     = "FAILED"
                     step.last_error = "timeout_recovery: parent execution timed out"
                     db.commit()
 
@@ -77,18 +85,17 @@ def start_reaper():
                         error="reaper: execution timed out in RUNNING state",
                     )
 
-                # Re-queue the execution for retry
-                # FIX H2: push workflow_execution_id, not event_id
+                # Re-queue for retry via main worker queue
                 retry_payload = {"workflow_execution_id": execution.id}
                 redis_client.lpush(WORKFLOW_EVENTS_QUEUE, json.dumps(retry_payload))
 
                 logger.info(
                     "reaper_execution_requeued",
                     extra={
-                        "extra_data": {
-                            "workflow_execution_id": execution.id,
-                            "attempts": execution.attempts,
-                        }
+                        "extra_data": build_log_context(
+                            workflow_execution=execution,
+                            extra={"attempts": execution.attempts},
+                        )
                     },
                 )
 

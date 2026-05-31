@@ -20,21 +20,23 @@ def create_step_execution(
     db,
     workflow_execution_id: int,
     step_name: str,
-    step_id: int,
+    step_id: str,
+    span_id: str = None,
+    parent_span_id: str = None,
     input_payload: dict = None,
 ):
-    print(workflow_execution_id, step_name, step_id, input_payload, "hl;o how are you")
     step = ExecutionStep(
         workflow_execution_id=workflow_execution_id,
         step_name=step_name,
         step_id=step_id,
+        span_id=span_id,
+        parent_span_id=parent_span_id,
         status=STEP_STATUS_PENDING,
         input_payload=input_payload,
     )
     db.add(step)
     db.commit()
     db.refresh(step)
-
     return step
 
 

@@ -6,6 +6,8 @@ from app.execution.runtime.workflow_execution_service import (
 )
 from app.execution.runtime.dag_executor import run_dag_execution
 from app.execution.runtime.workflow_finalizer import finalize_workflow_execution
+from app.services import trace_service
+from app.core.tracing import build_log_context
 from app.core.logger import logger
 
 
@@ -28,10 +30,10 @@ def runtime_processor(db, workflow_execution_id: int):
         logger.info(
             "workflow_execution_already_processed",
             extra={
-                "extra_data": {
-                    "workflow_execution_id": workflow_execution_id,
-                    "status": workflow_execution.status,
-                }
+                "extra_data": build_log_context(
+                    workflow_execution=workflow_execution,
+                    extra={"status": workflow_execution.status},
+                )
             },
         )
         return
@@ -39,7 +41,19 @@ def runtime_processor(db, workflow_execution_id: int):
     try:
         mark_workflow_running(db=db, workflow_execution=workflow_execution)
 
-        # FIX C1: was missing .first() — returned Query object, not Workflow instance
+        # Emit WORKFLOW_STARTED trace event
+        trace_service.record_workflow_started(db=db, workflow_execution=workflow_execution)
+
+        logger.info(
+            "workflow_started",
+            extra={
+                "extra_data": build_log_context(
+                    workflow_execution=workflow_execution,
+                    extra={"workflow_id": workflow_execution.workflow_id},
+                )
+            },
+        )
+
         workflow = (
             db.query(Workflow)
             .filter(Workflow.id == workflow_execution.workflow_id)
@@ -50,13 +64,18 @@ def runtime_processor(db, workflow_execution_id: int):
             logger.error(
                 "workflow_definition_not_found",
                 extra={
-                    "extra_data": {
-                        "workflow_execution_id": workflow_execution_id,
-                        "workflow_id": workflow_execution.workflow_id,
-                    }
+                    "extra_data": build_log_context(
+                        workflow_execution=workflow_execution,
+                        extra={"workflow_id": workflow_execution.workflow_id},
+                    )
                 },
             )
             mark_workflow_failed(
+                db=db,
+                workflow_execution=workflow_execution,
+                error="workflow_definition_not_found",
+            )
+            trace_service.record_workflow_failed(
                 db=db,
                 workflow_execution=workflow_execution,
                 error="workflow_definition_not_found",
@@ -65,13 +84,21 @@ def runtime_processor(db, workflow_execution_id: int):
 
         dag = workflow.parsed_rule_json or {}
 
-        # FIX H6: empty DAG must fail — not silently complete
         if not dag.get("steps"):
             logger.error(
                 "workflow_dag_empty",
-                extra={"extra_data": {"workflow_execution_id": workflow_execution_id}},
+                extra={
+                    "extra_data": build_log_context(
+                        workflow_execution=workflow_execution,
+                    )
+                },
             )
             mark_workflow_failed(
+                db=db,
+                workflow_execution=workflow_execution,
+                error="workflow_dag_has_no_steps",
+            )
+            trace_service.record_workflow_failed(
                 db=db,
                 workflow_execution=workflow_execution,
                 error="workflow_dag_has_no_steps",
@@ -93,16 +120,19 @@ def runtime_processor(db, workflow_execution_id: int):
         logger.exception(
             "runtime_processor_failed",
             extra={
-                "extra_data": {
-                    "workflow_execution_id": workflow_execution.id,
-                    "error": str(e),
-                }
+                "extra_data": build_log_context(
+                    workflow_execution=workflow_execution,
+                    extra={"error": str(e)},
+                )
             },
         )
-        # FIX M3: call mark_workflow_failed directly — not finalize_workflow_execution
-        # OLD: finalize was called in except — with zero steps it vacuously marked COMPLETED
         try:
             mark_workflow_failed(
+                db=db,
+                workflow_execution=workflow_execution,
+                error=str(e),
+            )
+            trace_service.record_workflow_failed(
                 db=db,
                 workflow_execution=workflow_execution,
                 error=str(e),
@@ -111,9 +141,9 @@ def runtime_processor(db, workflow_execution_id: int):
             logger.error(
                 "runtime_processor_failed_to_mark_failed",
                 extra={
-                    "extra_data": {
-                        "workflow_execution_id": workflow_execution.id,
-                        "error": str(state_err),
-                    }
+                    "extra_data": build_log_context(
+                        workflow_execution=workflow_execution,
+                        extra={"error": str(state_err)},
+                    )
                 },
             )
