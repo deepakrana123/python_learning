@@ -1,7 +1,6 @@
 from sqlalchemy.orm import Session
 from app.schemas.workflow import WorkflowCreate
 from app.repositories import workflow
-from app.parsers.orchestrator import parse_workflow_text
 from app.core.logger import logger
 from app.parsers.dag_orchestrator import parse_dag_workflow
 from app.parsers.dsl_normalizer import normalize_multiline_dsl
@@ -17,35 +16,27 @@ ALLOWED_DOMAINS = {
 }
 
 
-def create_workflow_service(
-    payload: WorkflowCreate,
-    db: Session,
-):
-
+def create_workflow_service(payload: WorkflowCreate, db: Session):
     if payload.domain not in ALLOWED_DOMAINS:
-
         logger.warning(
             "workflow_invalid_domain",
             extra={"extra_data": {"domain": payload.domain}},
         )
-
         raise ValueError("Invalid domain")
-    parse = normalize_multiline_dsl(payload.raw_input)
 
+    parse = normalize_multiline_dsl(payload.raw_input)
     parse_result = parse_dag_workflow(parse)
 
     if not parse_result["validation"]["is_valid"]:
-
         logger.warning(
             "workflow_parse_invalid",
             extra={
                 "extra_data": {
                     "errors": parse_result["validation"]["errors"],
-                    "raw_input": (payload.raw_input[:100]),
+                    "raw_input": payload.raw_input[:100],
                 }
             },
         )
-
         raise ValueError("Workflow text is invalid")
 
     parsed_rule_json = {
@@ -53,7 +44,7 @@ def create_workflow_service(
         "steps": parse_result["steps"],
     }
 
-    workflows = workflow.create(
+    result = workflow.create(
         db=db,
         name=payload.name,
         domain=payload.domain,
@@ -62,43 +53,43 @@ def create_workflow_service(
     )
 
     db.commit()
-
-    db.refresh(workflows)
+    db.refresh(result)
 
     logger.info(
         "workflow_created",
         extra={
             "extra_data": {
-                "workflow_id": workflows.id,
-                "name": workflows.name,
-                "domain": workflows.domain,
+                "workflow_id": result.id,
+                "name": result.name,
+                "domain": result.domain,
                 "workflow_version": "v2",
                 "step_count": len(parse_result["steps"]),
             }
         },
     )
 
-    return workflows
+    return result
 
 
-def get_by_id(workflow_id: int, db: Session):
-    workflow = workflow.get_by_id(db, workflow_id)
-    if not workflow:
+def get_workflow_service(workflow_id: int, db: Session):
+    result = workflow.get_by_id(db, workflow_id)
+    if not result:
         logger.warning(
             "workflow_not_found",
             extra={"extra_data": {"workflow_id": workflow_id}},
         )
         raise ValueError("Workflow not found")
-    return workflow
+    return result
 
 
-def list_by_domain(domain: str | None, db: Session):
-    return workflow.list_by_domin(domain)
+def list_workflow_service(domain: str | None, db: Session):
+    return workflow.list_by_domain(db, domain)
 
 
-def debug_parse(raw_text: str):
+def debug_parse_service(raw_text: str):
     logger.info(
         "debug_parse_called",
         extra={"extra_data": {"raw_text_preview": raw_text[:100]}},
     )
-    return parse_workflow_text(raw_text)
+    parse = normalize_multiline_dsl(raw_text)
+    return parse_dag_workflow(parse)
