@@ -15,43 +15,25 @@ Design:
 - Backward compatible — all fields are optional in log context
 """
 
-from ulid import ULID
+import ulid
 
-
-# ─────────────────────────────────────────────
-# ID GENERATION
-# ─────────────────────────────────────────────
 
 def generate_trace_id() -> str:
-    """
-    Generate a root workflow trace ID.
-    Format: wf_<ULID>
-    Example: wf_01KSSJ2YZAE4AJ44XD9CEQX8WE
-    """
-    return f"wf_{ULID()}"
+    return f"wf_{str(ulid.new())}"
 
 
 def generate_span_id() -> str:
-    """
-    Generate a step-level span ID.
-    Format: sp_<ULID>
-    Example: sp_01KSSJ2YZAE4AJ44XD9CEQX8WE
-    """
-    return f"sp_{ULID()}"
+    return f"sp_{str(ulid.new())}"
 
 
 def generate_provider_request_id() -> str:
-    """
-    Generate a provider request ID for downstream API call tracking.
-    Format: req_<ULID>
-    Example: req_01KSSJ2YZAE4AJ44XD9CEQX8WE
-    """
-    return f"req_{ULID()}"
+    return f"req_{str(ulid.new())}"
 
 
 # ─────────────────────────────────────────────
 # STRUCTURED LOG CONTEXT
 # ─────────────────────────────────────────────
+
 
 def build_log_context(
     workflow_execution=None,
@@ -114,7 +96,9 @@ def build_log_context(
         ctx["step_id"] = getattr(execution_step, "step_id", None)
         ctx["attempt"] = getattr(execution_step, "attempts", None)
         ctx["parent_span_id"] = getattr(execution_step, "parent_span_id", None)
-        ctx["provider_request_id"] = getattr(execution_step, "provider_request_id", None)
+        ctx["provider_request_id"] = getattr(
+            execution_step, "provider_request_id", None
+        )
 
     # Merge extra fields — extra takes lowest priority (ctx wins on conflict)
     if extra:
@@ -129,6 +113,7 @@ def build_log_context(
 # ─────────────────────────────────────────────
 # DOWNSTREAM PROPAGATION
 # ─────────────────────────────────────────────
+
 
 def build_trace_headers(
     trace_id: str,
@@ -179,39 +164,59 @@ def inject_trace_into_payload(
 ) -> dict:
     """
     Inject trace context into the action payload dict.
+    All values are explicitly cast to plain Python primitives (str/int)
+    so psycopg2 can safely serialize them into JSONB columns.
 
-    Every downstream action receives _trace automatically.
-    Chaos actions and real actions can read trace_id for logging/correlation.
-
-    Usage:
-        enriched_payload = inject_trace_into_payload(
-            payload=payload,
-            workflow_execution=workflow_execution,
-            execution_step=step_execution,
-        )
-        execute_action(action_name=action, payload=enriched_payload, config=config)
-
-    Injects:
-        payload["_trace"] = {
-            "trace_id": "wf_...",
-            "span_id": "sp_...",
-            "parent_span_id": "wf_...",
-            "workflow_execution_id": 42,
-            "step_execution_id": 7,
-        }
+    Uses json round-trip as final safety net to catch any non-serializable
+    SQLAlchemy instrumented attributes or ULID objects.
     """
-    trace_context = {
-        "trace_id": getattr(workflow_execution, "trace_id", None),
-        "workflow_execution_id": getattr(workflow_execution, "id", None),
-    }
+    import json
+
+    def _safe_str(val) -> str | None:
+        if val is None:
+            return None
+        s = str(val)
+        # Reject SQLAlchemy instrumented attribute repr strings
+        if s.startswith("<") or "InstrumentedAttribute" in s:
+            return None
+        return s if s else None
+
+    def _safe_int(val) -> int | None:
+        if val is None:
+            return None
+        try:
+            return int(val)
+        except (TypeError, ValueError):
+            return None
+
+    trace_context = {}
+
+    tid = _safe_str(getattr(workflow_execution, "trace_id", None))
+    wid = _safe_int(getattr(workflow_execution, "id", None))
+
+    if tid:
+        trace_context["trace_id"] = tid
+    if wid:
+        trace_context["workflow_execution_id"] = wid
 
     if execution_step is not None:
-        trace_context["span_id"] = getattr(execution_step, "span_id", None)
-        trace_context["parent_span_id"] = getattr(execution_step, "parent_span_id", None)
-        trace_context["step_execution_id"] = getattr(execution_step, "id", None)
+        sid = _safe_str(getattr(execution_step, "span_id", None))
+        psid = _safe_str(getattr(execution_step, "parent_span_id", None))
+        esid = _safe_int(getattr(execution_step, "id", None))
 
-    # Remove None values
-    trace_context = {k: v for k, v in trace_context.items() if v is not None}
+        if sid:
+            trace_context["span_id"] = sid
+        if psid:
+            trace_context["parent_span_id"] = psid
+        if esid:
+            trace_context["step_execution_id"] = esid
+
+    # Final safety net — json round-trip forces all values to plain primitives
+    # This catches any remaining SQLAlchemy proxy objects or non-serializable types
+    try:
+        trace_context = json.loads(json.dumps(trace_context, default=str))
+    except Exception:
+        trace_context = {}
 
     enriched = dict(payload)
     enriched["_trace"] = trace_context

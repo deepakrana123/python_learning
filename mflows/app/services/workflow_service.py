@@ -6,53 +6,6 @@ from app.core.logger import logger
 from app.parsers.dag_orchestrator import parse_dag_workflow
 from app.parsers.dsl_normalizer import normalize_multiline_dsl
 
-# ALLOWED_DOMAINS = {"support", "loan", "payments", "hr", "logistics", "ecommerce"}
-
-
-# def create_workflow_service(payload: WorkflowCreate, db: Session):
-#     if payload.domain not in ALLOWED_DOMAINS:
-#         logger.warning(
-#             "workflow_invalid_domain",
-#             extra={"extra_data": {"domain": payload.domain}},
-#         )
-#         raise ValueError("Invalid domain")
-
-#     parse_result = parse_workflow_text(payload.raw_input)
-
-#     if not parse_result["validation"]["is_valid"]:
-#         logger.warning(
-#             "workflow_parse_invalid",
-#             extra={
-#                 "extra_data": {
-#                     "errors": parse_result["validation"]["errors"],
-#                     "raw_input": payload.raw_input[:100],
-#                 }
-#             },
-#         )
-#         raise ValueError("Workflow text is invalid")
-
-#     workflows = workflow.create(
-#         db=db,
-#         name=payload.name,
-#         domain=payload.domain,
-#         raw_input=payload.raw_input,
-#         parsed_rule_json=parse_result.get("data", {}),
-#     )
-#     db.commit()
-#     db.refresh(workflows)
-#     logger.info(
-#         "workflow_created",
-#         extra={
-#             "extra_data": {
-#                 "workflow_id": workflows.id,
-#                 "name": workflows.name,
-#                 "domain": workflows.domain,
-#                 "parse_source": parse_result.get("source"),
-#             }
-#         },
-#     )
-#     return workflows
-
 ALLOWED_DOMAINS = {
     "support",
     "loan",
@@ -77,9 +30,8 @@ def create_workflow_service(
 
         raise ValueError("Invalid domain")
     parse = normalize_multiline_dsl(payload.raw_input)
-    print(parse, "[parse]")
+
     parse_result = parse_dag_workflow(parse)
-    print(parse_result, "parse_result")
 
     if not parse_result["validation"]["is_valid"]:
 

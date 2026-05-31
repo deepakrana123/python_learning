@@ -13,6 +13,14 @@ def execute_single_step(workflow_execution_id, step_definition, payload):
             .filter(WorkflowExecution.id == workflow_execution_id)
             .first()
         )
+
+        if not workflow_execution:
+            return {"step_id": step_definition["id"], "result": {"success": False, "error": "workflow_execution_not_found"}}
+
+        # Explicitly refresh to ensure all columns (including trace_id added by migration)
+        # are loaded as plain Python values — not SQLAlchemy instrumented proxies
+        db.refresh(workflow_execution)
+
         result = execute_workflow_step(
             db=db,
             workflow_execution=workflow_execution,

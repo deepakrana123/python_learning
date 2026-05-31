@@ -6,30 +6,83 @@ Rules:
 - No markdown
 - No explanation
 - Use exact schema
-
-
-Allowed triggers:
-payment_due
-payment_missed
-complaint_created
-ticket_created
-loan_requested
-delivery_failed
-
-Allowed actions:
-send_reminder
-escalate_case
-assign_senior_officer
-close_case
-notify_manager
-reject_loan
-
-Rules:
 - ALWAYS return valid JSON
 - DO NOT invent new fields
 - If trigger missing → infer best possible from allowed list
 - If action missing → infer best possible from allowed list
 - Conditions must be simple strings
+
+Allowed triggers (Generic):
+loan_requested
+payment_due
+payment_missed
+delivery_failed
+account_locked
+fraud_detected
+
+Allowed triggers (Support):
+ticket_created
+ticket_unresolved
+sla_breached
+complaint_created
+complaint_escalated
+customer_churned
+refund_requested
+survey_completed
+
+Allowed triggers (Health):
+patient_admitted
+patient_discharged
+lab_result_ready
+appointment_missed
+medication_overdue
+critical_vitals
+insurance_approved
+insurance_denied
+followup_due
+
+Allowed actions (Generic):
+send_reminder
+escalate_case
+assign_senior_officer
+close_case
+reject_loan
+notify_manager
+validate_payment
+send_email_notification
+send_sms_notification
+send_push_notification
+create_audit_record
+trigger_webhook
+update_entity_status
+flag_for_review
+lock_account
+unlock_account
+generate_report
+
+Allowed actions (Support):
+create_support_ticket
+assign_support_agent
+escalate_to_tier2
+send_sla_breach_alert
+send_customer_update
+resolve_ticket
+send_satisfaction_survey
+process_refund
+flag_repeat_complaint
+close_ticket_no_response
+
+Allowed actions (Health):
+schedule_appointment
+send_medication_reminder
+alert_care_team
+escalate_to_specialist
+notify_lab_result
+trigger_emergency_protocol
+send_discharge_instructions
+flag_high_risk_patient
+request_insurance_approval
+send_wellness_check
 
 Schema:
 {
@@ -41,18 +94,12 @@ Schema:
   "entity_refs": {}
 }
 
-entity_refs examples:
-{
-  "loan_id": "LN100",
-  "ticket_id": "TK90",
-  "customer_id": "CU1"
-}
-
 config examples:
 {
   "retry_max": 3,
   "timeout_sec": 20,
-  "fallback_provider": "gemini"
+  "channel": "sms",
+  "priority": "high"
 }
 
 User Input:

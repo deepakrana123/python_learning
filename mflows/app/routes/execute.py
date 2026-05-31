@@ -12,6 +12,7 @@ from app.execution.runtime.workflow_execution_service import (
     mark_workflow_running,
     mark_workflow_paused,
 )
+from app.core.redis_client import redis_client
 
 router = APIRouter(prefix="/execute", tags=["execute"])
 
@@ -35,7 +36,16 @@ def publish_event(body: ExecuteWorkflow):
             )
             .first()
         )
-        if existing:
+        lock_key = f"workflow_lock:{body.workflow_id}"
+
+        lock_acquired = redis_client.set(
+            lock_key,
+            "running",
+            nx=True,
+            ex=3600,  # 1 hour TTL
+        )
+
+        if existing or not lock_acquired:
             return {
                 "success": False,
                 "message": "workflow already has an active execution",

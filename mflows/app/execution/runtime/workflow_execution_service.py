@@ -13,10 +13,14 @@ from app.execution.runtime.constants import (
 )
 from app.execution.runtime.execution_state_manager import validate_workflow_transition
 from app.core.logger import logger
+from app.core.redis_client import redis_client
 
 
 def create_workflow_execution(
-    db, workflow_id: int, workflow_run_id: int, entity_id: str = None,
+    db,
+    workflow_id: int,
+    workflow_run_id: int,
+    entity_id: str = None,
     correlation_id: str = None,
 ):
     # Generate trace_id once — stays constant for entire workflow lifecycle
@@ -97,6 +101,7 @@ def mark_workflow_running(db, workflow_execution):
 
 
 def mark_workflow_completed(db, workflow_execution):
+    redis_client.delete(f"workflow_lock:{workflow_execution.workflow_id}")
     return update_workflow_status(
         db=db,
         workflow_execution=workflow_execution,
@@ -105,6 +110,7 @@ def mark_workflow_completed(db, workflow_execution):
 
 
 def mark_workflow_failed(db, workflow_execution, error: str):
+    redis_client.delete(f"workflow_lock:{workflow_execution.workflow_id}")
     return update_workflow_status(
         db=db,
         workflow_execution=workflow_execution,

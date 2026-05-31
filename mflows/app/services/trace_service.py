@@ -10,9 +10,24 @@ Design:
 - Payload is always sanitized before write
 """
 
+import json
 from datetime import datetime, timezone
 from app.models.trace_event import TraceEvent
 from app.core.logger import logger
+
+
+def _safe_payload(data: dict) -> dict | None:
+    """
+    Force all values in a dict to JSON-serializable primitives.
+    Prevents MemoryView/ULID/SQLAlchemy instrumented attribute errors
+    when psycopg2 writes to JSONB columns.
+    """
+    if not data:
+        return None
+    try:
+        return json.loads(json.dumps(data, default=str))
+    except Exception:
+        return None
 
 
 # ─────────────────────────────────────────────
@@ -66,16 +81,16 @@ def create_trace_event(
 
     try:
         event = TraceEvent(
-            trace_id=trace_id,
-            span_id=span_id,
-            parent_span_id=parent_span_id,
-            workflow_execution_id=workflow_execution_id,
-            execution_step_id=execution_step_id,
-            event_type=event_type,
-            event_source=event_source,
-            status=status,
-            message=message,
-            payload=payload,
+            trace_id=str(trace_id),
+            span_id=str(span_id) if span_id else None,
+            parent_span_id=str(parent_span_id) if parent_span_id else None,
+            workflow_execution_id=int(workflow_execution_id),
+            execution_step_id=int(execution_step_id) if execution_step_id else None,
+            event_type=str(event_type),
+            event_source=str(event_source) if event_source else None,
+            status=str(status) if status else None,
+            message=str(message) if message else None,
+            payload=_safe_payload(payload),
         )
         db.add(event)
         db.commit()
