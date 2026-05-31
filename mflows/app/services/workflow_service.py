@@ -8,6 +8,7 @@ from app.parsers.dsl_normalizer import normalize_multiline_dsl
 
 ALLOWED_DOMAINS = {
     "support",
+    "health",
     "loan",
     "payments",
     "hr",

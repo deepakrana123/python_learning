@@ -16,7 +16,6 @@ def process_event_service(event: dict, db):
     matched_workflow_ids = []
     executed_keys = set()
 
-    # Claim the event — only one worker processes it
     updated = (
         db.query(EventProcessing)
         .filter(

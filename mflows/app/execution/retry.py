@@ -6,16 +6,6 @@ from app.core.logger import logger
 from app.execution.retry_policy import calculate_delay
 
 
-# OLD signature — required workflow_execution as first arg (workflow-level retry pattern)
-# def handle_retry_event(
-#     workflow_execution,
-#     step_execution,
-#     attempts,
-#     error,
-# ):
-
-# FIX: step-level retry only — workflow_execution removed
-# use step_execution.workflow_execution_id for correlation
 def handle_retry_event(
     step_execution,
     attempts,
@@ -51,15 +41,6 @@ def handle_retry_event(
     )
 
 
-# OLD signature — required workflow_execution as first arg (workflow-level DLQ pattern)
-# def handle_dlq_event(
-#     workflow_execution,
-#     step_execution,
-#     attempts,
-#     error,
-# ):
-
-# FIX: step-level DLQ only — workflow_execution removed
 def handle_dlq_event(
     step_execution,
     attempts,
