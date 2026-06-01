@@ -1276,8 +1276,8 @@ class LRUCache:
         self.capacity = capacity
         self.size = 0
         self.cache = {}
-        self.head = Node(0, 0)
-        self.tail = Node(0, 0)
+        self.head = DoublyLinkedList(0, 0)
+        self.tail = DoublyLinkedList(0, 0)
         self.head.next = self.tail
         self.tail.prev = self.head
 
@@ -1360,3 +1360,8 @@ class LFUCache:
             node.val = value
             self.freqToList[key] += 1
             heapq.heappush(self.heap, (key, self.freqToList[key]))
+            self._move_to_front(node)
+        node = Node(key, value)
+        self.cache[key] = node
+        self.freqToList[key] += 1
+        heapq.heappush(self.heap, (key, self.freqToList[key]))
