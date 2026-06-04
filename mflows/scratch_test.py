@@ -433,25 +433,36 @@
 #         except Exception:
 #             pass  # expected — we just verify no unhandled crash
 
-from app.nlp.ast.schema import WorkflowAST
-from app.nlp.ast.validator import ASTValidator
+# from app.nlp.ast.schema import WorkflowAST
+# from app.nlp.ast.validator import ASTValidator
 
 
-ast = WorkflowAST(
-    trigger={"event": "payment_due"},
-    steps=[
-        {
-            "id": "1",
-            "action": "send_reminder",
-        },
-        {
-            "id": "2",
-            "action": "notify_manager",
-            "depends_on": ["1"]
-        }
-    ]
-)
+# ast = WorkflowAST(
+#     trigger={"event": "payment_due"},
+#     steps=[
+#         {
+#             "id": "1",
+#             "action": "send_reminder",
+#         },
+#         {
+#             "id": "2",
+#             "action": "notify_manager",
+#             "depends_on": ["1"]
+#         }
+#     ]
+# )
 
-ASTValidator().validate(ast)
+# ASTValidator().validate(ast)
 
-print("AST VALID")
+# print("AST VALID")
+
+dsl = """
+@1:
+payment_due -> send_reminder
+
+@2 @depends(@1):
+payment_due -> notify_manager
+
+@3 @depends(@2):
+payment_due -> close_case
+"""
